@@ -5,6 +5,9 @@ from .shield_evaluator import evaluate_runtime_shield
 from .propagator_comparison import compare_propagators, run_simple_test
 from .template_comparison import (
     compare_templates,
+    compare_templates_scripted,
+    run_scripted_comparisons,
+    run_taxinet_scripted_comparison,
     run_toy_comparison,
     run_toy_comparison_averaged,
     run_taxinet_comparison,
@@ -13,9 +16,33 @@ from .template_comparison import (
     run_all_comparisons,
     plot_comparison,
     plot_averaged_comparison,
+    plot_metrics_individually,
+    plot_averaged_metrics_individually,
     create_toy_model,
 )
-from .report_runner import ReportRunner
+from .report_runner import ReportRunner, ScriptedReportRunner
+from .script_library import RunScript, ScriptLibrary, generate_script
+from .metrics import (
+    MetricValue,
+    MetricsCollector,
+    StepMetrics,
+    ApproximationMetrics_1,
+    compute_template_spread,
+    compute_volume_proxy,
+    compute_safest_action_prob,
+)
+from .lfp_reporters import (
+    ComparisonResult,
+    LFPReporter,
+    ScriptedLFPReporter,
+)
+from .single_run import (
+    DebugConfig,
+    RunStatistics,
+    run_single_debug,
+    run_taxinet_debug,
+    compute_top_k_states,
+)
 
 __all__ = [
     'RuntimeImpShield',
@@ -23,6 +50,9 @@ __all__ = [
     'compare_propagators',
     'run_simple_test',
     'compare_templates',
+    'compare_templates_scripted',
+    'run_scripted_comparisons',
+    'run_taxinet_scripted_comparison',
     'run_toy_comparison',
     'run_toy_comparison_averaged',
     'run_taxinet_comparison',
@@ -31,6 +61,27 @@ __all__ = [
     'run_all_comparisons',
     'plot_comparison',
     'plot_averaged_comparison',
+    'plot_metrics_individually',
+    'plot_averaged_metrics_individually',
     'create_toy_model',
     'ReportRunner',
+    'ScriptedReportRunner',
+    'RunScript',
+    'ScriptLibrary',
+    'generate_script',
+    'MetricValue',
+    'MetricsCollector',
+    'StepMetrics',
+    'ApproximationMetrics_1',
+    'compute_template_spread',
+    'compute_volume_proxy',
+    'compute_safest_action_prob',
+    'ComparisonResult',
+    'LFPReporter',
+    'ScriptedLFPReporter',
+    'DebugConfig',
+    'RunStatistics',
+    'run_single_debug',
+    'run_taxinet_debug',
+    'compute_top_k_states',
 ]

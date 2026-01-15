@@ -11,10 +11,11 @@ Templates compared:
 - Hybrid: combination of canonical and safe-set indicators
 """
 
-from typing import List, Dict, Tuple, Optional, Callable, Any
+from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 import numpy as np
 import random
+import os
 
 from ..CaseStudies.Taxinet import build_taxinet_ipomdp
 from ..Models import IPOMDP
@@ -26,30 +27,24 @@ from ..Propagators import (
 )
 from ..Propagators.lfp_propagator import default_solver
 
-from .report_runner import ReportRunner
 from .runtime_shield import RuntimeImpShield
+from .script_library import RunScript, ScriptLibrary
+from .metrics import (
+    MetricValue,
+    MetricsCollector,
+    StepMetrics,
+    ApproximationMetrics_1,
+)
+from .lfp_reporters import (
+    ComparisonResult,
+    LFPReporter,
+    ScriptedLFPReporter,
+)
 
-@dataclass
-class ApproximationMetrics:
-    """Metrics for measuring approximation quality at a single step."""
-    step: int
-    template_spread: float  # Sum of (upper - lower) for each template direction
-    volume_proxy: float     # Product of spreads (proxy for volume)
-    min_state_bounds: Dict  # Lower bounds on each state probability
-    max_state_bounds: Dict  # Upper bounds on each state probability
-    safest_action_prob: float  # Max over actions of min safe probability
-    action_safe_probs: Dict  # Min safe probability for each action
 
-
-@dataclass
-class ComparisonResult:
-    """Results from comparing templates on a single run."""
-    template_name: str
-    template: Template
-    history: List[Tuple]
-    metrics: List[ApproximationMetrics]
-    final_polytope: BeliefPolytope
-
+# ============================================================
+# Legacy helper functions (kept for backward compatibility)
+# ============================================================
 
 def compute_template_spread(polytope: BeliefPolytope, template: Template) -> Tuple[float, Dict, Dict]:
     """
@@ -160,53 +155,9 @@ def compute_shield_permissivity(
     return safest_action_prob, action_safe_probs
 
 
-class LFPReporter(ReportRunner):
-    
-    # requires rt_shield.ipomdp_belief : LFPPropagator
-    def collect_metrics(self, rt_shield, step):
-        assert isinstance(rt_shield.ipomdp_belief, LFPPropagator)
-
-        polytope = rt_shield.ipomdp_belief.belief
-        template = rt_shield.ipomdp_belief.template
-        ipomdp = rt_shield.ipomdp_belief.ipomdp
-
-        spread, min_b, max_b = compute_template_spread(polytope, template)
-        vol = compute_volume_proxy(polytope, template)
-        safest_prob, action_probs = compute_shield_permissivity(polytope, ipomdp)
-
-        metric = ApproximationMetrics(
-            step=step + 1,
-            template_spread=spread,
-            volume_proxy=vol,
-            min_state_bounds=min_b,
-            max_state_bounds=max_b,
-            safest_action_prob=safest_prob,
-            action_safe_probs=action_probs
-        )
-
-        return metric
-
-    def initialize(self):
-        self.metrics = []
-        self.history = []
-        
-    def report(self, step, state, obs, action, rt_shield):
-        self.metrics.append(self.collect_metrics(rt_shield, step))
-        self.history.append((step, obs, action))
-
-    def final(self, rt_shield):
-        assert isinstance(rt_shield.ipomdp_belief, LFPPropagator)
-
-        template = rt_shield.ipomdp_belief.template
-        polytope = rt_shield.ipomdp_belief.belief
-        
-        return  ComparisonResult(
-            template_name=getattr(template, 'name', 'unnamed'),
-            template=template,
-            history=self.history,
-            metrics=self.metrics,
-            final_polytope=polytope
-        )
+# ============================================================
+# Run functions
+# ============================================================
 
 def run_lfp_propagation(
         ipomdp: IPOMDP,
@@ -229,6 +180,42 @@ def run_lfp_propagation(
     lfp_reporter = LFPReporter(ipomdp, perception, rt_shield, action_selector, length, initial)
 
     return lfp_reporter.run()
+
+
+def run_scripted_lfp_propagation(
+        ipomdp: IPOMDP,
+        pp_shield: Dict,
+        template: Template,
+        script: RunScript,
+        action_shield: float = 0.8
+) -> ComparisonResult:
+    """Run LFP propagation on a pre-recorded script.
+
+    Parameters
+    ----------
+    ipomdp : IPOMDP
+        The interval POMDP model
+    pp_shield : dict
+        Perfect perception shield: state -> set of safe actions
+    template : Template
+        Template for LFP propagation
+    script : RunScript
+        Pre-recorded trajectory to replay
+    action_shield : float
+        Minimum required probability for an action to be allowed
+
+    Returns
+    -------
+    ComparisonResult
+        Results including metrics at each step
+    """
+    n = len(ipomdp.states)
+    polytope = BeliefPolytope.uniform_prior(n)
+    propagator = LFPPropagator(ipomdp, template, default_solver(), polytope)
+    rt_shield = RuntimeImpShield(pp_shield, propagator, action_shield)
+
+    reporter = ScriptedLFPReporter(script, rt_shield)
+    return reporter.run()
 
     
                 
@@ -378,6 +365,242 @@ def compare_templates(
     return results
 
 
+def compare_templates_scripted(
+        ipomdp: IPOMDP,
+        pp_shield: Dict,
+        script: RunScript,
+        templates: Optional[Dict[str, Template]] = None,
+        action_shield: float = 0.8,
+        verbose: bool = False
+) -> Dict[str, ComparisonResult]:
+    """Compare multiple template strategies on the same scripted trajectory.
+
+    Unlike compare_templates which generates new trajectories for each template,
+    this uses a pre-recorded script ensuring identical conditions for all templates.
+
+    Parameters
+    ----------
+    ipomdp : IPOMDP
+        The interval POMDP model
+    pp_shield : dict
+        Perfect perception shield: state -> set of safe actions
+    script : RunScript
+        Pre-recorded trajectory to replay
+    templates : dict, optional
+        Templates to compare. If None, creates default templates.
+    action_shield : float
+        Minimum required probability for an action to be allowed
+    verbose : bool
+        Print progress
+
+    Returns
+    -------
+    dict
+        Mapping from template name to ComparisonResult
+    """
+    if templates is None:
+        templates = create_templates_for_ipomdp(ipomdp)
+
+    results = {}
+    for name, template in templates.items():
+        if verbose:
+            print(f"\n{'='*60}")
+            print(f"Running template: {name}")
+            print(f"{'='*60}")
+
+        result = run_scripted_lfp_propagation(
+            ipomdp,
+            pp_shield,
+            template,
+            script,
+            action_shield
+        )
+        result.template_name = name
+        results[name] = result
+
+    return results
+
+
+def run_scripted_comparisons(
+        ipomdp: IPOMDP,
+        pp_shield: Dict,
+        library: ScriptLibrary,
+        templates: Optional[Dict[str, Template]] = None,
+        action_shield: float = 0.8,
+        verbose: bool = False
+) -> "Dict[str, AveragedComparisonResult]":
+    """Run template comparison on all scripts in a library and average results.
+ 
+    Parameters
+    ----------
+    ipomdp : IPOMDP
+        The interval POMDP model
+    pp_shield : dict
+        Perfect perception shield: state -> set of safe actions
+    library : ScriptLibrary
+        Library of pre-recorded scripts
+    templates : dict, optional
+        Templates to compare. If None, creates default templates.
+    action_shield : float
+        Minimum required probability for an action to be allowed
+    verbose : bool
+        Print progress
+
+    Returns
+    -------
+    dict
+        Mapping from template name to AveragedComparisonResult
+    """
+    if templates is None:
+        templates = create_templates_for_ipomdp(ipomdp)
+
+    all_results = {name: [] for name in templates}
+
+    for i, script in enumerate(library):
+        if verbose:
+            print(f"Script {i + 1}/{len(library)}")
+
+        results = compare_templates_scripted(
+            ipomdp,
+            pp_shield,
+            script,
+            templates,
+            action_shield,
+            verbose=False
+        )
+
+        for name, result in results.items():
+            all_results[name].append(result)
+
+    # Average the results
+    averaged_results = {}
+    for name, runs in all_results.items():
+        if not runs:
+            continue
+
+        num_steps = min(len(r.metrics) for r in runs)
+        if num_steps == 0:
+            continue
+
+        averaged_metrics = []
+        for step in range(num_steps):
+            spreads = [r.metrics[step].template_spread for r in runs]
+            volumes = [r.metrics[step].volume_proxy for r in runs]
+            probs = [r.metrics[step].safest_action_prob for r in runs]
+
+            averaged_metrics.append(AveragedMetrics(
+                step=step,
+                template_spread_mean=np.mean(spreads),
+                template_spread_std=np.std(spreads),
+                volume_proxy_mean=np.mean(volumes),
+                volume_proxy_std=np.std(volumes),
+                safest_action_prob_mean=np.mean(probs),
+                safest_action_prob_std=np.std(probs)
+            ))
+
+        averaged_results[name] = AveragedComparisonResult(
+            template_name=name,
+            num_runs=len(runs),
+            num_steps=num_steps,
+            metrics=averaged_metrics
+        )
+
+    return averaged_results
+
+
+def run_taxinet_scripted_comparison(
+        num_scripts: int = 10,
+        script_length: int = 20,
+        seed: Optional[int] = None,
+        verbose: bool = True,
+        save_dir: Optional[str] = None
+):
+    """Run scripted template comparison on the Taxinet model.
+
+    Generates a library of scripts using perfect perception shielding,
+    then compares templates on identical trajectories.
+
+    Parameters
+    ----------
+    num_scripts : int
+        Number of scripts to generate
+    script_length : int
+        Length of each script
+    seed : int, optional
+        Random seed for reproducibility
+    verbose : bool
+        Print progress
+    save_dir : str, optional
+        Directory to save metric plots (one plot per metric)
+    """
+    print("=" * 60)
+    print(f"TAXINET SCRIPTED COMPARISON ({num_scripts} scripts, length {script_length})")
+    print("=" * 60)
+
+    initial = ((0, 0), 0)
+    ipomdp, dyn_shield, test_cte_model, test_he_model = build_taxinet_ipomdp()
+
+    def perception(state):
+        if state == "FAIL":
+            return "FAIL"
+        return (random.choice(test_cte_model[state[0]]), random.choice(test_he_model[state[1]]))
+
+    # Generate script library
+    if verbose:
+        print(f"\nGenerating {num_scripts} scripts...")
+
+    library = ScriptLibrary.generate(
+        ipomdp,
+        dyn_shield,
+        perception,
+        initial,
+        num_scripts,
+        script_length,
+        seed=seed
+    )
+
+    if verbose:
+        print(f"Generated {len(library)} scripts")
+        avg_len = np.mean([s.length for s in library])
+        print(f"Average script length: {avg_len:.1f}")
+
+    templates = create_templates_for_ipomdp(ipomdp)
+
+    print(f"\nStates: {len(ipomdp.states)} states")
+    print(f"Actions: {ipomdp.actions}")
+    print(f"Templates: {list(templates.keys())}")
+
+    results = run_scripted_comparisons(
+        ipomdp,
+        dyn_shield,
+        library,
+        templates,
+        verbose=verbose
+    )
+
+    print("\n" + "=" * 60)
+    print("FINAL SUMMARY (SCRIPTED)")
+    print("=" * 60)
+    for name, result in results.items():
+        final = result.metrics[-1]
+        print(f"\n{name}:")
+        print(f"  Final spread: {final.template_spread_mean:.4f} +/- {final.template_spread_std:.4f}")
+        print(f"  Final volume: {final.volume_proxy_mean:.6e} +/- {final.volume_proxy_std:.6e}")
+        print(f"  Safest prob:  {final.safest_action_prob_mean:.4f} +/- {final.safest_action_prob_std:.4f}")
+
+    # Save plots to subdirectory (one per metric)
+    if save_dir:
+        metrics_collector = ApproximationMetrics_1()
+        plot_averaged_metrics_individually(
+            results,
+            metrics_collector,
+            save_dir,
+            title_prefix="Taxinet Scripted"
+        )
+
+    return results, library
+
+
 def plot_comparison(
     results: Dict[str, ComparisonResult],
     title: str = "Template Comparison",
@@ -459,6 +682,136 @@ def plot_comparison(
 
     plt.show()
     return fig
+
+
+def plot_metrics_individually(
+    results: Dict[str, ComparisonResult],
+    metrics_collector: MetricsCollector,
+    save_dir: str,
+    title_prefix: str = "Template Comparison"
+):
+    """Plot each metric to a separate file in a subdirectory.
+
+    Parameters
+    ----------
+    results : dict
+        Mapping from template name to ComparisonResult
+    metrics_collector : MetricsCollector
+        The metrics collector that defines which metrics to plot
+    save_dir : str
+        Directory to save plots (will be created if needed)
+    title_prefix : str
+        Prefix for plot titles
+    """
+    import matplotlib.pyplot as plt
+
+    os.makedirs(save_dir, exist_ok=True)
+
+    colors = plt.cm.tab10(np.linspace(0, 1, len(results)))
+
+    for metric_name in metrics_collector.metric_names():
+        config = metrics_collector.get_plot_config(metric_name)
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.set_title(f"{title_prefix}: {config['display_name']}")
+
+        for (name, result), color in zip(results.items(), colors):
+            steps = [m.step for m in result.metrics]
+            values = [m.get(metric_name, 0.0) for m in result.metrics]
+
+            if config.get('use_log_scale', False):
+                values = [max(v, 1e-20) for v in values]
+                ax.semilogy(steps, values, 'o-', label=name, color=color)
+            else:
+                ax.plot(steps, values, 'o-', label=name, color=color)
+
+        ax.set_xlabel('Step')
+        ax.set_ylabel(config.get('ylabel', metric_name))
+
+        if config.get('ylim'):
+            ax.set_ylim(config['ylim'])
+
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+
+        save_path = os.path.join(save_dir, f"{metric_name}.png")
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        plt.close(fig)
+
+    print(f"Saved {len(metrics_collector.metric_names())} metric plots to {save_dir}")
+
+
+def plot_averaged_metrics_individually(
+    results: Dict[str, "AveragedComparisonResult"],
+    metrics_collector: MetricsCollector,
+    save_dir: str,
+    title_prefix: str = "Template Comparison (Averaged)"
+):
+    """Plot each averaged metric to a separate file with error bands.
+
+    Parameters
+    ----------
+    results : dict
+        Mapping from template name to AveragedComparisonResult
+    metrics_collector : MetricsCollector
+        The metrics collector that defines which metrics to plot
+    save_dir : str
+        Directory to save plots (will be created if needed)
+    title_prefix : str
+        Prefix for plot titles
+    """
+    import matplotlib.pyplot as plt
+
+    os.makedirs(save_dir, exist_ok=True)
+
+    colors = plt.cm.tab10(np.linspace(0, 1, len(results)))
+
+    for metric_name in metrics_collector.metric_names():
+        config = metrics_collector.get_plot_config(metric_name)
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.set_title(f"{title_prefix}: {config['display_name']}")
+
+        for (name, result), color in zip(results.items(), colors):
+            steps = [m.step for m in result.metrics]
+
+            # Get mean and std for this metric
+            mean_attr = f"{metric_name}_mean"
+            std_attr = f"{metric_name}_std"
+
+            means = [getattr(m, mean_attr, 0.0) for m in result.metrics]
+            stds = [getattr(m, std_attr, 0.0) for m in result.metrics]
+
+            if config.get('use_log_scale', False):
+                means = [max(v, 1e-20) for v in means]
+                ax.semilogy(steps, means, 'o-', label=name, color=color)
+            else:
+                ax.plot(steps, means, 'o-', label=name, color=color)
+                ax.fill_between(
+                    steps,
+                    [m - s for m, s in zip(means, stds)],
+                    [m + s for m, s in zip(means, stds)],
+                    alpha=0.2, color=color
+                )
+
+        ax.set_xlabel('Step')
+        ax.set_ylabel(config.get('ylabel', metric_name))
+
+        if config.get('ylim'):
+            ax.set_ylim(config['ylim'])
+
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+
+        save_path = os.path.join(save_dir, f"{metric_name}.png")
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        plt.close(fig)
+
+    print(f"Saved {len(metrics_collector.metric_names())} averaged metric plots to {save_dir}")
 
 
 @dataclass
@@ -913,19 +1266,20 @@ def run_all_comparisons(save_dir: Optional[str] = None, num_runs: int = 10):
     # )
 
     print("\n" + "#" * 60)
-    print("# RUNNING TAXINET MODEL COMPARISON (SINGLE RUN)")
+    print(f"# RUNNING TAXINET SCRIPTED COMPARISON ({num_runs} scripts)")
     print("#" * 60 + "\n")
-    all_results["taxinet_single"] = run_taxinet_comparison(verbose=True, save_path=taxinet_path)
 
-    print("\n" + "#" * 60)
-    print(f"# RUNNING TAXINET MODEL COMPARISON (AVERAGED, {num_runs} runs)")
-    print("#" * 60 + "\n")
-    all_results["taxinet_averaged"] = run_taxinet_comparison_averaged(
-        num_runs=num_runs, verbose=True, save_path=taxinet_avg_path
+    taxinet_scripted_dir = os.path.join(save_dir, "taxinet_scripted") if save_dir else None
+    results, library = run_taxinet_scripted_comparison(
+        num_scripts=num_runs,
+        script_length=20,
+        verbose=True,
+        save_dir=taxinet_scripted_dir
     )
+    all_results["taxinet_scripted"] = results
 
     return all_results
 
 
 if __name__ == "__main__":
-    run_all_comparisons(num_runs=5)
+    run_all_comparisons(num_runs=3)

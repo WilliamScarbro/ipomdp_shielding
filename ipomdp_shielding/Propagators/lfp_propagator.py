@@ -6,7 +6,7 @@ from typing import Optional, Protocol, List, Tuple, Dict, Callable
 import numpy as np
 
 from ..Models import IPOMDP
-
+from .belief_base import IPOMDP_Belief
 
 @dataclass
 class LPResult:
@@ -278,7 +278,7 @@ def solve_lfp_charnes_cooper(
 
 
 @dataclass
-class LFPPropagator:
+class LFPPropagator(IPOMDP_Belief):
     """
     Template-based belief propagation using linear fractional programming.
 
@@ -364,9 +364,11 @@ class LFPPropagator:
         return True
 
  
-    def allowed_probability(self, allowed) -> float:
-        return self.belief.maximum_allowed_prob(allowed)
-    
+    def minimum_allowed_probability(self, allowed) -> float:
+        return self.belief.minimum_allowed_prob(allowed)
+
+    def maximum_disallowed_probability(self, disallowed) -> float:
+        return self.belief.maximum_allowed_prob(disallowed)
 
     def restart(self):
         self.belief = BeliefPolytope.uniform_prior(len(self.ipomdp.states))

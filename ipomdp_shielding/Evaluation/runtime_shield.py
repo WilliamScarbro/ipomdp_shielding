@@ -22,7 +22,7 @@ class RuntimeImpShield:
     ):
         """
         Initialize runtime shield.
-
+ 
         Parameters
         ----------
         pp_shield : dict
@@ -48,7 +48,27 @@ class RuntimeImpShield:
             a: [self.state_to_idx[s] for s in self.states if a in pp_shield[s]]
             for a in self.actions
         }
-        
+
+        self.inv_shield_compliment = {
+            a: [self.state_to_idx[s] for s in self.states if not a in pp_shield[s]]
+            for a in self.actions
+        }
+
+    
+    def get_action_probs(self) -> "[Action]":
+        '''
+        Computes allowed/disallowed probailities from ipomdp_belief
+        Pure (no effects on ipomdp_belief)
+        '''
+        action_shielded_prob = []
+        for action in self.actions:
+            allowed_states = self.inv_shield[action]
+            disallowed_states = self.inv_shield_compliment[action]
+            allowed_prob = self.ipomdp_belief.minimum_allowed_probability(allowed_states)
+            disallowed_prob = self.ipomdp_belief.maximum_disallowed_probability(disallowed_states)
+            action_shielded_prob.append((action, allowed_prob, disallowed_prob))
+        return action_shielded_prob
+    
     def next_actions(self, evidence: Tuple[Any, Any]):
         """
         Update belief and return allowed actions.
@@ -73,15 +93,12 @@ class RuntimeImpShield:
             self.error_count += 1
             return [] if self.default_action is None else [self.default_action]
 
-        action_shielded_prob = []
-        for action in self.actions:
-            allowed_states = self.inv_shield[action]
-            allowed_prob = self.ipomdp_belief.allowed_probability(allowed_states)
-            action_shielded_prob.append((action, allowed_prob))
+        action_shielded_prob = self.get_action_probs()
 
+        # if the constr sum_b(s)=1 is maintained, the two checks are equivalent
         allowed_actions = [
-            action for action, prob in action_shielded_prob
-            if prob >= self.action_shield
+            action for action, ap, dp in action_shielded_prob
+            if ap >= self.action_shield or dp <= 1-self.action_shield
         ]
 
         if not allowed_actions:

@@ -28,6 +28,10 @@ class IPOMDP_Belief:
         """Update belief with observed evidence."""
         pass
 
-    def allowed_probability(self, allowed: Iterable[State]) -> float:
+    def minimum_allowed_probability(self, allowed: Iterable[State]) -> float:
+        """Return (lower bound on) probability that state is in allowed set."""
+        pass
+
+    def maximum_disallowed_probability(self, disallowed: Iterable[State]) -> float:
         """Return (lower bound on) probability that state is in allowed set."""
         pass

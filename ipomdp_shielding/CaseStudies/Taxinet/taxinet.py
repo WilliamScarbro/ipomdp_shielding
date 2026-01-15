@@ -211,7 +211,7 @@ def build_taxinet_ipomdp(
         for s in states
     }
 
-    dyn_mdp = taxinet_dynamics_prob()
+    dyn_mdp = taxinet_dynamics()
     actions = {-1, 0, 1}
 
     taxinet_ipomdp = IPOMDP(states, states, actions, dyn_mdp.P, perc_L, perc_U)

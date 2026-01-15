@@ -1,0 +1,297 @@
+"""Metrics infrastructure for template comparison evaluation.
+
+Provides a modular system for computing and tracking metrics during
+belief propagation runs.
+"""
+
+from typing import List, Dict, Tuple, Optional, Any
+from dataclasses import dataclass, field
+from abc import ABC, abstractmethod
+import numpy as np
+
+from ..Models import IPOMDP
+from ..Propagators import LFPPropagator, BeliefPolytope, Template
+
+
+# ============================================================
+# Metrics Infrastructure
+# ============================================================
+
+@dataclass
+class MetricValue:
+    """A single metric value with metadata for plotting."""
+    name: str
+    value: float
+    display_name: str = ""
+    ylabel: str = ""
+    use_log_scale: bool = False
+    ylim: Optional[Tuple[float, float]] = None
+
+    def __post_init__(self):
+        if not self.display_name:
+            self.display_name = self.name.replace("_", " ").title()
+        if not self.ylabel:
+            self.ylabel = self.display_name
+
+
+class MetricsCollector(ABC):
+    """Abstract base class for metrics collection.
+
+    Subclasses define which metrics to compute from an rt_shield object.
+    """
+
+    @abstractmethod
+    def compute(self, rt_shield, step: int) -> Dict[str, MetricValue]:
+        """Compute all metrics for the current step.
+
+        Returns a dict mapping metric name to MetricValue.
+        """
+        pass
+
+    @abstractmethod
+    def metric_names(self) -> List[str]:
+        """Return list of metric names this collector produces."""
+        pass
+
+    @abstractmethod
+    def get_plot_config(self, metric_name: str) -> Dict:
+        """Return plotting configuration for a metric.
+
+        Returns dict with keys: display_name, ylabel, use_log_scale, ylim
+        """
+        pass
+
+    def reset(self):
+        """Reset internal state for a new run. Override if needed."""
+        pass
+
+
+@dataclass
+class StepMetrics:
+    """Container for metrics at a single step."""
+    step: int
+    values: Dict[str, MetricValue] = field(default_factory=dict)
+
+    def __getattr__(self, name):
+        if name in ('step', 'values') or name.startswith('_'):
+            return super().__getattribute__(name)
+        if name in self.values:
+            return self.values[name].value
+        raise AttributeError(f"No metric named '{name}'")
+
+    def get(self, name: str, default: float = 0.0) -> float:
+        """Get metric value by name with default."""
+        if name in self.values:
+            return self.values[name].value
+        return default
+
+
+# ============================================================
+# Standalone compute functions (reusable by any MetricsCollector)
+# ============================================================
+
+def compute_template_spread(polytope: BeliefPolytope, template: Template) -> float:
+    """Compute sum of spreads across all template directions.
+
+    Parameters
+    ----------
+    polytope : BeliefPolytope
+        The current belief polytope
+    template : Template
+        The template defining directions to measure
+
+    Returns
+    -------
+    float
+        Total spread (sum of upper - lower for each template direction)
+    """
+    total_spread = 0.0
+    for k in range(template.K):
+        v = template.V[k]
+        try:
+            max_val = polytope.maximize_linear(v)
+            min_val = -polytope.maximize_linear(-v)
+            total_spread += max_val - min_val
+        except RuntimeError:
+            total_spread += 1.0
+    return total_spread
+
+
+def compute_volume_proxy(polytope: BeliefPolytope, template: Template) -> float:
+    """Compute product of spreads as a proxy for polytope volume.
+
+    Parameters
+    ----------
+    polytope : BeliefPolytope
+        The current belief polytope
+    template : Template
+        The template defining directions to measure
+
+    Returns
+    -------
+    float
+        Volume proxy (product of spreads in each template direction)
+    """
+    volume = 1.0
+    for k in range(template.K):
+        v = template.V[k]
+        try:
+            max_val = polytope.maximize_linear(v)
+            min_val = -polytope.maximize_linear(-v)
+            spread = max(max_val - min_val, 1e-10)
+        except RuntimeError:
+            spread = 1.0
+        volume *= spread
+    return volume
+
+
+def compute_safest_action_prob(polytope: BeliefPolytope, ipomdp: IPOMDP) -> float:
+    """Compute the maximum minimum safe probability across all actions.
+
+    For each action, computes the minimum probability of being in a state
+    where that action is safe. Returns the maximum across all actions.
+
+    Parameters
+    ----------
+    polytope : BeliefPolytope
+        The current belief polytope
+    ipomdp : IPOMDP
+        The interval POMDP model
+
+    Returns
+    -------
+    float
+        Maximum (over actions) of minimum safe probability
+    """
+    states = list(ipomdp.states)
+    actions = list(ipomdp.actions) if isinstance(ipomdp.actions, (list, set)) else list(ipomdp.actions)
+    n = len(states)
+
+    safest_prob = 0.0
+    for action in actions:
+        safe_indices = []
+        for i, s in enumerate(states):
+            next_states = ipomdp.T.get((s, action), {})
+            if "FAIL" not in next_states or next_states.get("FAIL", 0) < 0.5:
+                safe_indices.append(i)
+
+        if not safe_indices:
+            continue
+
+        indicator = np.zeros(n)
+        for i in safe_indices:
+            indicator[i] = 1.0
+
+        try:
+            min_safe_prob = -polytope.maximize_linear(-indicator)
+            min_safe_prob = max(0.0, min(1.0, min_safe_prob))
+        except RuntimeError:
+            min_safe_prob = 0.0
+
+        safest_prob = max(safest_prob, min_safe_prob)
+
+    return safest_prob
+
+
+# ============================================================
+# ApproximationMetrics_1 - Metrics collector using standalone functions
+# ============================================================
+
+class ApproximationMetrics_1(MetricsCollector):
+    """Metrics collector for LFP belief approximation quality.
+
+    Computes:
+    - template_spread: Sum of (upper - lower) for each template direction
+    - volume_proxy: Product of spreads (proxy for polytope volume)
+    - safest_action_prob: Max over actions of min safe probability
+    - normalized_spread: Spread relative to initial (tracks decay)
+    """
+
+    def __init__(self):
+        self._initial_spread: Optional[float] = None
+        self._metric_configs = {
+            "template_spread": {
+                "display_name": "Template Spread",
+                "ylabel": "Template Spread",
+                "use_log_scale": False,
+                "ylim": None
+            },
+            "volume_proxy": {
+                "display_name": "Volume Proxy",
+                "ylabel": "Volume Proxy (log scale)",
+                "use_log_scale": True,
+                "ylim": None
+            },
+            "safest_action_prob": {
+                "display_name": "Safest Action Probability",
+                "ylabel": "Safest Action Probability",
+                "use_log_scale": False,
+                "ylim": (-0.05, 1.05)
+            },
+            "normalized_spread": {
+                "display_name": "Normalized Spread",
+                "ylabel": "Normalized Spread",
+                "use_log_scale": False,
+                "ylim": None
+            }
+        }
+
+    def reset(self):
+        """Reset internal state for a new run."""
+        self._initial_spread = None
+
+    def metric_names(self) -> List[str]:
+        return list(self._metric_configs.keys())
+
+    def get_plot_config(self, metric_name: str) -> Dict:
+        return self._metric_configs.get(metric_name, {
+            "display_name": metric_name,
+            "ylabel": metric_name,
+            "use_log_scale": False,
+            "ylim": None
+        })
+
+    def compute(self, rt_shield, step: int) -> Dict[str, MetricValue]:
+        """Compute all metrics from the current rt_shield state."""
+        assert isinstance(rt_shield.ipomdp_belief, LFPPropagator)
+
+        polytope = rt_shield.ipomdp_belief.belief
+        template = rt_shield.ipomdp_belief.template
+        ipomdp = rt_shield.ipomdp_belief.ipomdp
+
+        # Compute raw values using standalone functions
+        spread = compute_template_spread(polytope, template)
+        volume = compute_volume_proxy(polytope, template)
+        safest_prob = compute_safest_action_prob(polytope, ipomdp)
+
+        # Track initial spread for normalization
+        if self._initial_spread is None or self._initial_spread == 0:
+            self._initial_spread = spread if spread > 0 else 1.0
+
+        normalized = spread / self._initial_spread
+
+        # Build metric values with plot configs
+        metrics = {}
+        for name in self.metric_names():
+            config = self._metric_configs[name]
+            if name == "template_spread":
+                value = spread
+            elif name == "volume_proxy":
+                value = max(volume, 1e-20)  # Avoid log(0)
+            elif name == "safest_action_prob":
+                value = safest_prob
+            elif name == "normalized_spread":
+                value = normalized
+            else:
+                continue
+
+            metrics[name] = MetricValue(
+                name=name,
+                value=value,
+                display_name=config["display_name"],
+                ylabel=config["ylabel"],
+                use_log_scale=config["use_log_scale"],
+                ylim=config["ylim"]
+            )
+
+        return metrics
