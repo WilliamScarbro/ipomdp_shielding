@@ -177,7 +177,8 @@ def taxinet_perception(
 def build_taxinet_ipomdp(
     confidence_method: str = "Clopper_Pearson",
     alpha: float = 0.05,
-    train_fraction: float = 0.8
+    train_fraction: float = 0.8,
+    error: float = 0.1
 ) -> Tuple[IPOMDP, Dict, List, List]:
     """
     Build complete TaxiNet IPOMDP model.
@@ -211,7 +212,7 @@ def build_taxinet_ipomdp(
         for s in states
     }
 
-    dyn_mdp = taxinet_dynamics()
+    dyn_mdp = taxinet_dynamics_prob(error=error)
     actions = {-1, 0, 1}
 
     taxinet_ipomdp = IPOMDP(states, states, actions, dyn_mdp.P, perc_L, perc_U)

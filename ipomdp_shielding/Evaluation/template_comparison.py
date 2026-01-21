@@ -343,7 +343,7 @@ def compare_templates(
     Compare multiple template strategies on the same IPOMDP and history.
     """
     if templates is None:
-        templates = create_templates_for_ipomdp(ipomdp)
+        templates = create_templates_for_ipomdp(ipomdp, include_safe_sets=False)
 
     results = {}
     for name, template in templates.items():
@@ -399,7 +399,7 @@ def compare_templates_scripted(
         Mapping from template name to ComparisonResult
     """
     if templates is None:
-        templates = create_templates_for_ipomdp(ipomdp)
+        templates = create_templates_for_ipomdp(ipomdp, include_safe_sets=False)
 
     results = {}
     for name, template in templates.items():
@@ -478,15 +478,19 @@ def run_scripted_comparisons(
         if not runs:
             continue
 
-        num_steps = min(len(r.metrics) for r in runs)
+        num_steps = max(len(r.metrics) for r in runs)
         if num_steps == 0:
             continue
 
         averaged_metrics = []
         for step in range(num_steps):
-            spreads = [r.metrics[step].template_spread for r in runs]
-            volumes = [r.metrics[step].volume_proxy for r in runs]
-            probs = [r.metrics[step].safest_action_prob for r in runs]
+            # Only include runs that have data at this step
+            spreads = [r.metrics[step].template_spread for r in runs if step < len(r.metrics)]
+            volumes = [r.metrics[step].volume_proxy for r in runs if step < len(r.metrics)]
+            probs = [r.metrics[step].safest_action_prob for r in runs if step < len(r.metrics)]
+
+            if not spreads:  # Skip if no runs have data at this step
+                continue
 
             averaged_metrics.append(AveragedMetrics(
                 step=step,
@@ -501,7 +505,7 @@ def run_scripted_comparisons(
         averaged_results[name] = AveragedComparisonResult(
             template_name=name,
             num_runs=len(runs),
-            num_steps=num_steps,
+            num_steps=len(averaged_metrics),
             metrics=averaged_metrics
         )
 
@@ -564,7 +568,7 @@ def run_taxinet_scripted_comparison(
         avg_len = np.mean([s.length for s in library])
         print(f"Average script length: {avg_len:.1f}")
 
-    templates = create_templates_for_ipomdp(ipomdp)
+    templates = create_templates_for_ipomdp(ipomdp, include_safe_sets=False)
 
     print(f"\nStates: {len(ipomdp.states)} states")
     print(f"Actions: {ipomdp.actions}")
@@ -892,17 +896,21 @@ def run_multiple_comparisons(
         if not runs:
             continue
 
-        # Use minimum length across all runs to handle early terminations
-        num_steps = min(len(r.metrics) for r in runs)
+        # Use maximum length across all runs; average over available data at each step
+        num_steps = max(len(r.metrics) for r in runs)
         if num_steps == 0:
             continue
 
         averaged_metrics = []
 
         for step in range(num_steps):
-            spreads = [r.metrics[step].template_spread for r in runs]
-            volumes = [r.metrics[step].volume_proxy for r in runs]
-            probs = [r.metrics[step].safest_action_prob for r in runs]
+            # Only include runs that have data at this step
+            spreads = [r.metrics[step].template_spread for r in runs if step < len(r.metrics)]
+            volumes = [r.metrics[step].volume_proxy for r in runs if step < len(r.metrics)]
+            probs = [r.metrics[step].safest_action_prob for r in runs if step < len(r.metrics)]
+
+            if not spreads:  # Skip if no runs have data at this step
+                continue
 
             averaged_metrics.append(AveragedMetrics(
                 step=step,
@@ -917,7 +925,7 @@ def run_multiple_comparisons(
         averaged_results[name] = AveragedComparisonResult(
             template_name=name,
             num_runs=num_runs,
-            num_steps=num_steps,
+            num_steps=len(averaged_metrics),
             metrics=averaged_metrics
         )
 
@@ -1092,7 +1100,7 @@ def run_toy_comparison(verbose: bool = True, save_path: Optional[str] = None):
 
     plot_comparison(results, "Toy Model: Template Comparison", save_path)
     return results
-
+ 
 
 def run_toy_comparison_averaged(
     num_runs: int = 10,
@@ -1282,4 +1290,4 @@ def run_all_comparisons(save_dir: Optional[str] = None, num_runs: int = 10):
 
 
 if __name__ == "__main__":
-    run_all_comparisons(num_runs=3)
+    run_all_comparisons(save_dir="images",num_runs=3)
