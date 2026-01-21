@@ -4,13 +4,13 @@ Provides a modular system for computing and tracking metrics during
 belief propagation runs.
 """
 
-from typing import List, Dict, Tuple, Optional, Any
+from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 import numpy as np
 
 from ..Models import IPOMDP
-from ..Propagators import LFPPropagator, BeliefPolytope, Template
+from ..Propagators import LFPPropagator, BeliefPolytope, Template, compute_volume
 
 
 # ============================================================
@@ -118,31 +118,25 @@ def compute_template_spread(polytope: BeliefPolytope, template: Template) -> flo
 
 
 def compute_volume_proxy(polytope: BeliefPolytope, template: Template) -> float:
-    """Compute product of spreads as a proxy for polytope volume.
+    """Compute polytope volume using vertex enumeration and ConvexHull.
+
+    Projects the polytope onto (n-1) dimensions and computes the exact volume.
+    Returns volume as a fraction of the full simplex (0 to 1 scale).
 
     Parameters
     ----------
     polytope : BeliefPolytope
         The current belief polytope
     template : Template
-        The template defining directions to measure
+        The template (kept for API compatibility, not used in computation)
 
     Returns
     -------
     float
-        Volume proxy (product of spreads in each template direction)
+        Volume as a fraction of simplex volume (0 to 1)
     """
-    volume = 1.0
-    for k in range(template.K):
-        v = template.V[k]
-        try:
-            max_val = polytope.maximize_linear(v)
-            min_val = -polytope.maximize_linear(-v)
-            spread = max(max_val - min_val, 1e-10)
-        except RuntimeError:
-            spread = 1.0
-        volume *= spread
-    return volume
+    _ = template  # Unused, kept for API compatibility
+    return compute_volume(polytope)
 
 
 def compute_safest_action_prob(polytope: BeliefPolytope, ipomdp: IPOMDP) -> float:

@@ -7,6 +7,7 @@ import numpy as np
 
 from ..Models import IPOMDP
 from .belief_base import IPOMDP_Belief
+from .belief_polytope import BeliefPolytope
 
 @dataclass
 class LPResult:
@@ -77,88 +78,6 @@ def default_solver() -> LPSolver:
         return SciPyHiGHSSolver()
     except Exception:
         raise RuntimeError("SciPy HiGHS not available.")
-
-
-@dataclass
-class BeliefPolytope:
-    """
-    Represents { b | A b <= d, b >= 0, 1^T b = 1 }.
-    """
-    n: int
-    A: np.ndarray
-    d: np.ndarray
-    Aeq: Optional[np.ndarray] = None
-    beq: Optional[np.ndarray] = None
-
-    def with_added_inequalities(self, A_new: np.ndarray, d_new: np.ndarray) -> "BeliefPolytope":
-        A2 = np.vstack([self.A, A_new]) if self.A.size else A_new.copy()
-        d2 = np.concatenate([self.d, d_new]) if self.d.size else d_new.copy()
-        return BeliefPolytope(self.n, A2, d2, self.Aeq, self.beq)
-
-    def as_lp_constraints(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        """Returns (A_ub, b_ub, A_eq, b_eq, lb, ub) suitable for LP."""
-        A_ub, b_ub = self.A, self.d
-
-        ones = np.ones((1, self.n))
-        if self.Aeq is None:
-            A_eq = ones
-            b_eq = np.array([1.0])
-        else:
-            A_eq = np.vstack([self.Aeq, ones])
-            b_eq = np.concatenate([self.beq, np.array([1.0])])
-
-        lb = np.zeros(self.n)
-        ub = np.ones(self.n)
-        return A_ub, b_ub, A_eq, b_eq, lb, ub
-
-    @staticmethod
-    def uniform_prior(n: int) -> "BeliefPolytope":
-        """Returns a BeliefPolytope representing a uniform prior belief."""
-        A = np.vstack([np.eye(n), -np.eye(n)])
-        d = np.concatenate([(1.0 / n) * np.ones(n), -(1.0 / n) * np.ones(n)])
-        return BeliefPolytope(n=n, A=A, d=d, Aeq=None, beq=None)
-
-    def maximize_linear(self, c: np.ndarray) -> float:
-        """Solve: max_b c^T b s.t. b in this BeliefPolytope."""
-        from scipy.optimize import linprog
-
-        c = np.asarray(c, dtype=float)
-        if c.shape != (self.n,):
-            raise ValueError(f"Objective must have shape ({self.n},), got {c.shape}")
-
-        A_ub, b_ub = self.A, self.d
-
-        ones = np.ones((1, self.n))
-        if self.Aeq is None:
-            A_eq = ones
-            b_eq = np.array([1.0])
-        else:
-            A_eq = np.vstack([self.Aeq, ones])
-            b_eq = np.concatenate([self.beq, np.array([1.0])])
-
-        bounds = [(0.0, 1.0) for _ in range(self.n)]
-
-        res = linprog(-c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=bounds, method="highs")
-
-        if not res.success:
-            raise RuntimeError(f"LP failed: {res.message}")
-
-        return float(-res.fun)
-
-    def maximum_allowed_prob(self, allowed: list[int]) -> float:
-        c = np.zeros(self.n, dtype=float)
-        for i in allowed:
-            c[i] = 1.0
-        return self.maximize_linear(c)
-
-    def minimum_allowed_prob(self, allowed: list[int]) -> float:
-        """Compute min_b sum_{i in allowed} b_i."""
-        c = np.zeros(self.n, dtype=float)
-        for i in allowed:
-            if i < 0 or i >= self.n:
-                raise ValueError(f"State index out of range: {i}")
-            c[i] = 1.0
-        return -self.maximize_linear(-c)
 
 
 @dataclass

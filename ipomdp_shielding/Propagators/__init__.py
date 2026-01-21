@@ -4,7 +4,8 @@ from .belief_base import IPOMDP_Belief
 from .approx_belief import IPOMDP_ApproxBelief
 from .exact_hmm import ExactIHMMBelief
 from .minmax_hmm import MinMaxIHMMBelief
-from .lfp_propagator import LFPPropagator, BeliefPolytope, Template, TemplateFactory
+from .belief_polytope import BeliefPolytope, compute_volume
+from .lfp_propagator import LFPPropagator, Template, TemplateFactory
 
 __all__ = [
     'IPOMDP_Belief',
@@ -13,6 +14,7 @@ __all__ = [
     'MinMaxIHMMBelief',
     'LFPPropagator',
     'BeliefPolytope',
+    'compute_volume',
     'Template',
     'TemplateFactory',
 ]
