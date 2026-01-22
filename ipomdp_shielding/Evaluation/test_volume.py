@@ -11,7 +11,8 @@ import sys
 sys.path.insert(0, '/home/scarbro/claude')
 
 from ipomdp_shielding.Propagators.belief_polytope import (
-    BeliefPolytope, compute_volume, _enumerate_vertices, _find_interior_point_projected
+    BeliefPolytope, compute_volume, _enumerate_vertices, _find_interior_point_projected,
+    _find_affine_basis, _project_to_affine_subspace
 )
 
 
@@ -36,21 +37,28 @@ def print_polytope_info(name: str, polytope: BeliefPolytope):
         except RuntimeError as e:
             print(f"  b[{i}]: LP failed - {e}")
 
-    # Find interior point (in projected (n-1) dimensional space)
-    interior_proj = _find_interior_point_projected(polytope)
-    if interior_proj is not None:
-        # Lift to n dimensions
-        interior = np.append(interior_proj, 1.0 - np.sum(interior_proj))
-        print(f"\nInterior point (projected): {interior_proj}")
-        print(f"Interior point (lifted): {interior}")
-        print(f"  Sum: {np.sum(interior):.6f}")
-        print(f"  Min coord: {np.min(interior):.6f}")
-    else:
-        print(f"\nNo interior point found!")
-
-    # Enumerate vertices
+    # Enumerate vertices first (works for both full and low-dimensional)
     vertices = _enumerate_vertices(polytope)
-    if vertices is not None:
+
+    # Determine effective dimension and find a representative point
+    if vertices is not None and len(vertices) > 0:
+        centroid, basis, effective_dim = _find_affine_basis(vertices)
+        print(f"\nEffective dimension: {effective_dim} (ambient: {polytope.n}, simplex: {polytope.n - 1})")
+
+        # Try to find interior point for full-dimensional case
+        interior_proj = _find_interior_point_projected(polytope)
+        if interior_proj is not None:
+            interior = np.append(interior_proj, 1.0 - np.sum(interior_proj))
+            print(f"Interior point: {interior}")
+            print(f"  Sum: {np.sum(interior):.6f}, Min coord: {np.min(interior):.6f}")
+        elif effective_dim < polytope.n - 1:
+            # Low-dimensional: use centroid of vertices as representative point
+            print(f"Centroid (low-dim polytope): {centroid}")
+            print(f"  Sum: {np.sum(centroid):.6f}")
+        else:
+            print(f"No interior point found (degenerate?)")
+
+        # Show vertices
         print(f"\nVertices: {len(vertices)} found")
         if len(vertices) <= 10:
             for i, v in enumerate(vertices):
@@ -181,6 +189,199 @@ def test_asymmetric_constraints(n: int):
     print_polytope_info(f"Asymmetric: b[0] in [0.1, 0.3] (n={n})", polytope)
 
 
+def test_low_dimensional_r4():
+    """Test polytopes in R^4 that are low-dimensional due to equality constraints.
+
+    These tests verify that volume computation works correctly when the polytope
+    lives in a lower-dimensional affine subspace of the ambient space.
+    """
+    print(f"\n{'#'*60}")
+    print(f"# Low-dimensional polytopes in R^4")
+    print(f"{'#'*60}")
+
+    n = 4
+
+    # Test 1: 2D polytope in R^4
+    # Constraint: b[0] = b[1] and b[2] = b[3]
+    # This reduces to a 2D space (two free parameters)
+    # Combined with simplex constraint sum=1, this gives a 1D polytope
+    print(f"\n--- Test 1: b[0]=b[1], b[2]=b[3] (should be 1D line segment) ---")
+    # Equality constraints as pairs of inequalities
+    A = np.array([
+        [1, -1, 0, 0],   # b[0] - b[1] <= 0
+        [-1, 1, 0, 0],   # -b[0] + b[1] <= 0 (so b[0] = b[1])
+        [0, 0, 1, -1],   # b[2] - b[3] <= 0
+        [0, 0, -1, 1],   # -b[2] + b[3] <= 0 (so b[2] = b[3])
+    ], dtype=float)
+    d = np.zeros(4)
+
+    polytope = BeliefPolytope(n=n, A=A, d=d)
+    vertices = _enumerate_vertices(polytope)
+    if vertices is not None:
+        print(f"  Vertices ({len(vertices)}):")
+        for i, v in enumerate(vertices):
+            print(f"    v[{i}]: {v} (sum={np.sum(v):.4f})")
+        centroid, basis, eff_dim = _find_affine_basis(vertices)
+        print(f"  Effective dimension: {eff_dim}")
+        vol = compute_volume(polytope)
+        print(f"  Volume: {vol:.6f}")
+    else:
+        print("  Vertex enumeration failed")
+
+    # Test 2: Single point in R^4
+    # All coordinates equal: b[i] = 1/4 for all i
+    print(f"\n--- Test 2: All coordinates equal (should be 0D point) ---")
+    A = np.array([
+        [1, -1, 0, 0],   # b[0] = b[1]
+        [-1, 1, 0, 0],
+        [0, 1, -1, 0],   # b[1] = b[2]
+        [0, -1, 1, 0],
+        [0, 0, 1, -1],   # b[2] = b[3]
+        [0, 0, -1, 1],
+    ], dtype=float)
+    d = np.zeros(6)
+
+    polytope = BeliefPolytope(n=n, A=A, d=d)
+    vertices = _enumerate_vertices(polytope)
+    if vertices is not None:
+        print(f"  Vertices ({len(vertices)}):")
+        for i, v in enumerate(vertices):
+            print(f"    v[{i}]: {v} (sum={np.sum(v):.4f})")
+        centroid, basis, eff_dim = _find_affine_basis(vertices)
+        print(f"  Effective dimension: {eff_dim}")
+        vol = compute_volume(polytope)
+        print(f"  Volume: {vol:.6f} (expected: 0)")
+    else:
+        print("  Vertex enumeration failed")
+
+    # Test 3: 2D triangle in R^4
+    # Constraint: b[3] = 0 (project onto first 3 coordinates)
+    # This gives a 2D simplex (triangle) in the b[0], b[1], b[2] subspace
+    print(f"\n--- Test 3: b[3]=0 (should be 2D triangle) ---")
+    A = np.array([
+        [0, 0, 0, 1],    # b[3] <= 0
+        [0, 0, 0, -1],   # -b[3] <= 0 (so b[3] = 0)
+    ], dtype=float)
+    d = np.zeros(2)
+
+    polytope = BeliefPolytope(n=n, A=A, d=d)
+    vertices = _enumerate_vertices(polytope)
+    if vertices is not None:
+        print(f"  Vertices ({len(vertices)}):")
+        for i, v in enumerate(vertices):
+            print(f"    v[{i}]: {v} (sum={np.sum(v):.4f})")
+        centroid, basis, eff_dim = _find_affine_basis(vertices)
+        print(f"  Effective dimension: {eff_dim}")
+        vol = compute_volume(polytope)
+        # The 2-simplex has volume 1/2! = 0.5, so normalized volume should be 1.0
+        print(f"  Volume: {vol:.6f} (expected: ~1.0 as fraction of 2-simplex)")
+    else:
+        print("  Vertex enumeration failed")
+
+    # Test 4: 1D line segment in R^4
+    # Constraints: b[2] = b[3] = 0, and b[0] + b[1] = 1
+    # This gives a line segment from (1,0,0,0) to (0,1,0,0)
+    print(f"\n--- Test 4: b[2]=b[3]=0 (should be 1D line segment) ---")
+    A = np.array([
+        [0, 0, 1, 0],    # b[2] <= 0
+        [0, 0, -1, 0],   # b[2] >= 0
+        [0, 0, 0, 1],    # b[3] <= 0
+        [0, 0, 0, -1],   # b[3] >= 0
+    ], dtype=float)
+    d = np.zeros(4)
+
+    polytope = BeliefPolytope(n=n, A=A, d=d)
+    vertices = _enumerate_vertices(polytope)
+    if vertices is not None:
+        print(f"  Vertices ({len(vertices)}):")
+        for i, v in enumerate(vertices):
+            print(f"    v[{i}]: {v} (sum={np.sum(v):.4f})")
+        centroid, basis, eff_dim = _find_affine_basis(vertices)
+        print(f"  Effective dimension: {eff_dim}")
+        vol = compute_volume(polytope)
+        # 1D simplex (line segment) has length 1, so normalized volume = 1.0
+        print(f"  Volume: {vol:.6f} (expected: ~1.0 as fraction of 1-simplex)")
+    else:
+        print("  Vertex enumeration failed")
+
+    # Test 5: Half of the 2D triangle in R^4
+    # b[3] = 0 and b[0] <= 0.5
+    print(f"\n--- Test 5: b[3]=0, b[0]<=0.5 (should be 2D, half triangle) ---")
+    A = np.array([
+        [0, 0, 0, 1],    # b[3] <= 0
+        [0, 0, 0, -1],   # b[3] >= 0
+        [1, 0, 0, 0],    # b[0] <= 0.5
+    ], dtype=float)
+    d = np.array([0, 0, 0.5])
+
+    polytope = BeliefPolytope(n=n, A=A, d=d)
+    vertices = _enumerate_vertices(polytope)
+    if vertices is not None:
+        print(f"  Vertices ({len(vertices)}):")
+        for i, v in enumerate(vertices):
+            print(f"    v[{i}]: {v} (sum={np.sum(v):.4f})")
+        centroid, basis, eff_dim = _find_affine_basis(vertices)
+        print(f"  Effective dimension: {eff_dim}")
+        vol = compute_volume(polytope)
+        print(f"  Volume: {vol:.6f} (expected: ~0.75 as fraction of 2-simplex)")
+    else:
+        print("  Vertex enumeration failed")
+
+
+def test_affine_basis_directly():
+    """Test the _find_affine_basis function directly with known point sets."""
+    print(f"\n{'#'*60}")
+    print(f"# Direct tests of _find_affine_basis")
+    print(f"{'#'*60}")
+
+    # Test 1: 3 points forming a triangle in R^4
+    print(f"\n--- Test 1: Triangle in R^4 ---")
+    points = np.array([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+    ], dtype=float)
+    centroid, basis, eff_dim = _find_affine_basis(points)
+    print(f"  Points: {points.tolist()}")
+    print(f"  Centroid: {centroid}")
+    print(f"  Effective dimension: {eff_dim} (expected: 2)")
+    print(f"  Basis shape: {basis.shape}")
+
+    # Test 2: 2 points forming a line in R^4
+    print(f"\n--- Test 2: Line segment in R^4 ---")
+    points = np.array([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+    ], dtype=float)
+    centroid, basis, eff_dim = _find_affine_basis(points)
+    print(f"  Points: {points.tolist()}")
+    print(f"  Centroid: {centroid}")
+    print(f"  Effective dimension: {eff_dim} (expected: 1)")
+
+    # Test 3: Single point
+    print(f"\n--- Test 3: Single point in R^4 ---")
+    points = np.array([
+        [0.25, 0.25, 0.25, 0.25],
+    ], dtype=float)
+    centroid, basis, eff_dim = _find_affine_basis(points)
+    print(f"  Points: {points.tolist()}")
+    print(f"  Centroid: {centroid}")
+    print(f"  Effective dimension: {eff_dim} (expected: 0)")
+
+    # Test 4: 4 points forming a tetrahedron in R^4
+    print(f"\n--- Test 4: Tetrahedron (3-simplex) in R^4 ---")
+    points = np.array([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    ], dtype=float)
+    centroid, basis, eff_dim = _find_affine_basis(points)
+    print(f"  Points: {points.tolist()}")
+    print(f"  Centroid: {centroid}")
+    print(f"  Effective dimension: {eff_dim} (expected: 3)")
+
+
 def main():
     print("BeliefPolytope Volume Computation Test")
     print("="*60)
@@ -220,6 +421,12 @@ def main():
     # Test 6: Asymmetric constraints
     test_asymmetric_constraints(3)
     test_asymmetric_constraints(4)
+
+    # Test 7: Low-dimensional polytopes in R^4
+    test_low_dimensional_r4()
+
+    # Test 8: Direct tests of affine basis computation
+    test_affine_basis_directly()
 
 
 if __name__ == "__main__":

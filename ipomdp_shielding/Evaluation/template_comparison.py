@@ -46,113 +46,113 @@ from .lfp_reporters import (
 # Legacy helper functions (kept for backward compatibility)
 # ============================================================
 
-def compute_template_spread(polytope: BeliefPolytope, template: Template) -> Tuple[float, Dict, Dict]:
-    """
-    Compute the spread (upper - lower) for each template direction.
+# def compute_template_spread(polytope: BeliefPolytope, template: Template) -> Tuple[float, Dict, Dict]:
+#     """
+#     Compute the spread (upper - lower) for each template direction.
 
-    Returns:
-        (total_spread, min_bounds, max_bounds)
-    """
-    n = polytope.n
-    min_bounds = {}
-    max_bounds = {}
-    total_spread = 0.0
+#     Returns:
+#         (total_spread, min_bounds, max_bounds)
+#     """
+#     n = polytope.n
+#     min_bounds = {}
+#     max_bounds = {}
+#     total_spread = 0.0
 
-    for k in range(template.K):
-        v = template.V[k]
+#     for k in range(template.K):
+#         v = template.V[k]
 
-        # Find min and max of v^T b over the polytope
-        try:
-            max_val = polytope.maximize_linear(v)
-            min_val = -polytope.maximize_linear(-v)
-        except RuntimeError:
-            # Polytope might be infeasible
-            max_val = 1.0
-            min_val = 0.0
+#         # Find min and max of v^T b over the polytope
+#         try:
+#             max_val = polytope.maximize_linear(v)
+#             min_val = -polytope.maximize_linear(-v)
+#         except RuntimeError:
+#             # Polytope might be infeasible
+#             max_val = 1.0
+#             min_val = 0.0
 
-        spread = max_val - min_val
-        total_spread += spread
+#         spread = max_val - min_val
+#         total_spread += spread
 
-        name = template.names[k] if template.names else f"template_{k}"
-        min_bounds[name] = min_val
-        max_bounds[name] = max_val
+#         name = template.names[k] if template.names else f"template_{k}"
+#         min_bounds[name] = min_val
+#         max_bounds[name] = max_val
 
-    return total_spread, min_bounds, max_bounds
-
-
-def compute_volume_proxy(polytope: BeliefPolytope, template: Template) -> float:
-    """
-    Compute a proxy for polytope volume using template bounds.
-
-    Uses the product of spreads in each template direction.
-    This is exact for axis-aligned boxes and provides a rough
-    estimate for general polytopes.
-    """
-    volume = 1.0
-    for k in range(template.K):
-        v = template.V[k]
-        try:
-            max_val = polytope.maximize_linear(v)
-            min_val = -polytope.maximize_linear(-v)
-            spread = max(max_val - min_val, 1e-10)
-        except RuntimeError:
-            spread = 1.0
-        volume *= spread
-    return volume
+#     return total_spread, min_bounds, max_bounds
 
 
-def compute_shield_permissivity(
-    polytope: BeliefPolytope,
-    ipomdp: IPOMDP,
-) -> Tuple[float, Dict]:
-    """
-    Compute the safest action probability.
+# def compute_volume_proxy(polytope: BeliefPolytope, template: Template) -> float:
+#     """
+#     Compute a proxy for polytope volume using template bounds.
 
-    For each action, compute the minimum probability of being in a safe state.
-    Returns the maximum of these (the probability threshold needed for at least
-    one action to be allowed).
+#     Uses the product of spreads in each template direction.
+#     This is exact for axis-aligned boxes and provides a rough
+#     estimate for general polytopes.
+#     """
+#     volume = 1.0
+#     for k in range(template.K):
+#         v = template.V[k]
+#         try:
+#             max_val = polytope.maximize_linear(v)
+#             min_val = -polytope.maximize_linear(-v)
+#             spread = max(max_val - min_val, 1e-10)
+#         except RuntimeError:
+#             spread = 1.0
+#         volume *= spread
+#     return volume
 
-    Returns:
-        (safest_action_prob, action_safe_probs)
-        - safest_action_prob: max over actions of min safe probability
-        - action_safe_probs: dict mapping action -> min safe probability
-    """
-    states = list(ipomdp.states)
-    actions = list(ipomdp.actions) if isinstance(ipomdp.actions, (list, set)) else list(ipomdp.actions)
-    n = len(states)
 
-    action_safe_probs = {}
+# def compute_shield_permissivity(
+#     polytope: BeliefPolytope,
+#     ipomdp: IPOMDP,
+# ) -> Tuple[float, Dict]:
+#     """
+#     Compute the safest action probability.
 
-    for action in actions:
-        # Find states where this action is safe
-        safe_states = []
-        for i, s in enumerate(states):
-            # Check if action leads to a safe state
-            next_states = ipomdp.T.get((s, action), {})
-            # Action is safe from state s if it doesn't lead to FAIL
-            if "FAIL" not in next_states or next_states.get("FAIL", 0) < 0.5:
-                safe_states.append(i)
+#     For each action, compute the minimum probability of being in a safe state.
+#     Returns the maximum of these (the probability threshold needed for at least
+#     one action to be allowed).
 
-        if not safe_states:
-            action_safe_probs[action] = 0.0
-            continue
+#     Returns:
+#         (safest_action_prob, action_safe_probs)
+#         - safest_action_prob: max over actions of min safe probability
+#         - action_safe_probs: dict mapping action -> min safe probability
+#     """
+#     states = list(ipomdp.states)
+#     actions = list(ipomdp.actions) if isinstance(ipomdp.actions, (list, set)) else list(ipomdp.actions)
+#     n = len(states)
 
-        # Compute minimum probability of being in safe states
-        indicator = np.zeros(n)
-        for i in safe_states:
-            indicator[i] = 1.0
+#     action_safe_probs = {}
 
-        try:
-            min_safe_prob = -polytope.maximize_linear(-indicator)
-        except RuntimeError:
-            min_safe_prob = 0.0
+#     for action in actions:
+#         # Find states where this action is safe
+#         safe_states = []
+#         for i, s in enumerate(states):
+#             # Check if action leads to a safe state
+#             next_states = ipomdp.T.get((s, action), {})
+#             # Action is safe from state s if it doesn't lead to FAIL
+#             if "FAIL" not in next_states or next_states.get("FAIL", 0) < 0.5:
+#                 safe_states.append(i)
 
-        action_safe_probs[action] = max(0.0, min(1.0, min_safe_prob))
+#         if not safe_states:
+#             action_safe_probs[action] = 0.0
+#             continue
 
-    # Safest action probability is the max of all action safe probs
-    safest_action_prob = max(action_safe_probs.values()) if action_safe_probs else 0.0
+#         # Compute minimum probability of being in safe states
+#         indicator = np.zeros(n)
+#         for i in safe_states:
+#             indicator[i] = 1.0
 
-    return safest_action_prob, action_safe_probs
+#         try:
+#             min_safe_prob = -polytope.maximize_linear(-indicator)
+#         except RuntimeError:
+#             min_safe_prob = 0.0
+
+#         action_safe_probs[action] = max(0.0, min(1.0, min_safe_prob))
+
+#     # Safest action probability is the max of all action safe probs
+#     safest_action_prob = max(action_safe_probs.values()) if action_safe_probs else 0.0
+
+#     return safest_action_prob, action_safe_probs
 
 
 # ============================================================

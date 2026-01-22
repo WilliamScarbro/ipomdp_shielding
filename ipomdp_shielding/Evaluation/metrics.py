@@ -12,6 +12,8 @@ import numpy as np
 from ..Models import IPOMDP
 from ..Propagators import LFPPropagator, BeliefPolytope, Template, compute_volume
 
+# temporary
+from .test_volume import print_polytope_info
 
 # ============================================================
 # Metrics Infrastructure
@@ -136,6 +138,7 @@ def compute_volume_proxy(polytope: BeliefPolytope, template: Template) -> float:
         Volume as a fraction of simplex volume (0 to 1)
     """
     _ = template  # Unused, kept for API compatibility
+    print_polytope_info("current",polytope)
     return compute_volume(polytope)
 
 
