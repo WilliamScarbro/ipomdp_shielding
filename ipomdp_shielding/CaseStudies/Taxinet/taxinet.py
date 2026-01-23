@@ -1,7 +1,10 @@
 """TaxiNet case study: Ground Effect Estimation for autonomous taxiing."""
 
-from typing import Dict, Tuple, List, Iterable, Hashable, Set
+from typing import Dict, Tuple, List, Iterable, Hashable, Set, Optional
+from collections import Counter
 import random
+
+from statsmodels.stats.proportion import proportion_confint
 
 from ...Models import MDP, IMDP, IPOMDP, imdp_from_mdp, product_imdp, imdp_interval_width_dist
 from ...Models.Confidence import ConfidenceInterval
@@ -12,6 +15,7 @@ from .data_loader import get_cte_data, get_he_data
 
 State = Hashable
 FAIL = "FAIL"
+
 
 # State space bounds
 HE_HIGH = 1   # Heading error range: -1 to 1
@@ -129,11 +133,52 @@ def taxinet_dynamics() -> MDP:
     return MDP(states, actions, P)
 
 
+def _fill_imdp_coverage(
+    imdp: IMDP,
+    states: List[int],
+    data: List[Tuple[int, int]],
+    action: str,
+    alpha: float
+) -> None:
+    """
+    Fill missing state pairs in an IMDP with conservative zero-count bounds.
+
+    For each (true_state, est_state) pair not present in the IMDP, adds
+    lower=0 and upper=CI_upper(0, n_true) where n_true is the total number
+    of observations for that true_state. This provides coverage without
+    biasing the intervals for observed pairs.
+    """
+    # Count total observations per true state
+    totals = Counter(s_true for s_true, _ in data)
+
+    for s_true in states:
+        key = (s_true, action)
+        n = totals.get(s_true, 0)
+        if n == 0:
+            # No observations at all for this true state; assign uniform bounds
+            imdp.P_lower[key] = {s: 0.0 for s in states}
+            imdp.P_upper[key] = {s: 1.0 for s in states}
+            continue
+
+        if key not in imdp.P_lower:
+            imdp.P_lower[key] = {}
+            imdp.P_upper[key] = {}
+
+        # Compute zero-count upper bound for this sample size
+        _, zero_upper = proportion_confint(0, n, alpha=alpha, method="beta")
+
+        for s_est in states:
+            if s_est not in imdp.P_lower[key]:
+                imdp.P_lower[key][s_est] = 0.0
+                imdp.P_upper[key][s_est] = zero_upper
+
+
 def taxinet_perception(
     confidence_method: str,
     alpha: float,
     he_data: List[Tuple[int, int]],
-    cte_data: List[Tuple[int, int]]
+    cte_data: List[Tuple[int, int]],
+    smoothing: bool = True,
 ) -> IMDP:
     """
     Build IMDP perception model from observation data.
@@ -148,22 +193,31 @@ def taxinet_perception(
         Heading error observation data
     cte_data : list
         Cross-track error observation data
+    smoothing : bool
+        Whether to apply coverage-only smoothing (default True). When enabled,
+        computes CIs on raw data then fills in unobserved state pairs with
+        conservative [0, CI_upper(0, n)] bounds.
 
     Returns
     -------
     IMDP
         Interval perception model
     """
+    he_states = taxinet_he_states()
+    cte_states = taxinet_cte_states()
+
     he_CI = ConfidenceInterval(he_data)
     cte_CI = ConfidenceInterval(cte_data)
 
     states = taxinet_states(with_fail=True)
-    he_states = taxinet_he_states()
-    cte_states = taxinet_cte_states()
 
     percieve_action = "PERC"
     he_imdp = he_CI.produce_imdp(he_states, percieve_action, confidence_method, alpha)
     cte_imdp = cte_CI.produce_imdp(cte_states, percieve_action, confidence_method, alpha)
+
+    if smoothing:
+        _fill_imdp_coverage(he_imdp, he_states, he_data, percieve_action, alpha)
+        _fill_imdp_coverage(cte_imdp, cte_states, cte_data, percieve_action, alpha)
 
     perception_imdp = product_imdp(cte_imdp, he_imdp)
 
@@ -178,16 +232,26 @@ def build_taxinet_ipomdp(
     confidence_method: str = "Clopper_Pearson",
     alpha: float = 0.05,
     train_fraction: float = 0.8,
-    error: float = 0.1
+    error: float = 0.1,
+    smoothing: bool = True,
+    seed: Optional[int] = None
 ) -> Tuple[IPOMDP, Dict, List, List]:
     """
     Build complete TaxiNet IPOMDP model.
+
+    Parameters
+    ----------
+    seed : int, optional
+        Random seed for reproducible train/test splits.
 
     Returns
     -------
     tuple
         (ipomdp, dynamic_shield, test_cte_model, test_he_model)
     """
+    if seed is not None:
+        random.seed(seed)
+
     cte_data = get_cte_data()
     he_data = get_he_data()
 
@@ -199,7 +263,8 @@ def build_taxinet_ipomdp(
     random.shuffle(he_data)
     he_train, he_test = he_data[:he_train_index], he_data[he_train_index:]
 
-    perc_imdp = taxinet_perception(confidence_method, alpha, he_train, cte_train)
+    perc_imdp = taxinet_perception(confidence_method, alpha, he_train, cte_train,
+                                    smoothing=smoothing)
 
     # Strip "PERC" action from perception IMDP to match IPOMDP format
     states = taxinet_states(with_fail=True)
