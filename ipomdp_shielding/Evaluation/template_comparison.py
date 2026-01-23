@@ -34,6 +34,7 @@ from .metrics import (
     MetricsCollector,
     StepMetrics,
     ApproximationMetrics_1,
+    GroundTruthComparisonMetrics,
 )
 from .lfp_reporters import (
     ComparisonResult,
@@ -42,117 +43,6 @@ from .lfp_reporters import (
 )
 
 
-# ============================================================
-# Legacy helper functions (kept for backward compatibility)
-# ============================================================
-
-# def compute_template_spread(polytope: BeliefPolytope, template: Template) -> Tuple[float, Dict, Dict]:
-#     """
-#     Compute the spread (upper - lower) for each template direction.
-
-#     Returns:
-#         (total_spread, min_bounds, max_bounds)
-#     """
-#     n = polytope.n
-#     min_bounds = {}
-#     max_bounds = {}
-#     total_spread = 0.0
-
-#     for k in range(template.K):
-#         v = template.V[k]
-
-#         # Find min and max of v^T b over the polytope
-#         try:
-#             max_val = polytope.maximize_linear(v)
-#             min_val = -polytope.maximize_linear(-v)
-#         except RuntimeError:
-#             # Polytope might be infeasible
-#             max_val = 1.0
-#             min_val = 0.0
-
-#         spread = max_val - min_val
-#         total_spread += spread
-
-#         name = template.names[k] if template.names else f"template_{k}"
-#         min_bounds[name] = min_val
-#         max_bounds[name] = max_val
-
-#     return total_spread, min_bounds, max_bounds
-
-
-# def compute_volume_proxy(polytope: BeliefPolytope, template: Template) -> float:
-#     """
-#     Compute a proxy for polytope volume using template bounds.
-
-#     Uses the product of spreads in each template direction.
-#     This is exact for axis-aligned boxes and provides a rough
-#     estimate for general polytopes.
-#     """
-#     volume = 1.0
-#     for k in range(template.K):
-#         v = template.V[k]
-#         try:
-#             max_val = polytope.maximize_linear(v)
-#             min_val = -polytope.maximize_linear(-v)
-#             spread = max(max_val - min_val, 1e-10)
-#         except RuntimeError:
-#             spread = 1.0
-#         volume *= spread
-#     return volume
-
-
-# def compute_shield_permissivity(
-#     polytope: BeliefPolytope,
-#     ipomdp: IPOMDP,
-# ) -> Tuple[float, Dict]:
-#     """
-#     Compute the safest action probability.
-
-#     For each action, compute the minimum probability of being in a safe state.
-#     Returns the maximum of these (the probability threshold needed for at least
-#     one action to be allowed).
-
-#     Returns:
-#         (safest_action_prob, action_safe_probs)
-#         - safest_action_prob: max over actions of min safe probability
-#         - action_safe_probs: dict mapping action -> min safe probability
-#     """
-#     states = list(ipomdp.states)
-#     actions = list(ipomdp.actions) if isinstance(ipomdp.actions, (list, set)) else list(ipomdp.actions)
-#     n = len(states)
-
-#     action_safe_probs = {}
-
-#     for action in actions:
-#         # Find states where this action is safe
-#         safe_states = []
-#         for i, s in enumerate(states):
-#             # Check if action leads to a safe state
-#             next_states = ipomdp.T.get((s, action), {})
-#             # Action is safe from state s if it doesn't lead to FAIL
-#             if "FAIL" not in next_states or next_states.get("FAIL", 0) < 0.5:
-#                 safe_states.append(i)
-
-#         if not safe_states:
-#             action_safe_probs[action] = 0.0
-#             continue
-
-#         # Compute minimum probability of being in safe states
-#         indicator = np.zeros(n)
-#         for i in safe_states:
-#             indicator[i] = 1.0
-
-#         try:
-#             min_safe_prob = -polytope.maximize_linear(-indicator)
-#         except RuntimeError:
-#             min_safe_prob = 0.0
-
-#         action_safe_probs[action] = max(0.0, min(1.0, min_safe_prob))
-
-#     # Safest action probability is the max of all action safe probs
-#     safest_action_prob = max(action_safe_probs.values()) if action_safe_probs else 0.0
-
-#     return safest_action_prob, action_safe_probs
 
 
 # ============================================================
@@ -187,7 +77,8 @@ def run_scripted_lfp_propagation(
         pp_shield: Dict,
         template: Template,
         script: RunScript,
-        action_shield: float = 0.8
+        action_shield: float = 0.8,
+        metrics_collector: Optional[MetricsCollector] = None
 ) -> ComparisonResult:
     """Run LFP propagation on a pre-recorded script.
 
@@ -203,6 +94,8 @@ def run_scripted_lfp_propagation(
         Pre-recorded trajectory to replay
     action_shield : float
         Minimum required probability for an action to be allowed
+    metrics_collector : MetricsCollector, optional
+        Metrics collector to use. Defaults to ApproximationMetrics_1.
 
     Returns
     -------
@@ -214,7 +107,7 @@ def run_scripted_lfp_propagation(
     propagator = LFPPropagator(ipomdp, template, default_solver(), polytope)
     rt_shield = RuntimeImpShield(pp_shield, propagator, action_shield)
 
-    reporter = ScriptedLFPReporter(script, rt_shield)
+    reporter = ScriptedLFPReporter(script, rt_shield, metrics_collector)
     return reporter.run()
 
     
@@ -1289,5 +1182,474 @@ def run_all_comparisons(save_dir: Optional[str] = None, num_runs: int = 10):
     return all_results
 
 
+# ============================================================
+# Ground Truth Comparison (Monte Carlo)
+# ============================================================
+
+@dataclass
+class GroundTruthComparisonResult:
+    """Result of comparing LFP predictions against Monte Carlo ground truth.
+
+    Aggregates predictions from many scripted runs and compares against
+    empirical frequencies computed from true states.
+    """
+    template_name: str
+    num_runs: int
+    # Per step, per action: predicted min P(safe)
+    action_safety_predicted: List[Dict]  # List[Dict[action, float]]
+    # Per step, per action: empirical fraction of runs where true state is safe
+    action_safety_empirical: List[Dict]  # List[Dict[action, float]]
+    # Per step, per state: predicted [lower, upper] bounds (averaged across runs)
+    state_bounds_predicted: List[Dict[int, Tuple[float, float]]]
+    # Per step, per state: empirical fraction of runs in that state
+    state_occupancy_empirical: List[Dict[int, float]]
+    # Summary metrics
+    action_coverage_rate: float  # fraction of (step,action) pairs where empirical >= predicted_min
+    mean_conservatism_gap: float  # average (empirical - predicted_min)
+
+
+def compute_ground_truth_comparison(
+    ipomdp: IPOMDP,
+    pp_shield: Dict,
+    library: ScriptLibrary,
+    templates: Optional[Dict[str, Template]] = None,
+    action_shield: float = 0.8,
+    verbose: bool = False
+) -> Dict[str, GroundTruthComparisonResult]:
+    """Compare LFP predictions against Monte Carlo empirical ground truth.
+
+    Runs each script through each template using GroundTruthComparisonMetrics,
+    then aggregates predictions and compares against empirical frequencies
+    from the true states in the scripts.
+
+    Parameters
+    ----------
+    ipomdp : IPOMDP
+        The interval POMDP model
+    pp_shield : dict
+        Perfect perception shield: state -> set of safe actions
+    library : ScriptLibrary
+        Library of pre-recorded scripts (provides Monte Carlo samples)
+    templates : dict, optional
+        Templates to compare. If None, creates default templates.
+    action_shield : float
+        Minimum required probability for an action to be allowed
+    verbose : bool
+        Print progress
+
+    Returns
+    -------
+    dict
+        Mapping from template name to GroundTruthComparisonResult
+    """
+    if templates is None:
+        templates = create_templates_for_ipomdp(ipomdp, include_safe_sets=False)
+
+    states = list(ipomdp.states)
+    state_to_idx = {s: i for i, s in enumerate(states)}
+
+    # Build inv_shield for empirical safety checks
+    inv_shield = {
+        a: set(i for i, s in enumerate(states) if a in pp_shield.get(s, set()))
+        for a in ipomdp.actions
+    }
+
+    gt_results = {}
+
+    for template_name, template in templates.items():
+        if verbose:
+            print(f"\nTemplate: {template_name}")
+
+        # Collect results from all scripts
+        all_run_results: List[ComparisonResult] = []
+
+        for i, script in enumerate(library):
+            if verbose and (i + 1) % 5 == 0:
+                print(f"  Script {i + 1}/{len(library)}")
+
+            collector = GroundTruthComparisonMetrics()
+            result = run_scripted_lfp_propagation(
+                ipomdp, pp_shield, template, script,
+                action_shield, metrics_collector=collector
+            )
+            all_run_results.append(result)
+
+        # Determine max number of steps across runs
+        num_steps = max(
+            len(r.true_states) for r in all_run_results
+            if r.true_states is not None
+        )
+
+        # Aggregate per-step predictions and empirical data
+        action_safety_predicted = []
+        action_safety_empirical = []
+        state_bounds_predicted = []
+        state_occupancy_empirical = []
+
+        coverage_checks = 0
+        coverage_hits = 0
+        conservatism_gaps = []
+
+        actions = list(ipomdp.actions)
+        n = len(states)
+
+        for step in range(num_steps):
+            # Collect predictions and true states across runs at this step
+            step_action_preds = {a: [] for a in actions}
+            step_state_bounds_lower = {i: [] for i in range(n)}
+            step_state_bounds_upper = {i: [] for i in range(n)}
+            step_true_states = []
+
+            for result in all_run_results:
+                if result.true_states is None or step >= len(result.true_states):
+                    continue
+                if result.action_predictions is None or step >= len(result.action_predictions):
+                    continue
+                if result.state_bound_predictions is None or step >= len(result.state_bound_predictions):
+                    continue
+
+                true_state = result.true_states[step]
+                step_true_states.append(true_state)
+
+                # Collect action predictions
+                for a in actions:
+                    if a in result.action_predictions[step]:
+                        step_action_preds[a].append(result.action_predictions[step][a])
+
+                # Collect state bound predictions
+                for i in range(n):
+                    if i in result.state_bound_predictions[step]:
+                        lb, ub = result.state_bound_predictions[step][i]
+                        step_state_bounds_lower[i].append(lb)
+                        step_state_bounds_upper[i].append(ub)
+
+            if not step_true_states:
+                continue
+
+            num_runs_at_step = len(step_true_states)
+
+            # Compute empirical action safety: fraction of runs where true state is safe for action
+            empirical_action_safety = {}
+            for a in actions:
+                safe_count = sum(
+                    1 for s in step_true_states
+                    if s != "FAIL" and state_to_idx.get(s, -1) in inv_shield[a]
+                )
+                empirical_action_safety[a] = safe_count / num_runs_at_step
+
+            # Compute predicted action safety: mean of predictions across runs
+            predicted_action_safety = {}
+            for a in actions:
+                if step_action_preds[a]:
+                    predicted_action_safety[a] = float(np.mean(step_action_preds[a]))
+                else:
+                    predicted_action_safety[a] = 0.0
+
+            # Compute empirical state occupancy
+            empirical_state_occ = {}
+            for i in range(n):
+                occ_count = sum(
+                    1 for s in step_true_states
+                    if s != "FAIL" and state_to_idx.get(s, -1) == i
+                )
+                empirical_state_occ[i] = occ_count / num_runs_at_step
+
+            # Compute predicted state bounds: mean of lower/upper across runs
+            predicted_state_bounds = {}
+            for i in range(n):
+                if step_state_bounds_lower[i] and step_state_bounds_upper[i]:
+                    mean_lb = float(np.mean(step_state_bounds_lower[i]))
+                    mean_ub = float(np.mean(step_state_bounds_upper[i]))
+                    predicted_state_bounds[i] = (mean_lb, mean_ub)
+                else:
+                    predicted_state_bounds[i] = (0.0, 1.0)
+
+            action_safety_predicted.append(predicted_action_safety)
+            action_safety_empirical.append(empirical_action_safety)
+            state_bounds_predicted.append(predicted_state_bounds)
+            state_occupancy_empirical.append(empirical_state_occ)
+
+            # Coverage and conservatism for action safety
+            for a in actions:
+                pred_min = predicted_action_safety[a]
+                emp = empirical_action_safety[a]
+                coverage_checks += 1
+                if emp >= pred_min - 1e-9:  # small tolerance for numerical errors
+                    coverage_hits += 1
+                conservatism_gaps.append(emp - pred_min)
+
+        action_coverage_rate = coverage_hits / coverage_checks if coverage_checks > 0 else 0.0
+        mean_conservatism_gap = float(np.mean(conservatism_gaps)) if conservatism_gaps else 0.0
+
+        gt_results[template_name] = GroundTruthComparisonResult(
+            template_name=template_name,
+            num_runs=len(all_run_results),
+            action_safety_predicted=action_safety_predicted,
+            action_safety_empirical=action_safety_empirical,
+            state_bounds_predicted=state_bounds_predicted,
+            state_occupancy_empirical=state_occupancy_empirical,
+            action_coverage_rate=action_coverage_rate,
+            mean_conservatism_gap=mean_conservatism_gap,
+        )
+
+        if verbose:
+            print(f"  Coverage rate: {action_coverage_rate:.3f}")
+            print(f"  Mean conservatism gap: {mean_conservatism_gap:.4f}")
+
+    return gt_results
+
+
+def plot_ground_truth_comparison(
+    results: Dict[str, GroundTruthComparisonResult],
+    save_dir: Optional[str] = None,
+    title_prefix: str = "Ground Truth Comparison",
+    top_k_states: int = 5
+):
+    """Plot ground truth comparison results.
+
+    Creates three types of plots:
+    1. Action safety: predicted min P(safe) vs empirical P(safe) per action
+    2. State occupancy: predicted bounds vs empirical frequency per state
+    3. Summary: conservatism gap and coverage over time
+
+    Parameters
+    ----------
+    results : dict
+        Mapping from template name to GroundTruthComparisonResult
+    save_dir : str, optional
+        Directory to save plots. If None, displays interactively.
+    title_prefix : str
+        Prefix for plot titles
+    top_k_states : int
+        Number of most-occupied states to plot in state occupancy plot
+    """
+    import matplotlib.pyplot as plt
+
+    if save_dir:
+        os.makedirs(save_dir, exist_ok=True)
+
+    colors = plt.cm.tab10(np.linspace(0, 1, 10))
+
+    for template_name, result in results.items():
+        num_steps = len(result.action_safety_predicted)
+        if num_steps == 0:
+            continue
+
+        steps = list(range(num_steps))
+        actions = list(result.action_safety_predicted[0].keys()) if result.action_safety_predicted else []
+
+        # --- Plot 1: Action Safety ---
+        n_actions = len(actions)
+        if n_actions > 0:
+            fig, axes = plt.subplots(1, n_actions, figsize=(5 * n_actions, 4), squeeze=False)
+            fig.suptitle(f"{title_prefix}: Action Safety ({template_name})", fontsize=12)
+
+            for j, action in enumerate(actions):
+                ax = axes[0, j]
+                predicted = [result.action_safety_predicted[t].get(action, 0.0) for t in range(num_steps)]
+                empirical = [result.action_safety_empirical[t].get(action, 0.0) for t in range(num_steps)]
+
+                ax.plot(steps, predicted, 'o-', color=colors[0], label='Predicted min P(safe)', markersize=4)
+                ax.plot(steps, empirical, 's--', color=colors[1], label='Empirical P(safe)', markersize=4)
+                ax.fill_between(steps, predicted, empirical, alpha=0.15, color=colors[2],
+                                label='Conservatism gap')
+                ax.set_xlabel('Step')
+                ax.set_ylabel('P(safe)')
+                ax.set_title(f'Action: {action}')
+                ax.set_ylim(-0.05, 1.05)
+                ax.legend(fontsize=8)
+                ax.grid(True, alpha=0.3)
+
+            plt.tight_layout()
+            if save_dir:
+                path = os.path.join(save_dir, f"action_safety_{template_name}.png")
+                plt.savefig(path, dpi=150, bbox_inches='tight')
+                plt.close(fig)
+            else:
+                plt.show()
+
+        # --- Plot 2: State Occupancy ---
+        # Find top-k most occupied states across all steps
+        n_states = len(result.state_occupancy_empirical[0]) if result.state_occupancy_empirical else 0
+        if n_states > 0:
+            total_occ = np.zeros(n_states)
+            for step_occ in result.state_occupancy_empirical:
+                for i, freq in step_occ.items():
+                    total_occ[i] += freq
+            top_states = np.argsort(total_occ)[-top_k_states:][::-1]
+            # Filter to states with nonzero occupancy
+            top_states = [s for s in top_states if total_occ[s] > 0]
+
+            if top_states:
+                n_plot = len(top_states)
+                fig, axes = plt.subplots(1, n_plot, figsize=(5 * n_plot, 4), squeeze=False)
+                fig.suptitle(f"{title_prefix}: State Occupancy ({template_name})", fontsize=12)
+
+                for j, state_idx in enumerate(top_states):
+                    ax = axes[0, j]
+                    # Predicted bounds
+                    lowers = [result.state_bounds_predicted[t].get(state_idx, (0, 1))[0] for t in range(num_steps)]
+                    uppers = [result.state_bounds_predicted[t].get(state_idx, (0, 1))[1] for t in range(num_steps)]
+                    empirical = [result.state_occupancy_empirical[t].get(state_idx, 0.0) for t in range(num_steps)]
+
+                    ax.fill_between(steps, lowers, uppers, alpha=0.25, color=colors[0],
+                                    label='Predicted bounds')
+                    ax.plot(steps, empirical, 'o-', color=colors[1], label='Empirical freq', markersize=4)
+                    ax.set_xlabel('Step')
+                    ax.set_ylabel('Probability')
+                    ax.set_title(f'State {state_idx}')
+                    ax.set_ylim(-0.05, 1.05)
+                    ax.legend(fontsize=8)
+                    ax.grid(True, alpha=0.3)
+
+                plt.tight_layout()
+                if save_dir:
+                    path = os.path.join(save_dir, f"state_occupancy_{template_name}.png")
+                    plt.savefig(path, dpi=150, bbox_inches='tight')
+                    plt.close(fig)
+                else:
+                    plt.show()
+
+        # --- Plot 3: Summary (conservatism gap + coverage over time) ---
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6))
+        fig.suptitle(f"{title_prefix}: Summary ({template_name})", fontsize=12)
+
+        # Conservatism gap per step (averaged over actions)
+        gap_per_step = []
+        coverage_per_step = []
+        for t in range(num_steps):
+            step_gaps = []
+            step_covered = 0
+            step_total = 0
+            for a in actions:
+                pred = result.action_safety_predicted[t].get(a, 0.0)
+                emp = result.action_safety_empirical[t].get(a, 0.0)
+                step_gaps.append(emp - pred)
+                step_total += 1
+                if emp >= pred - 1e-9:
+                    step_covered += 1
+            gap_per_step.append(np.mean(step_gaps) if step_gaps else 0.0)
+            coverage_per_step.append(step_covered / step_total if step_total > 0 else 0.0)
+
+        ax1.plot(steps, gap_per_step, 'o-', color=colors[0], markersize=4)
+        ax1.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
+        ax1.set_xlabel('Step')
+        ax1.set_ylabel('Mean Conservatism Gap')
+        ax1.set_title('Conservatism Gap (empirical - predicted min)')
+        ax1.grid(True, alpha=0.3)
+
+        ax2.plot(steps, coverage_per_step, 's-', color=colors[2], markersize=4)
+        ax2.axhline(y=1.0, color='gray', linestyle='--', alpha=0.5)
+        ax2.set_xlabel('Step')
+        ax2.set_ylabel('Coverage Rate')
+        ax2.set_title('Coverage (frac. where empirical >= predicted min)')
+        ax2.set_ylim(-0.05, 1.05)
+        ax2.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+        if save_dir:
+            path = os.path.join(save_dir, f"summary_{template_name}.png")
+            plt.savefig(path, dpi=150, bbox_inches='tight')
+            plt.close(fig)
+        else:
+            plt.show()
+
+    if save_dir:
+        print(f"Saved ground truth comparison plots to {save_dir}")
+
+
+def run_taxinet_ground_truth_comparison(
+    num_scripts: int = 20,
+    script_length: int = 20,
+    seed: Optional[int] = 42,
+    verbose: bool = True,
+    save_dir: Optional[str] = None
+):
+    """Run ground truth comparison on the Taxinet model.
+
+    Generates a library of Monte Carlo scripts, runs LFP propagation with
+    GroundTruthComparisonMetrics on each, and compares predictions against
+    empirical frequencies from the true states.
+
+    Parameters
+    ----------
+    num_scripts : int
+        Number of Monte Carlo scripts to generate
+    script_length : int
+        Length of each script
+    seed : int, optional
+        Random seed for reproducibility
+    verbose : bool
+        Print progress
+    save_dir : str, optional
+        Directory to save plots
+
+    Returns
+    -------
+    tuple
+        (results dict, script library)
+    """
+    print("=" * 60)
+    print(f"TAXINET GROUND TRUTH COMPARISON ({num_scripts} scripts, length {script_length})")
+    print("=" * 60)
+
+    initial = ((0, 0), 0)
+    ipomdp, dyn_shield, test_cte_model, test_he_model = build_taxinet_ipomdp()
+
+    def perception(state):
+        if state == "FAIL":
+            return "FAIL"
+        return (random.choice(test_cte_model[state[0]]), random.choice(test_he_model[state[1]]))
+
+    # Generate script library
+    if verbose:
+        print(f"\nGenerating {num_scripts} scripts...")
+
+    library = ScriptLibrary.generate(
+        ipomdp, dyn_shield, perception, initial,
+        num_scripts, script_length, seed=seed
+    )
+
+    if verbose:
+        print(f"Generated {len(library)} scripts")
+        avg_len = np.mean([s.length for s in library])
+        print(f"Average script length: {avg_len:.1f}")
+
+    templates = create_templates_for_ipomdp(ipomdp, include_safe_sets=False)
+
+    print(f"\nStates: {len(ipomdp.states)} states")
+    print(f"Actions: {list(ipomdp.actions)}")
+    print(f"Templates: {list(templates.keys())}")
+
+    results = compute_ground_truth_comparison(
+        ipomdp, dyn_shield, library, templates,
+        action_shield=0.8, verbose=verbose
+    )
+
+    # Print summary
+    print("\n" + "=" * 60)
+    print("GROUND TRUTH COMPARISON SUMMARY")
+    print("=" * 60)
+    for name, result in results.items():
+        print(f"\n{name}:")
+        print(f"  Num runs: {result.num_runs}")
+        print(f"  Action coverage rate: {result.action_coverage_rate:.4f}")
+        print(f"  Mean conservatism gap: {result.mean_conservatism_gap:.4f}")
+
+    # Generate plots
+    if save_dir:
+        plot_ground_truth_comparison(results, save_dir=save_dir)
+
+    return results, library
+
+
 if __name__ == "__main__":
-    run_all_comparisons(save_dir="images",num_runs=3)
+    # run_all_comparisons(save_dir="images",num_runs=3)
+
+    run_taxinet_ground_truth_comparison(
+        num_scripts= 20,
+        script_length = 20,
+        seed = 42,
+        verbose = True,
+        save_dir = "images/ground_truth"
+    )

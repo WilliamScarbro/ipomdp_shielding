@@ -4,7 +4,7 @@ Provides a modular system for computing and tracking metrics during
 belief propagation runs.
 """
 
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Any
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 import numpy as np
@@ -290,5 +290,138 @@ class ApproximationMetrics_1(MetricsCollector):
                 use_log_scale=config["use_log_scale"],
                 ylim=config["ylim"]
             )
+
+        return metrics
+
+
+# ============================================================
+# GroundTruthComparisonMetrics - Per-action and per-state bounds
+# ============================================================
+
+@dataclass
+class StepPredictions:
+    """Detailed per-action and per-state predictions at a single step."""
+    step: int
+    action_min_probs: Dict[Any, float]  # action -> min P(safe states)
+    state_bounds: Dict[int, Tuple[float, float]]  # state_idx -> (lower, upper)
+
+
+class GroundTruthComparisonMetrics(MetricsCollector):
+    """Collects per-action safety bounds and per-state probability bounds.
+
+    For each step, computes:
+    - Per-action: minimum probability of being in safe states (inv_shield[a])
+    - Per-state: [lower, upper] probability bounds via LP on unit vectors
+
+    Stores detailed predictions internally for later aggregation against
+    Monte Carlo ground truth.
+    """
+
+    def __init__(self):
+        self.step_predictions: List[StepPredictions] = []
+        self._metric_configs = {
+            "mean_action_min_prob": {
+                "display_name": "Mean Action Min P(safe)",
+                "ylabel": "Mean Min P(safe)",
+                "use_log_scale": False,
+                "ylim": (-0.05, 1.05)
+            },
+            "mean_state_bound_width": {
+                "display_name": "Mean State Bound Width",
+                "ylabel": "Mean Bound Width",
+                "use_log_scale": False,
+                "ylim": None
+            }
+        }
+
+    def reset(self):
+        """Reset internal state for a new run."""
+        self.step_predictions = []
+
+    def metric_names(self) -> List[str]:
+        return list(self._metric_configs.keys())
+
+    def get_plot_config(self, metric_name: str) -> Dict:
+        return self._metric_configs.get(metric_name, {
+            "display_name": metric_name,
+            "ylabel": metric_name,
+            "use_log_scale": False,
+            "ylim": None
+        })
+
+    def compute(self, rt_shield, step: int) -> Dict[str, MetricValue]:
+        """Compute per-action and per-state bounds from the current rt_shield state.
+
+        Stores detailed predictions in self.step_predictions for later
+        ground truth comparison.
+        """
+        assert isinstance(rt_shield.ipomdp_belief, LFPPropagator)
+
+        polytope = rt_shield.ipomdp_belief.belief
+        n = polytope.n
+
+        # Per-action: min P(safe states) for each action
+        action_min_probs = {}
+        for action in rt_shield.actions:
+            allowed_states = rt_shield.inv_shield[action]
+            if allowed_states:
+                try:
+                    min_prob = polytope.minimum_allowed_prob(allowed_states)
+                    min_prob = max(0.0, min(1.0, min_prob))
+                except RuntimeError:
+                    min_prob = 0.0
+            else:
+                min_prob = 0.0
+            action_min_probs[action] = min_prob
+
+        # Per-state: [lower, upper] probability bounds
+        state_bounds = {}
+        for i in range(n):
+            e_i = np.zeros(n)
+            e_i[i] = 1.0
+            try:
+                upper = polytope.maximize_linear(e_i)
+                upper = max(0.0, min(1.0, upper))
+            except RuntimeError:
+                upper = 1.0
+            try:
+                lower = -polytope.maximize_linear(-e_i)
+                lower = max(0.0, min(1.0, lower))
+            except RuntimeError:
+                lower = 0.0
+            state_bounds[i] = (lower, upper)
+
+        # Store detailed predictions
+        self.step_predictions.append(StepPredictions(
+            step=step,
+            action_min_probs=action_min_probs,
+            state_bounds=state_bounds
+        ))
+
+        # Compute scalar summaries for MetricValue compatibility
+        mean_action_prob = (
+            np.mean(list(action_min_probs.values()))
+            if action_min_probs else 0.0
+        )
+        bound_widths = [ub - lb for lb, ub in state_bounds.values()]
+        mean_bound_width = np.mean(bound_widths) if bound_widths else 0.0
+
+        metrics = {}
+        metrics["mean_action_min_prob"] = MetricValue(
+            name="mean_action_min_prob",
+            value=float(mean_action_prob),
+            display_name="Mean Action Min P(safe)",
+            ylabel="Mean Min P(safe)",
+            use_log_scale=False,
+            ylim=(-0.05, 1.05)
+        )
+        metrics["mean_state_bound_width"] = MetricValue(
+            name="mean_state_bound_width",
+            value=float(mean_bound_width),
+            display_name="Mean State Bound Width",
+            ylabel="Mean Bound Width",
+            use_log_scale=False,
+            ylim=None
+        )
 
         return metrics
