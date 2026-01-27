@@ -49,6 +49,23 @@ from .single_run import (
     run_taxinet_debug,
     compute_top_k_states,
 )
+from .monte_carlo_safety import (
+    ActionSelector,
+    RandomActionSelector,
+    UniformFallbackSelector,
+    InitialStateGenerator,
+    RandomInitialState,
+    SafeInitialState,
+    BoundaryInitialState,
+    SafetyTrialResult,
+    MCSafetyMetrics,
+    run_single_trial,
+    run_monte_carlo_trials,
+    compute_safety_metrics,
+    MonteCarloSafetyEvaluator,
+    plot_safety_metrics,
+    test_taxinet_monte_carlo_safety,
+)
 
 __all__ = [
     'RuntimeImpShield',
@@ -96,4 +113,19 @@ __all__ = [
     'run_single_debug',
     'run_taxinet_debug',
     'compute_top_k_states',
+    'ActionSelector',
+    'RandomActionSelector',
+    'UniformFallbackSelector',
+    'InitialStateGenerator',
+    'RandomInitialState',
+    'SafeInitialState',
+    'BoundaryInitialState',
+    'SafetyTrialResult',
+    'MCSafetyMetrics',
+    'run_single_trial',
+    'run_monte_carlo_trials',
+    'compute_safety_metrics',
+    'MonteCarloSafetyEvaluator',
+    'plot_safety_metrics',
+    'test_taxinet_monte_carlo_safety',
 ]
