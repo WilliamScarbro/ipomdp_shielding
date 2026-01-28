@@ -29,8 +29,8 @@ visualization
     Plotting functions for results
 data_structures
     SafetyTrialResult and MCSafetyMetrics dataclasses
-tests
-    Test functions for Taxinet case study
+experiments
+    Experiment functions for Taxinet case study
 """
 
 # Data structures
@@ -82,11 +82,12 @@ from .visualization import (
     plot_two_player_game_results,
 )
 
-# Tests
-from .tests import (
-    test_taxinet_monte_carlo_safety,
-    test_two_player_game,
-    test_rl_two_player_game,
+# Experiments
+from .experiments import (
+    taxinet_monte_carlo_safety_experiment,
+    belief_selector_experiment,
+    two_player_game_experiment,
+    rl_two_player_game_experiment,
 )
 
 __all__ = [
@@ -123,8 +124,9 @@ __all__ = [
     "plot_safety_metrics",
     "plot_rl_training_curves",
     "plot_two_player_game_results",
-    # Tests
-    "test_taxinet_monte_carlo_safety",
-    "test_two_player_game",
-    "test_rl_two_player_game",
+    # Experiments
+    "taxinet_monte_carlo_safety_experiment",
+    "belief_selector_experiment",
+    "two_player_game_experiment",
+    "rl_two_player_game_experiment",
 ]
