@@ -49,22 +49,44 @@ from .single_run import (
     run_taxinet_debug,
     compute_top_k_states,
 )
-from .monte_carlo_safety import (
+# Re-export from MonteCarlo package for backward compatibility
+from ..MonteCarlo import (
+    # Action selectors (Agent's strategy)
     ActionSelector,
     RandomActionSelector,
     UniformFallbackSelector,
+    SafestActionSelector,
+    RiskiestActionSelector,
+    # RL-based action selectors
+    RLActionSelector,
+    QLearningActionSelector,
+    create_rl_action_selector,
+    # Perception models (2-player game: Nature's strategy)
+    PerceptionModel,
+    UniformPerceptionModel,
+    AdversarialPerceptionModel,
+    LegacyPerceptionAdapter,
+    # Initial state generators
     InitialStateGenerator,
     RandomInitialState,
     SafeInitialState,
     BoundaryInitialState,
+    # Data structures
     SafetyTrialResult,
     MCSafetyMetrics,
+    # Core functions
     run_single_trial,
     run_monte_carlo_trials,
     compute_safety_metrics,
     MonteCarloSafetyEvaluator,
+    # Visualization
     plot_safety_metrics,
+    plot_two_player_game_results,
+    plot_rl_training_curves,
+    # Test functions
     test_taxinet_monte_carlo_safety,
+    test_two_player_game,
+    test_rl_two_player_game,
 )
 
 __all__ = [
@@ -113,19 +135,40 @@ __all__ = [
     'run_single_debug',
     'run_taxinet_debug',
     'compute_top_k_states',
+    # Action selectors (Agent's strategy)
     'ActionSelector',
     'RandomActionSelector',
     'UniformFallbackSelector',
+    'SafestActionSelector',
+    'RiskiestActionSelector',
+    # RL-based action selectors
+    'RLActionSelector',
+    'QLearningActionSelector',
+    'create_rl_action_selector',
+    # Perception models (Nature's strategy)
+    'PerceptionModel',
+    'UniformPerceptionModel',
+    'AdversarialPerceptionModel',
+    'LegacyPerceptionAdapter',
+    # Initial state generators
     'InitialStateGenerator',
     'RandomInitialState',
     'SafeInitialState',
     'BoundaryInitialState',
+    # Data structures
     'SafetyTrialResult',
     'MCSafetyMetrics',
+    # Core functions
     'run_single_trial',
     'run_monte_carlo_trials',
     'compute_safety_metrics',
     'MonteCarloSafetyEvaluator',
+    # Visualization
     'plot_safety_metrics',
+    'plot_two_player_game_results',
+    'plot_rl_training_curves',
+    # Test functions
     'test_taxinet_monte_carlo_safety',
+    'test_two_player_game',
+    'test_rl_two_player_game',
 ]
