@@ -74,19 +74,27 @@ from ..MonteCarlo import (
     # Data structures
     SafetyTrialResult,
     MCSafetyMetrics,
+    TimestepMetrics,
     # Core functions
     run_single_trial,
     run_monte_carlo_trials,
     compute_safety_metrics,
+    compute_timestep_metrics,
     MonteCarloSafetyEvaluator,
+    # Experiment runner
+    ExperimentConfig,
+    ExperimentRunner,
     # Visualization
     plot_safety_metrics,
     plot_two_player_game_results,
     plot_rl_training_curves,
-    # Test functions
-    test_taxinet_monte_carlo_safety,
-    test_two_player_game,
-    test_rl_two_player_game,
+    plot_timestep_evolution,
+    plot_timestep_comparison,
+    # Experiment functions
+    taxinet_monte_carlo_safety_experiment,
+    belief_selector_experiment,
+    two_player_game_experiment,
+    rl_two_player_game_experiment,
 )
 
 __all__ = [
@@ -158,17 +166,25 @@ __all__ = [
     # Data structures
     'SafetyTrialResult',
     'MCSafetyMetrics',
+    'TimestepMetrics',
     # Core functions
     'run_single_trial',
     'run_monte_carlo_trials',
     'compute_safety_metrics',
+    'compute_timestep_metrics',
     'MonteCarloSafetyEvaluator',
+    # Experiment runner
+    'ExperimentConfig',
+    'ExperimentRunner',
     # Visualization
     'plot_safety_metrics',
     'plot_two_player_game_results',
     'plot_rl_training_curves',
-    # Test functions
-    'test_taxinet_monte_carlo_safety',
-    'test_two_player_game',
-    'test_rl_two_player_game',
+    'plot_timestep_evolution',
+    'plot_timestep_comparison',
+    # Experiment functions
+    'taxinet_monte_carlo_safety_experiment',
+    'belief_selector_experiment',
+    'two_player_game_experiment',
+    'rl_two_player_game_experiment',
 ]

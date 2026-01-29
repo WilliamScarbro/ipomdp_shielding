@@ -11,7 +11,7 @@ import numpy as np
 from ..Models.ipomdp import IPOMDP
 from ..Evaluation.runtime_shield import RuntimeImpShield
 
-from .data_structures import MCSafetyMetrics
+from .data_structures import MCSafetyMetrics, TimestepMetrics
 from .action_selectors import (
     ActionSelector,
     RandomActionSelector,
@@ -32,14 +32,14 @@ from .initial_states import (
     SafeInitialState,
     BoundaryInitialState,
 )
-from .simulation import run_monte_carlo_trials, compute_safety_metrics
+from .simulation import run_monte_carlo_trials, compute_safety_metrics, compute_timestep_metrics
 
 
 class MonteCarloSafetyEvaluator:
     """High-level interface for Monte Carlo safety evaluation.
 
     Evaluates shielding strategies across best/worst/average case scenarios
-    by varying initial state sampling strategies and perception models.
+    by varying action selection strategies and perception models.
 
     This implements a 2-player game framework:
     - Player 1 (Agent): Chooses actions from the shield
@@ -86,8 +86,9 @@ class MonteCarloSafetyEvaluator:
         sampling_modes: Optional[List[str]] = None,
         store_trajectories: bool = False,
         seed: Optional[int] = None,
-        perception_model: Optional[PerceptionModel] = None
-    ) -> Dict[str, MCSafetyMetrics]:
+        perception_model: Optional[PerceptionModel] = None,
+        compute_timestep_metrics_flag: bool = False
+    ) -> tuple:
         """Run Monte Carlo evaluation across sampling modes.
 
         Parameters
@@ -106,11 +107,15 @@ class MonteCarloSafetyEvaluator:
             Random seed for reproducibility
         perception_model : PerceptionModel, optional
             Override the default perception model for this evaluation
+        compute_timestep_metrics_flag : bool
+            Whether to compute timestep-level cumulative metrics (default: False)
 
         Returns
         -------
-        dict
-            Mapping from sampling mode to MCSafetyMetrics
+        tuple
+            (results_by_mode, timestep_metrics_by_mode)
+            - results_by_mode: Dict[str, MCSafetyMetrics]
+            - timestep_metrics_by_mode: Dict[str, TimestepMetrics] or None
         """
         if sampling_modes is None:
             sampling_modes = ["random", "best_case", "worst_case"]
@@ -124,8 +129,14 @@ class MonteCarloSafetyEvaluator:
             "best_case": SafeInitialState(),
             "worst_case": BoundaryInitialState()
         }
+        # generator_map = {
+        #     "random": SafeInitialState(),
+        #     "best_case": SafeInitialState(),
+        #     "worst_case": SafeInitialState()
+        # }
 
         results_by_mode = {}
+        timestep_metrics_by_mode = {} if compute_timestep_metrics_flag else None
 
         for mode in sampling_modes:
             if mode not in generator_map:
@@ -151,7 +162,11 @@ class MonteCarloSafetyEvaluator:
             metrics = compute_safety_metrics(results)
             results_by_mode[mode] = metrics
 
-        return results_by_mode
+            # Compute timestep metrics if requested
+            if compute_timestep_metrics_flag:
+                timestep_metrics_by_mode[mode] = compute_timestep_metrics(results, trial_length)
+
+        return results_by_mode, timestep_metrics_by_mode
 
     def evaluate_two_player_game(
         self,

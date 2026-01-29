@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .data_structures import MCSafetyMetrics
+from .data_structures import MCSafetyMetrics, TimestepMetrics
 
 
 def plot_safety_metrics(
@@ -225,6 +225,141 @@ def plot_two_player_game_results(
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         print(f"Figure saved to {save_path}")
+
+    if show:
+        plt.show()
+    else:
+        plt.close()
+
+
+def plot_timestep_evolution(
+    timestep_metrics: TimestepMetrics,
+    save_path: Optional[str] = None,
+    show: bool = True,
+    title: str = "Cumulative Safety Outcomes Over Time"
+):
+    """Plot cumulative fail/stuck/safe probabilities over timesteps.
+
+    Shows how the fraction of trials in each outcome state evolves
+    as trials progress through timesteps.
+
+    Parameters
+    ----------
+    timestep_metrics : TimestepMetrics
+        Aggregated timestep metrics with cumulative probabilities
+    save_path : str, optional
+        Path to save figure (e.g., "images/timestep_evolution.png")
+    show : bool
+        Whether to display the figure
+    title : str
+        Plot title
+    """
+    if timestep_metrics.num_trials == 0:
+        print("No timestep data to plot")
+        return
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    timesteps = list(range(timestep_metrics.trial_length))
+
+    # Plot cumulative probabilities
+    ax.plot(timesteps, timestep_metrics.fail_prob_by_timestep,
+            'r-', label='P(Failed by t)', linewidth=2)
+    ax.plot(timesteps, timestep_metrics.stuck_prob_by_timestep,
+            color='orange', label='P(Stuck by t)', linewidth=2)
+    ax.plot(timesteps, timestep_metrics.safe_prob_by_timestep,
+            'g-', label='P(Still Safe at t)', linewidth=2)
+
+    ax.set_xlabel('Timestep')
+    ax.set_ylabel('Cumulative Probability')
+    ax.set_title(f'{title}\n(n={timestep_metrics.num_trials} trials)')
+    ax.legend(loc='center right')
+    ax.grid(axis='y', alpha=0.3)
+    ax.set_ylim([0, 1.05])
+    ax.set_xlim([0, timestep_metrics.trial_length - 1])
+
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Timestep evolution figure saved to {save_path}")
+
+    if show:
+        plt.show()
+    else:
+        plt.close()
+
+
+def plot_timestep_comparison(
+    metrics_dict: Dict[str, TimestepMetrics],
+    save_path: Optional[str] = None,
+    show: bool = True
+):
+    """Plot timestep evolution for multiple experiment configurations.
+
+    Creates a 3-panel figure comparing fail/stuck/safe across configurations.
+
+    Parameters
+    ----------
+    metrics_dict : dict
+        Mapping from config name to TimestepMetrics
+    save_path : str, optional
+        Path to save figure
+    show : bool
+        Whether to display the figure
+    """
+    if not metrics_dict:
+        print("No metrics to plot")
+        return
+
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    config_names = list(metrics_dict.keys())
+    colors = plt.cm.tab10(np.linspace(0, 1, len(config_names)))
+
+    # Panel 1: Fail probabilities
+    ax = axes[0]
+    for i, (name, metrics) in enumerate(metrics_dict.items()):
+        timesteps = list(range(metrics.trial_length))
+        ax.plot(timesteps, metrics.fail_prob_by_timestep,
+                color=colors[i], label=name, linewidth=2)
+    ax.set_xlabel('Timestep')
+    ax.set_ylabel('P(Failed by t)')
+    ax.set_title('Cumulative Failure Rate')
+    ax.legend()
+    ax.grid(axis='y', alpha=0.3)
+    ax.set_ylim([0, 1.05])
+
+    # Panel 2: Stuck probabilities
+    ax = axes[1]
+    for i, (name, metrics) in enumerate(metrics_dict.items()):
+        timesteps = list(range(metrics.trial_length))
+        ax.plot(timesteps, metrics.stuck_prob_by_timestep,
+                color=colors[i], label=name, linewidth=2)
+    ax.set_xlabel('Timestep')
+    ax.set_ylabel('P(Stuck by t)')
+    ax.set_title('Cumulative Stuck Rate')
+    ax.legend()
+    ax.grid(axis='y', alpha=0.3)
+    ax.set_ylim([0, 1.05])
+
+    # Panel 3: Safe probabilities
+    ax = axes[2]
+    for i, (name, metrics) in enumerate(metrics_dict.items()):
+        timesteps = list(range(metrics.trial_length))
+        ax.plot(timesteps, metrics.safe_prob_by_timestep,
+                color=colors[i], label=name, linewidth=2)
+    ax.set_xlabel('Timestep')
+    ax.set_ylabel('P(Still Safe at t)')
+    ax.set_title('Survival Rate')
+    ax.legend()
+    ax.grid(axis='y', alpha=0.3)
+    ax.set_ylim([0, 1.05])
+
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Timestep comparison figure saved to {save_path}")
 
     if show:
         plt.show()

@@ -5,11 +5,12 @@ import random
 
 from .action_selectors import RandomActionSelector, BeliefSelector
 from .perception_models import UniformPerceptionModel, AdversarialPerceptionModel
-from .evaluator import MonteCarloSafetyEvaluator
+from .experiment_runner import ExperimentConfig, ExperimentRunner
 from .visualization import (
     plot_safety_metrics,
     plot_two_player_game_results,
     plot_rl_training_curves,
+    plot_timestep_comparison,
 )
 
 
@@ -17,7 +18,8 @@ def taxinet_monte_carlo_safety_experiment(
     num_trials: int = 100,
     trial_length: int = 20,
     seed: Optional[int] = 42,
-    save_path: Optional[str] = None
+    save_path: Optional[str] = None,
+    compute_timesteps: bool = False
 ):
     """Monte Carlo safety evaluation experiment on Taxinet model.
 
@@ -31,44 +33,42 @@ def taxinet_monte_carlo_safety_experiment(
         Random seed for reproducibility
     save_path : str, optional
         Path to save visualization (e.g., "images/mc_safety_experiment.png")
+    compute_timesteps : bool
+        Whether to compute and plot timestep-level cumulative metrics
 
     Returns
     -------
-    dict
-        Results by sampling mode
+    tuple
+        (results, timestep_metrics) where timestep_metrics is None if not computed
     """
+    # Build Taxinet IPOMDP model
     from ..CaseStudies.Taxinet import build_taxinet_ipomdp
-    from ..Evaluation.runtime_shield import RuntimeImpShield
-
-    print("=" * 60)
-    print("TAXINET MONTE CARLO SAFETY EXPERIMENT")
-    print(f"Trials: {num_trials}, Length: {trial_length}")
-    print("=" * 60)
-
-    # Setup Taxinet model
     ipomdp, dyn_shield, test_cte_model, test_he_model = build_taxinet_ipomdp()
 
+    # Create config and runner
+    config = ExperimentConfig(
+        num_trials=num_trials,
+        trial_length=trial_length,
+        seed=seed,
+        save_path=save_path,
+        track_timesteps=compute_timesteps
+    )
+    runner = ExperimentRunner(config, ipomdp, dyn_shield)
+
+    # Print header
+    runner.print_experiment_header("TAXINET MONTE CARLO SAFETY EXPERIMENT")
+
+    # Create runtime shield factory
+    rt_shield_factory = runner.create_rt_shield_factory()
+
+    # Create perception model using legacy approach
     def perception(state):
         if state == "FAIL":
             return "FAIL"
         return (random.choice(test_cte_model[state[0]]), random.choice(test_he_model[state[1]]))
 
-    # Create runtime shield factory
-    def rt_shield_factory():
-        from ..Propagators import LFPPropagator, BeliefPolytope, TemplateFactory
-        from ..Propagators.lfp_propagator import default_solver
-
-        n = len(ipomdp.states)
-        template = TemplateFactory.canonical(n)
-        polytope = BeliefPolytope.uniform_prior(n)
-        propagator = LFPPropagator(ipomdp, template, default_solver(), polytope)
-
-        return RuntimeImpShield(dyn_shield, propagator, action_shield=0.8)
-
     # Create evaluator
-    evaluator = MonteCarloSafetyEvaluator(
-        ipomdp=ipomdp,
-        pp_shield=dyn_shield,
+    evaluator = runner.create_evaluator(
         perception=perception,
         rt_shield_factory=rt_shield_factory
     )
@@ -76,29 +76,32 @@ def taxinet_monte_carlo_safety_experiment(
     # Run evaluation with random action selection
     action_selector = RandomActionSelector()
 
-    results = evaluator.evaluate(
+    results, timestep_metrics = evaluator.evaluate(
         action_selector=action_selector,
         num_trials=num_trials,
         trial_length=trial_length,
         sampling_modes=["random", "best_case", "worst_case"],
-        seed=seed
+        seed=seed,
+        compute_timestep_metrics_flag=compute_timesteps
     )
 
     # Print results
-    print("\n" + "=" * 60)
-    print("RESULTS")
-    print("=" * 60)
-    for mode, metrics in results.items():
-        print(f"\n{mode.upper()}:")
-        print(metrics)
+    runner.print_results(results)
 
     # Plot results
     if save_path:
         plot_safety_metrics(results, save_path=save_path, show=False)
+
+        # Plot timestep evolution if computed
+        if compute_timesteps and timestep_metrics:
+            timestep_save_path = save_path.replace(".png", "_timesteps.png")
+            plot_timestep_comparison(timestep_metrics, save_path=timestep_save_path, show=False)
     else:
         plot_safety_metrics(results, show=True)
+        if compute_timesteps and timestep_metrics:
+            plot_timestep_comparison(timestep_metrics, show=True)
 
-    return results
+    return results, timestep_metrics
 
 
 def belief_selector_experiment(
@@ -106,7 +109,8 @@ def belief_selector_experiment(
     trial_length: int = 20,
     seed: Optional[int] = 42,
     save_path: Optional[str] = None,
-    exploration_rate: float = 0.0
+    exploration_rate: float = 0.0,
+    compute_timesteps: bool = False
 ):
     """BeliefSelector action selection experiment.
 
@@ -130,20 +134,34 @@ def belief_selector_experiment(
         Path to save visualization (e.g., "images/belief_selector_experiment.png")
     exploration_rate : float
         Exploration rate for BeliefSelector (0.0 = pure greedy)
+    compute_timesteps : bool
+        Whether to compute and plot timestep-level cumulative metrics
 
     Returns
     -------
-    dict
-        Nested results: perception_model -> selector_mode -> MCSafetyMetrics
+    tuple
+        (results, timestep_metrics) where results is nested dict and
+        timestep_metrics contains metrics for all (perception, selector) combos
     """
+    # Build Taxinet IPOMDP model
     from ..CaseStudies.Taxinet import build_taxinet_ipomdp
-    from ..Evaluation.runtime_shield import RuntimeImpShield
+    ipomdp, dyn_shield, _, _ = build_taxinet_ipomdp()
 
-    print("=" * 60)
-    print("BELIEF SELECTOR EVALUATION")
-    print(f"Trials: {num_trials}, Length: {trial_length}")
-    print(f"Exploration rate: {exploration_rate}")
-    print("=" * 60)
+    # Create config and runner
+    config = ExperimentConfig(
+        num_trials=num_trials,
+        trial_length=trial_length,
+        seed=seed,
+        save_path=save_path,
+        track_timesteps=compute_timesteps
+    )
+    runner = ExperimentRunner(config, ipomdp, dyn_shield)
+
+    # Print header
+    runner.print_experiment_header(
+        "BELIEF SELECTOR EVALUATION",
+        **{"Exploration rate": exploration_rate}
+    )
     print("\nBeliefSelector modes:")
     print("  - best: Selects action with highest belief probability")
     print("  - worst: Selects action with lowest belief probability")
@@ -152,25 +170,11 @@ def belief_selector_experiment(
     print("  - cooperative: Uniform perception (random within intervals)")
     print("  - adversarial: Maximizes failure probability")
 
-    # Setup Taxinet model
-    ipomdp, dyn_shield, _, _ = build_taxinet_ipomdp()
-
     # Create runtime shield factory
-    def rt_shield_factory():
-        from ..Propagators import LFPPropagator, BeliefPolytope, TemplateFactory
-        from ..Propagators.lfp_propagator import default_solver
-
-        n = len(ipomdp.states)
-        template = TemplateFactory.canonical(n)
-        polytope = BeliefPolytope.uniform_prior(n)
-        propagator = LFPPropagator(ipomdp, template, default_solver(), polytope)
-
-        return RuntimeImpShield(dyn_shield, propagator, action_shield=0.8)
+    rt_shield_factory = runner.create_rt_shield_factory()
 
     # Create evaluator
-    evaluator = MonteCarloSafetyEvaluator(
-        ipomdp=ipomdp,
-        pp_shield=dyn_shield,
+    evaluator = runner.create_evaluator(
         perception=UniformPerceptionModel(),
         rt_shield_factory=rt_shield_factory
     )
@@ -190,6 +194,7 @@ def belief_selector_experiment(
 
     # Run evaluations for each combination
     results = {}
+    all_timestep_metrics = {} if compute_timesteps else None
 
     for perception_name, perception_model in perception_models.items():
         print(f"\n{'=' * 60}")
@@ -204,16 +209,22 @@ def belief_selector_experiment(
         for selector_name, selector in selectors.items():
             print(f"  Running {selector_name} selector...")
 
-            metrics = evaluator.evaluate(
+            metrics, timestep_metrics = evaluator.evaluate(
                 action_selector=selector,
                 num_trials=num_trials,
                 trial_length=trial_length,
                 sampling_modes=["random"],  # Use random initial state sampling
-                seed=seed
+                seed=seed,
+                compute_timestep_metrics_flag=compute_timesteps
             )
 
             # Extract the metrics (only one mode returned)
             results[perception_name][selector_name] = metrics["random"]
+
+            # Store timestep metrics with combined key
+            if compute_timesteps and timestep_metrics:
+                combo_key = f"{perception_name}/{selector_name}"
+                all_timestep_metrics[combo_key] = timestep_metrics["random"]
 
     # Print summary comparison
     print("\n" + "=" * 60)
@@ -259,7 +270,12 @@ def belief_selector_experiment(
     if save_path:
         plot_two_player_game_results(results, save_path=save_path, show=False)
 
-    return results
+        # Plot timestep evolution if computed
+        if compute_timesteps and all_timestep_metrics:
+            timestep_save_path = save_path.replace(".png", "_timesteps.png")
+            plot_timestep_comparison(all_timestep_metrics, save_path=timestep_save_path, show=False)
+
+    return results, all_timestep_metrics
 
 
 def two_player_game_experiment(
@@ -268,7 +284,8 @@ def two_player_game_experiment(
     seed: Optional[int] = 42,
     save_path: Optional[str] = None,
     use_rl: bool = False,
-    rl_training_episodes: int = 500
+    rl_training_episodes: int = 500,
+    compute_timesteps: bool = False
 ):
     """2-player game experiment with cooperative vs adversarial nature.
 
@@ -295,19 +312,34 @@ def two_player_game_experiment(
         If True, use RL-trained action selectors instead of heuristics
     rl_training_episodes : int
         Number of RL training episodes (if use_rl=True)
+    compute_timesteps : bool
+        Whether to compute and plot timestep-level cumulative metrics
 
     Returns
     -------
-    dict
-        Nested results: nature_strategy -> agent_strategy -> MCSafetyMetrics
+    tuple
+        (results, timestep_metrics) - results is nested dict,
+        timestep_metrics is None (timestep tracking not yet implemented for 2-player game)
     """
+    # Build Taxinet IPOMDP model
     from ..CaseStudies.Taxinet import build_taxinet_ipomdp
-    from ..Evaluation.runtime_shield import RuntimeImpShield
+    ipomdp, dyn_shield, _, _ = build_taxinet_ipomdp()
 
-    print("=" * 60)
-    print("2-PLAYER GAME: AGENT vs NATURE")
-    print(f"Trials: {num_trials}, Length: {trial_length}")
-    print("=" * 60)
+    # Create config and runner
+    config = ExperimentConfig(
+        num_trials=num_trials,
+        trial_length=trial_length,
+        seed=seed,
+        save_path=save_path,
+        track_timesteps=compute_timesteps
+    )
+    runner = ExperimentRunner(config, ipomdp, dyn_shield)
+
+    # Print header
+    runner.print_experiment_header(
+        "2-PLAYER GAME: AGENT vs NATURE",
+        **{"Use RL": use_rl, "RL Episodes": rl_training_episodes if use_rl else "N/A"}
+    )
     print("\nPlayer 1 (Agent): Selects actions from shield's allowed actions")
     print("  - best: Selects safest action (maximizes safety)")
     print("  - worst: Selects riskiest action (minimizes safety)")
@@ -320,28 +352,14 @@ def two_player_game_experiment(
     print("  - cooperative: Random perception (uniform within intervals)")
     print("  - adversarial: Maximizes failure probability")
 
-    # Setup Taxinet model
-    ipomdp, dyn_shield, _, _ = build_taxinet_ipomdp()
-
     # Create runtime shield factory
-    def rt_shield_factory():
-        from ..Propagators import LFPPropagator, BeliefPolytope, TemplateFactory
-        from ..Propagators.lfp_propagator import default_solver
-
-        n = len(ipomdp.states)
-        template = TemplateFactory.canonical(n)
-        polytope = BeliefPolytope.uniform_prior(n)
-        propagator = LFPPropagator(ipomdp, template, default_solver(), polytope)
-
-        return RuntimeImpShield(dyn_shield, propagator, action_shield=0.8)
+    rt_shield_factory = runner.create_rt_shield_factory()
 
     # Use uniform perception as default
     default_perception = UniformPerceptionModel()
 
     # Create evaluator
-    evaluator = MonteCarloSafetyEvaluator(
-        ipomdp=ipomdp,
-        pp_shield=dyn_shield,
+    evaluator = runner.create_evaluator(
         perception=default_perception,
         rt_shield_factory=rt_shield_factory
     )
@@ -394,7 +412,9 @@ def two_player_game_experiment(
     if save_path:
         plot_two_player_game_results(results, save_path=save_path, show=False)
 
-    return results
+    # Note: timestep tracking not yet implemented for 2-player game evaluation
+    # Would require changes to evaluate_two_player_game method
+    return results, None
 
 
 def rl_two_player_game_experiment(
@@ -402,7 +422,8 @@ def rl_two_player_game_experiment(
     trial_length: int = 20,
     training_episodes: int = 500,
     seed: Optional[int] = 42,
-    save_path: Optional[str] = None
+    save_path: Optional[str] = None,
+    compute_timesteps: bool = False
 ):
     """2-player game experiment with RL-trained action selectors and training curves.
 
@@ -418,40 +439,40 @@ def rl_two_player_game_experiment(
         Random seed for reproducibility
     save_path : str, optional
         Path to save visualization
+    compute_timesteps : bool
+        Whether to compute and plot timestep-level cumulative metrics
+        (not yet implemented for RL experiment)
 
     Returns
     -------
-    dict
-        Contains evaluation results and training curves
+    tuple
+        (full_results, None) - full_results contains evaluation results and training curves
     """
+    # Build Taxinet IPOMDP model
     from ..CaseStudies.Taxinet import build_taxinet_ipomdp
-
-    print("=" * 60)
-    print("RL-TRAINED 2-PLAYER GAME")
-    print(f"Training episodes: {training_episodes}")
-    print(f"Evaluation trials: {num_trials}, Length: {trial_length}")
-    print("=" * 60)
-
-    # Setup Taxinet model
     ipomdp, dyn_shield, _, _ = build_taxinet_ipomdp()
 
+    # Create config and runner
+    config = ExperimentConfig(
+        num_trials=num_trials,
+        trial_length=trial_length,
+        seed=seed,
+        save_path=save_path,
+        track_timesteps=compute_timesteps
+    )
+    runner = ExperimentRunner(config, ipomdp, dyn_shield)
+
+    # Print header
+    runner.print_experiment_header(
+        "RL-TRAINED 2-PLAYER GAME",
+        **{"Training episodes": training_episodes}
+    )
+
     # Create runtime shield factory
-    def rt_shield_factory():
-        from ..Propagators import LFPPropagator, BeliefPolytope, TemplateFactory
-        from ..Propagators.lfp_propagator import default_solver
-
-        n = len(ipomdp.states)
-        template = TemplateFactory.canonical(n)
-        polytope = BeliefPolytope.uniform_prior(n)
-        propagator = LFPPropagator(ipomdp, template, default_solver(), polytope)
-
-        from ..Evaluation.runtime_shield import RuntimeImpShield
-        return RuntimeImpShield(dyn_shield, propagator, action_shield=0.8)
+    rt_shield_factory = runner.create_rt_shield_factory()
 
     # Create evaluator
-    evaluator = MonteCarloSafetyEvaluator(
-        ipomdp=ipomdp,
-        pp_shield=dyn_shield,
+    evaluator = runner.create_evaluator(
         perception=UniformPerceptionModel(),
         rt_shield_factory=rt_shield_factory
     )
@@ -475,24 +496,26 @@ def rl_two_player_game_experiment(
             show=False
         )
 
-    return full_results
+    # Note: timestep tracking not yet implemented for RL experiment
+    return full_results, None
 
 
 if __name__ == "__main__":
-    # Run belief selector experiment
+    # Run belief selector experiment with timestep tracking
     print("\n" + "=" * 70)
     print("Running BeliefSelector evaluation...")
-    belief_selector_experiment(
+    results, timestep_metrics = belief_selector_experiment(
         num_trials=100,
         trial_length=20,
         seed=42,
-        save_path="images/belief_selector.png"
+        save_path="images/belief_selector.png",
+        compute_timesteps=True
     )
 
     # # Run 2-player game experiment
     # print("\n" + "=" * 70)
     # print("Running 2-player game evaluation...")
-    # two_player_game_experiment(
+    # results, _ = two_player_game_experiment(
     #     num_trials=10,
     #     trial_length=20,
     #     seed=42,
@@ -502,7 +525,7 @@ if __name__ == "__main__":
     # # Run RL 2-player game experiment
     # print("\n" + "=" * 70)
     # print("Running RL 2-player game evaluation...")
-    # rl_two_player_game_experiment(
+    # full_results, _ = rl_two_player_game_experiment(
     #     num_trials=10,
     #     trial_length=20,
     #     seed=42,

@@ -11,7 +11,7 @@ import numpy as np
 from ..Models.ipomdp import IPOMDP
 from ..Evaluation.runtime_shield import RuntimeImpShield
 
-from .data_structures import SafetyTrialResult, MCSafetyMetrics
+from .data_structures import SafetyTrialResult, MCSafetyMetrics, TimestepMetrics
 from .action_selectors import ActionSelector
 from .perception_models import PerceptionModel, LegacyPerceptionAdapter
 from .initial_states import InitialStateGenerator
@@ -254,4 +254,86 @@ def compute_safety_metrics(
         mean_steps=mean_steps,
         mean_stuck_count=mean_stuck_count,
         fail_step_distribution=fail_step_distribution
+    )
+
+
+def compute_timestep_metrics(
+    results: List[SafetyTrialResult],
+    trial_length: int
+) -> TimestepMetrics:
+    """Compute cumulative fail/stuck/safe probabilities at each timestep.
+
+    For each timestep t, computes:
+    - fail_prob: Fraction of trials that hit FAIL at or before t
+    - stuck_prob: Fraction of trials that got stuck at or before t
+    - safe_prob: Fraction of trials still running at t (= 1 - fail - stuck)
+
+    Parameters
+    ----------
+    results : list of SafetyTrialResult
+        Trial results from Monte Carlo evaluation
+    trial_length : int
+        Maximum trial length (for x-axis)
+
+    Returns
+    -------
+    TimestepMetrics
+        Cumulative probabilities at each timestep
+    """
+    num_trials = len(results)
+    if num_trials == 0:
+        return TimestepMetrics(
+            num_trials=0,
+            trial_length=trial_length,
+            fail_prob_by_timestep=[],
+            stuck_prob_by_timestep=[],
+            safe_prob_by_timestep=[]
+        )
+
+    # For each trial, determine when it terminated and why
+    # termination_step = step at which trial ended (None if completed all steps safely)
+    # termination_reason = "fail", "stuck", or None (if safe)
+    trial_terminations = []
+    for r in results:
+        if r.outcome == "fail":
+            # Failed at fail_step
+            trial_terminations.append((r.fail_step, "fail"))
+        elif r.outcome == "stuck":
+            # Got stuck at steps_completed
+            trial_terminations.append((r.steps_completed, "stuck"))
+        else:
+            # Completed safely - no termination
+            trial_terminations.append((None, None))
+
+    # Compute cumulative probabilities at each timestep
+    fail_prob_by_timestep = []
+    stuck_prob_by_timestep = []
+    safe_prob_by_timestep = []
+
+    for t in range(trial_length):
+        # Count trials that have failed at or before timestep t
+        fail_count = sum(
+            1 for (term_step, term_reason) in trial_terminations
+            if term_reason == "fail" and term_step is not None and term_step <= t
+        )
+
+        # Count trials that have gotten stuck at or before timestep t
+        stuck_count = sum(
+            1 for (term_step, term_reason) in trial_terminations
+            if term_reason == "stuck" and term_step is not None and term_step <= t
+        )
+
+        # Safe = still running (haven't failed or gotten stuck yet)
+        safe_count = num_trials - fail_count - stuck_count
+
+        fail_prob_by_timestep.append(fail_count / num_trials)
+        stuck_prob_by_timestep.append(stuck_count / num_trials)
+        safe_prob_by_timestep.append(safe_count / num_trials)
+
+    return TimestepMetrics(
+        num_trials=num_trials,
+        trial_length=trial_length,
+        fail_prob_by_timestep=fail_prob_by_timestep,
+        stuck_prob_by_timestep=stuck_prob_by_timestep,
+        safe_prob_by_timestep=safe_prob_by_timestep
     )

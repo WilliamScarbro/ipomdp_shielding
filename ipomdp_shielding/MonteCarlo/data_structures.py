@@ -5,6 +5,77 @@ from typing import Any, Dict, List, Optional, Tuple
 
 
 @dataclass
+class TimestepMetrics:
+    """Aggregated cumulative probabilities across timesteps.
+
+    Computed empirically by counting outcomes across all trials.
+    At each timestep t:
+    - fail_prob: Fraction of trials that hit FAIL at or before t
+    - stuck_prob: Fraction of trials that got stuck at or before t
+    - safe_prob: Fraction of trials still running at t (= 1 - fail - stuck)
+
+    Attributes
+    ----------
+    num_trials : int
+        Number of trials used to compute metrics
+    trial_length : int
+        Maximum trial length (number of timesteps)
+    fail_prob_by_timestep : list of float
+        Cumulative failure probability at each timestep
+    stuck_prob_by_timestep : list of float
+        Cumulative stuck probability at each timestep
+    safe_prob_by_timestep : list of float
+        Probability of still being safe at each timestep
+    """
+    num_trials: int
+    trial_length: int
+    fail_prob_by_timestep: List[float] = field(default_factory=list)
+    stuck_prob_by_timestep: List[float] = field(default_factory=list)
+    safe_prob_by_timestep: List[float] = field(default_factory=list)
+
+    def get_probabilities_at(self, t: int) -> Tuple[float, float, float]:
+        """Return (fail, stuck, safe) cumulative probabilities at timestep t.
+
+        Parameters
+        ----------
+        t : int
+            Timestep to query
+
+        Returns
+        -------
+        tuple
+            (fail_prob, stuck_prob, safe_prob) at timestep t
+        """
+        if not self.fail_prob_by_timestep:
+            return (0.0, 0.0, 1.0)
+        if t >= len(self.fail_prob_by_timestep):
+            t = len(self.fail_prob_by_timestep) - 1
+        return (
+            self.fail_prob_by_timestep[t],
+            self.stuck_prob_by_timestep[t],
+            self.safe_prob_by_timestep[t]
+        )
+
+    def __str__(self) -> str:
+        """Format metrics for display."""
+        if not self.fail_prob_by_timestep:
+            return "TimestepMetrics: No data"
+
+        final_t = len(self.fail_prob_by_timestep) - 1
+        fail, stuck, safe = self.get_probabilities_at(final_t)
+        lines = [
+            "Timestep Metrics",
+            "=" * 40,
+            f"Trials: {self.num_trials}",
+            f"Trial Length: {self.trial_length}",
+            f"Final Fail Rate: {fail:.2%}",
+            f"Final Stuck Rate: {stuck:.2%}",
+            f"Final Safe Rate: {safe:.2%}",
+        ]
+        return "\n".join(lines)
+
+
+@dataclass
 class SafetyTrialResult:
     """Result from a single Monte Carlo trial.
 
