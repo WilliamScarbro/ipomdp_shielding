@@ -7,3 +7,6 @@ statsmodels>=0.14.0
 
 # Visualization
 matplotlib>=3.7.0
+
+# Deep learning (for neural action selectors)
+torch>=2.0.0

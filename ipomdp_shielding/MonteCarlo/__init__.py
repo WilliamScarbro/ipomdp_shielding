@@ -13,6 +13,11 @@ The package measures safety through simulation, tracking three outcomes:
 
 Supports best/worst/average case analysis via modular initial state sampling.
 
+Features:
+- Timestep-level tracking of cumulative safety probabilities
+- ExperimentRunner helper class for common experiment setup
+- Visualization of safety metrics and timestep evolution
+
 Modules
 -------
 action_selectors
@@ -22,19 +27,21 @@ perception_models
 initial_states
     Initial state sampling strategies (random, safe interior, boundary)
 simulation
-    Core Monte Carlo simulation functions
+    Core Monte Carlo simulation functions and timestep metrics
 evaluator
     High-level MonteCarloSafetyEvaluator class
+experiment_runner
+    ExperimentConfig and ExperimentRunner helper class
 visualization
-    Plotting functions for results
+    Plotting functions for results and timestep evolution
 data_structures
-    SafetyTrialResult and MCSafetyMetrics dataclasses
+    SafetyTrialResult, MCSafetyMetrics, and TimestepMetrics dataclasses
 experiments
     Experiment functions for Taxinet case study
 """
 
 # Data structures
-from .data_structures import SafetyTrialResult, MCSafetyMetrics
+from .data_structures import SafetyTrialResult, MCSafetyMetrics, TimestepMetrics
 
 # Action selectors
 from .action_selectors import (
@@ -47,6 +54,14 @@ from .action_selectors import (
     RLActionSelector,
     QLearningActionSelector,
     create_rl_action_selector,
+)
+
+# Neural network action selectors
+from .neural_action_selector import (
+    NeuralActionSelector,
+    QNetwork,
+    ReplayBuffer,
+    ObservationActionEncoder,
 )
 
 # Perception models
@@ -70,16 +85,22 @@ from .simulation import (
     run_single_trial,
     run_monte_carlo_trials,
     compute_safety_metrics,
+    compute_timestep_metrics,
 )
 
 # High-level API
 from .evaluator import MonteCarloSafetyEvaluator
+
+# Experiment runner
+from .experiment_runner import ExperimentConfig, ExperimentRunner
 
 # Visualization
 from .visualization import (
     plot_safety_metrics,
     plot_rl_training_curves,
     plot_two_player_game_results,
+    plot_timestep_evolution,
+    plot_timestep_comparison,
 )
 
 # Experiments
@@ -94,6 +115,7 @@ __all__ = [
     # Data structures
     "SafetyTrialResult",
     "MCSafetyMetrics",
+    "TimestepMetrics",
     # Action selectors
     "ActionSelector",
     "RandomActionSelector",
@@ -104,6 +126,11 @@ __all__ = [
     "RLActionSelector",
     "QLearningActionSelector",
     "create_rl_action_selector",
+    # Neural network action selectors
+    "NeuralActionSelector",
+    "QNetwork",
+    "ReplayBuffer",
+    "ObservationActionEncoder",
     # Perception models
     "PerceptionModel",
     "UniformPerceptionModel",
@@ -118,12 +145,18 @@ __all__ = [
     "run_single_trial",
     "run_monte_carlo_trials",
     "compute_safety_metrics",
+    "compute_timestep_metrics",
     # High-level API
     "MonteCarloSafetyEvaluator",
+    # Experiment runner
+    "ExperimentConfig",
+    "ExperimentRunner",
     # Visualization
     "plot_safety_metrics",
     "plot_rl_training_curves",
     "plot_two_player_game_results",
+    "plot_timestep_evolution",
+    "plot_timestep_comparison",
     # Experiments
     "taxinet_monte_carlo_safety_experiment",
     "belief_selector_experiment",
