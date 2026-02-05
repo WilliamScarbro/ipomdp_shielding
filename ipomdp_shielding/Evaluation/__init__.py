@@ -55,12 +55,9 @@ from ..MonteCarlo import (
     ActionSelector,
     RandomActionSelector,
     UniformFallbackSelector,
-    SafestActionSelector,
-    RiskiestActionSelector,
-    # RL-based action selectors
+    BeliefSelector,
+    BeliefShieldedActionSelector,
     RLActionSelector,
-    QLearningActionSelector,
-    create_rl_action_selector,
     # Perception models (2-player game: Nature's strategy)
     PerceptionModel,
     UniformPerceptionModel,
@@ -147,12 +144,9 @@ __all__ = [
     'ActionSelector',
     'RandomActionSelector',
     'UniformFallbackSelector',
-    'SafestActionSelector',
-    'RiskiestActionSelector',
-    # RL-based action selectors
+    'BeliefSelector',
+    'BeliefShieldedActionSelector',
     'RLActionSelector',
-    'QLearningActionSelector',
-    'create_rl_action_selector',
     # Perception models (Nature's strategy)
     'PerceptionModel',
     'UniformPerceptionModel',

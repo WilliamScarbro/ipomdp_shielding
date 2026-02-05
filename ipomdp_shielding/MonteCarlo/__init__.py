@@ -48,12 +48,9 @@ from .action_selectors import (
     ActionSelector,
     RandomActionSelector,
     UniformFallbackSelector,
-    SafestActionSelector,
-    RiskiestActionSelector,
     BeliefSelector,
+    BeliefShieldedActionSelector,
     RLActionSelector,
-    QLearningActionSelector,
-    create_rl_action_selector,
 )
 
 # Neural network action selectors
@@ -70,6 +67,16 @@ from .perception_models import (
     UniformPerceptionModel,
     AdversarialPerceptionModel,
     LegacyPerceptionAdapter,
+)
+
+# Fixed realization and optimization
+from .fixed_realization_model import (
+    FixedRealizationPerceptionModel,
+    IntervalRealizationParameterizer,
+)
+from .realization_optimizer import (
+    OptimizedRealizationTrainer,
+    train_optimal_realization,
 )
 
 # Initial state generators
@@ -120,12 +127,9 @@ __all__ = [
     "ActionSelector",
     "RandomActionSelector",
     "UniformFallbackSelector",
-    "SafestActionSelector",
-    "RiskiestActionSelector",
     "BeliefSelector",
+    "BeliefShieldedActionSelector",
     "RLActionSelector",
-    "QLearningActionSelector",
-    "create_rl_action_selector",
     # Neural network action selectors
     "NeuralActionSelector",
     "QNetwork",
@@ -136,6 +140,11 @@ __all__ = [
     "UniformPerceptionModel",
     "AdversarialPerceptionModel",
     "LegacyPerceptionAdapter",
+    # Fixed realization and optimization
+    "FixedRealizationPerceptionModel",
+    "IntervalRealizationParameterizer",
+    "OptimizedRealizationTrainer",
+    "train_optimal_realization",
     # Initial state generators
     "InitialStateGenerator",
     "RandomInitialState",
