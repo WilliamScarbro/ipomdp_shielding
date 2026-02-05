@@ -525,6 +525,71 @@ class BeliefShieldedActionSelector(ShieldedActionSelector):
         return stats
 
 
+class ObservationShieldedActionSelector(ShieldedActionSelector):
+    """Combines a primary selector with direct perfect-perception shield lookup.
+
+    When the observation space equals the state space (observations are state
+    estimates), the perfect perception shield can be applied directly:
+    pp_shield[obs] gives the safe actions for the current observed state.
+
+    Selection logic:
+    1. Narrow allowed_actions to those also in pp_shield[observation]
+    2. Get primary selector's preferred action (over all actions)
+    3. If it's in the narrowed set, use it
+    4. Otherwise, pick randomly from the narrowed set
+    5. If the narrowed set is empty, fall back to the original allowed_actions
+    6. If allowed_actions is empty, use the primary choice unrestricted
+    """
+
+    def __init__(
+        self,
+        selector: ActionSelector,
+        all_actions: List[Any],
+        pp_shield: Dict[Any, Set[Any]],
+        exploration_rate: float = 0.0,
+    ):
+        """Initialize observation-shielded action selector.
+
+        Parameters
+        ----------
+        selector : ActionSelector
+            Primary action selector (e.g. RL policy, heuristic)
+        all_actions : list
+            Complete set of actions in the IPOMDP
+        pp_shield : dict mapping state -> set of allowed actions
+            Pre-computed perfect-perception shield
+        exploration_rate : float
+            Probability of random action selection (0.0 to 1.0)
+        """
+        super().__init__(selector, all_actions, exploration_rate)
+        self.pp_shield = pp_shield
+
+    def select(
+        self,
+        history: List[Tuple[Any, Any]],
+        allowed_actions: List[Any],
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Any:
+        """Narrow allowed actions via pp_shield[obs], then delegate to parent."""
+        if history:
+            obs = history[-1][0]
+            pp_allowed = self.pp_shield.get(obs, set())
+            obs_filtered = [a for a in allowed_actions if a in pp_allowed]
+        else:
+            obs_filtered = list(allowed_actions)
+
+        effective_allowed = obs_filtered if obs_filtered else allowed_actions
+        return super().select(history, effective_allowed, context)
+
+    def _select_fallback(
+        self,
+        allowed_actions: List[Any],
+        context: Optional[Dict[str, Any]]
+    ) -> Any:
+        """Select randomly from (already narrowed) allowed actions."""
+        return random.choice(allowed_actions)
+
+
 class SingleBeliefShieldedActionSelector(ShieldedActionSelector):
     """Combines a primary selector with single-POMDP-belief safety fallback.
 
