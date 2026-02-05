@@ -49,7 +49,10 @@ from .action_selectors import (
     RandomActionSelector,
     UniformFallbackSelector,
     BeliefSelector,
+    SingleBeliefSelector,
+    ShieldedActionSelector,
     BeliefShieldedActionSelector,
+    SingleBeliefShieldedActionSelector,
     RLActionSelector,
 )
 
@@ -128,7 +131,10 @@ __all__ = [
     "RandomActionSelector",
     "UniformFallbackSelector",
     "BeliefSelector",
+    "SingleBeliefSelector",
+    "ShieldedActionSelector",
     "BeliefShieldedActionSelector",
+    "SingleBeliefShieldedActionSelector",
     "RLActionSelector",
     # Neural network action selectors
     "NeuralActionSelector",

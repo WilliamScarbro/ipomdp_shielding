@@ -9,6 +9,8 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 import random
 
+from ..Models.pomdp import POMDP, POMDP_Belief
+
 
 # ============================================================
 # Action Selector Base Classes
@@ -198,10 +200,251 @@ class BeliefSelector(ActionSelector):
         return action_scores[0][0]
 
 
-class BeliefShieldedActionSelector(ActionSelector):
-    """Combines an RL policy with belief-envelope safety from the runtime shield.
+class SingleBeliefSelector(ActionSelector):
+    """Selects actions based on a single POMDP belief estimate of shield allowance.
+
+    Unlike BeliefSelector, which queries the full interval-POMDP belief envelope
+    via rt_shield.get_action_probs(), this selector maintains a single point
+    belief over states using a standard POMDP and estimates how likely each
+    action is to be allowed by a perfect perception shield.
+
+    For each candidate action a, computes:
+        P(a allowed) = sum_{s : a in pp_shield[s]} belief(s)
+
+    Modes:
+    - "best":  Select the allowed action with the highest allowance probability
+    - "worst": Select the allowed action with the lowest allowance probability
+    """
+
+    def __init__(
+        self,
+        pomdp: POMDP,
+        pp_shield: Dict[Any, Set[Any]],
+        mode: str = "best",
+        exploration_rate: float = 0.0,
+    ):
+        """Initialize single-belief selector.
+
+        Parameters
+        ----------
+        pomdp : POMDP
+            Standard POMDP used for belief propagation
+        pp_shield : dict mapping state -> set of allowed actions
+            Pre-computed perfect-perception shield
+        mode : str
+            "best" (safety-maximizing) or "worst" (stress testing)
+        exploration_rate : float
+            Probability of random action selection (0.0 to 1.0)
+        """
+        if mode not in ("best", "worst"):
+            raise ValueError(f"mode must be 'best' or 'worst', got {mode}")
+
+        self.pomdp = pomdp
+        self.pp_shield = pp_shield
+        self.mode = mode
+        self.exploration_rate = exploration_rate
+
+        self._belief = POMDP_Belief(pomdp)
+        self._history_len = 0  # how far into the history we have propagated
+
+    def _allowance_probability(self, action: Any) -> float:
+        """Estimate probability that *action* is allowed under current belief.
+
+        Returns sum of belief mass over states where pp_shield allows *action*.
+        """
+        return sum(
+            self._belief.belief.get(s, 0.0)
+            for s, allowed_set in self.pp_shield.items()
+            if action in allowed_set
+        )
+
+    def select(
+        self,
+        history: List[Tuple[Any, Any]],
+        allowed_actions: List[Any],
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Any:
+        """Select action using single-belief allowance estimates.
+
+        Parameters
+        ----------
+        history : list of (observation, action) pairs
+            Full observation-action sequence up to current step
+        allowed_actions : list
+            Actions permitted by the shield
+        context : dict, optional
+            Not used (included for interface compatibility)
+
+        Returns
+        -------
+        action
+            Selected action from allowed_actions
+        """
+        if not allowed_actions:
+            raise ValueError("No allowed actions to select from")
+
+        if len(allowed_actions) == 1:
+            return allowed_actions[0]
+
+        # Propagate belief for any new history entries
+        while self._history_len < len(history):
+            self._belief.propogate(history[self._history_len])
+            self._history_len += 1
+
+        # Epsilon-greedy exploration
+        if random.random() < self.exploration_rate:
+            return random.choice(allowed_actions)
+
+        # Score each allowed action by P(action allowed | belief)
+        action_scores = [
+            (action, self._allowance_probability(action))
+            for action in allowed_actions
+        ]
+
+        if self.mode == "best":
+            action_scores.sort(key=lambda x: x[1], reverse=True)
+        else:
+            action_scores.sort(key=lambda x: x[1])
+
+        return action_scores[0][0]
+
+    def reset(self):
+        """Reset belief to uniform prior and clear history tracking."""
+        self._belief.restart()
+        self._history_len = 0
+
+
+class ShieldedActionSelector(ActionSelector):
+    """Combines a primary action selector with shield-based safety fallback.
 
     Selection logic:
+    1. Get the primary selector's preferred action (over all actions)
+    2. If that action is in the shield's allowed set, use it
+    3. If not, fall back to _select_fallback (subclass-defined)
+    4. If the shield returns no allowed actions, use the primary choice unrestricted
+
+    Subclasses must implement _select_fallback to define how a safe fallback
+    action is chosen when the primary selector's choice is disallowed.
+    """
+
+    def __init__(
+        self,
+        selector: ActionSelector,
+        all_actions: List[Any],
+        exploration_rate: float = 0.0
+    ):
+        """Initialize shielded action selector.
+
+        Parameters
+        ----------
+        selector : ActionSelector
+            Primary action selector (e.g. RL policy, heuristic)
+        all_actions : list
+            Complete set of actions in the IPOMDP
+        exploration_rate : float
+            Probability of random action selection (0.0 to 1.0)
+        """
+        self.selector = selector
+        self.all_actions = all_actions
+        self.exploration_rate = exploration_rate
+
+        # Selection statistics
+        self.primary_selections = 0
+        self.fallback_selections = 0
+        self.unshielded_selections = 0
+
+    @abstractmethod
+    def _select_fallback(
+        self,
+        allowed_actions: List[Any],
+        context: Optional[Dict[str, Any]]
+    ) -> Any:
+        """Select a fallback action when the primary choice is disallowed.
+
+        Parameters
+        ----------
+        allowed_actions : list
+            Non-empty list of actions permitted by the shield
+        context : dict, optional
+            Additional context (e.g. runtime shield instance)
+
+        Returns
+        -------
+        action
+            Selected action from allowed_actions
+        """
+        pass
+
+    def select(
+        self,
+        history: List[Tuple[Any, Any]],
+        allowed_actions: List[Any],
+        context: Optional[Dict[str, Any]] = None
+    ) -> Any:
+        """Select action using primary selector with shield-based fallback.
+
+        Parameters
+        ----------
+        history : list of (observation, action) pairs
+            Full observation-action sequence
+        allowed_actions : list
+            Actions permitted by the shield
+        context : dict, optional
+            Additional context for selection
+
+        Returns
+        -------
+        action
+            Selected action
+        """
+        if not allowed_actions:
+            self.unshielded_selections += 1
+            return self.selector.select(history, self.all_actions, context)
+
+        if len(allowed_actions) == 1:
+            return allowed_actions[0]
+
+        if random.random() < self.exploration_rate:
+            return random.choice(allowed_actions)
+
+        # Get primary selector's preferred action over all actions
+        preferred = self.selector.select(history, self.all_actions, context)
+
+        if preferred in allowed_actions:
+            self.primary_selections += 1
+            return preferred
+
+        # Primary action not allowed — delegate to subclass fallback
+        self.fallback_selections += 1
+        return self._select_fallback(allowed_actions, context)
+
+    def get_selection_stats(self) -> Dict[str, Any]:
+        """Get statistics on action selection behavior."""
+        total = (self.primary_selections + self.fallback_selections
+                 + self.unshielded_selections)
+        shielded = self.primary_selections + self.fallback_selections
+        acceptance_rate = (self.primary_selections / shielded
+                         if shielded > 0 else 0.0)
+
+        return {
+            'primary_selections': self.primary_selections,
+            'fallback_selections': self.fallback_selections,
+            'unshielded_selections': self.unshielded_selections,
+            'total_selections': total,
+            'primary_acceptance_rate': acceptance_rate,
+        }
+
+    def reset_stats(self):
+        """Reset selection statistics."""
+        self.primary_selections = 0
+        self.fallback_selections = 0
+        self.unshielded_selections = 0
+
+
+class BeliefShieldedActionSelector(ShieldedActionSelector):
+    """Combines an RL policy with belief-envelope safety from the runtime shield.
+
+    Selection logic (inherited from ShieldedActionSelector):
     1. Get the RL selector's preferred action (over all actions)
     2. If that action is in the shield's allowed set, use it
     3. If not, fall back to the allowed action with the highest allowed
@@ -215,7 +458,7 @@ class BeliefShieldedActionSelector(ActionSelector):
         all_actions: List[Any],
         exploration_rate: float = 0.0
     ):
-        """Initialize belief-neural action selector.
+        """Initialize belief-shielded action selector.
 
         Parameters
         ----------
@@ -226,16 +469,19 @@ class BeliefShieldedActionSelector(ActionSelector):
         exploration_rate : float
             Probability of random action selection (0.0 to 1.0)
         """
-        self.rl_selector = rl_selector
-        self.all_actions = all_actions
-        self.exploration_rate = exploration_rate
+        super().__init__(rl_selector, all_actions, exploration_rate)
 
-        # Selection statistics
-        self.rl_selections = 0
-        self.fallback_selections = 0
-        self.unshielded_selections = 0
+    @property
+    def rl_selector(self) -> ActionSelector:
+        """Alias for the primary selector (backwards compatibility)."""
+        return self.selector
 
-    def _select_safest_allowed(
+    @property
+    def rl_selections(self) -> int:
+        """Alias for primary_selections (backwards compatibility)."""
+        return self.primary_selections
+
+    def _select_fallback(
         self,
         allowed_actions: List[Any],
         context: Optional[Dict[str, Any]]
@@ -267,70 +513,100 @@ class BeliefShieldedActionSelector(ActionSelector):
         action_scores.sort(key=lambda x: x[1], reverse=True)
         return action_scores[0][0]
 
+    def get_selection_stats(self) -> Dict[str, Any]:
+        """Get statistics on action selection behavior.
+
+        Returns stats with both generic and RL-specific key names
+        for backwards compatibility.
+        """
+        stats = super().get_selection_stats()
+        stats['rl_selections'] = stats['primary_selections']
+        stats['rl_acceptance_rate'] = stats['primary_acceptance_rate']
+        return stats
+
+
+class SingleBeliefShieldedActionSelector(ShieldedActionSelector):
+    """Combines a primary selector with single-POMDP-belief safety fallback.
+
+    When the primary selector's choice is disallowed by the shield, falls back
+    to the allowed action with the highest estimated allowance probability
+    under a single point belief (same metric as SingleBeliefSelector).
+
+    Unlike BeliefShieldedActionSelector, which queries the runtime shield's
+    interval-POMDP belief envelope, this class maintains its own standard
+    POMDP belief and scores actions by:
+        P(a allowed) = sum_{s : a in pp_shield[s]} belief(s)
+    """
+
+    def __init__(
+        self,
+        selector: ActionSelector,
+        all_actions: List[Any],
+        pomdp: POMDP,
+        pp_shield: Dict[Any, Set[Any]],
+        exploration_rate: float = 0.0,
+    ):
+        """Initialize single-belief shielded action selector.
+
+        Parameters
+        ----------
+        selector : ActionSelector
+            Primary action selector (e.g. RL policy, heuristic)
+        all_actions : list
+            Complete set of actions in the IPOMDP
+        pomdp : POMDP
+            Standard POMDP used for belief propagation
+        pp_shield : dict mapping state -> set of allowed actions
+            Pre-computed perfect-perception shield
+        exploration_rate : float
+            Probability of random action selection (0.0 to 1.0)
+        """
+        super().__init__(selector, all_actions, exploration_rate)
+        self.pomdp = pomdp
+        self.pp_shield = pp_shield
+        self._belief = POMDP_Belief(pomdp)
+        self._history_len = 0
+
+    def _allowance_probability(self, action: Any) -> float:
+        """Estimate probability that *action* is allowed under current belief.
+
+        Returns sum of belief mass over states where pp_shield allows *action*.
+        """
+        return sum(
+            self._belief.belief.get(s, 0.0)
+            for s, allowed_set in self.pp_shield.items()
+            if action in allowed_set
+        )
+
     def select(
         self,
         history: List[Tuple[Any, Any]],
         allowed_actions: List[Any],
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
     ) -> Any:
-        """Select action using RL policy with belief-envelope safety fallback.
+        """Propagate belief then delegate to ShieldedActionSelector.select."""
+        while self._history_len < len(history):
+            self._belief.propogate(history[self._history_len])
+            self._history_len += 1
+        return super().select(history, allowed_actions, context)
 
-        Parameters
-        ----------
-        history : list of (observation, action) pairs
-            Full observation-action sequence
-        allowed_actions : list
-            Actions permitted by the shield's belief envelope
-        context : dict, optional
-            Must contain "rt_shield": RuntimeImpShield instance
-            for belief-based fallback
+    def _select_fallback(
+        self,
+        allowed_actions: List[Any],
+        context: Optional[Dict[str, Any]]
+    ) -> Any:
+        """Select allowed action with highest single-belief allowance probability."""
+        action_scores = [
+            (action, self._allowance_probability(action))
+            for action in allowed_actions
+        ]
+        action_scores.sort(key=lambda x: x[1], reverse=True)
+        return action_scores[0][0]
 
-        Returns
-        -------
-        action
-            Selected action
-        """
-        if not allowed_actions:
-            self.unshielded_selections += 1
-            return self.rl_selector.select(history, self.all_actions, context)
-
-        if len(allowed_actions) == 1:
-            return allowed_actions[0]
-
-        if random.random() < self.exploration_rate:
-            return random.choice(allowed_actions)
-
-        # Get RL selector's preferred action over all actions
-        rl_action = self.rl_selector.select(history, self.all_actions, context)
-
-        if rl_action in allowed_actions:
-            self.rl_selections += 1
-            return rl_action
-
-        # RL action not allowed — pick safest allowed by belief probability
-        self.fallback_selections += 1
-        return self._select_safest_allowed(allowed_actions, context)
-
-    def get_selection_stats(self) -> Dict[str, Any]:
-        """Get statistics on action selection behavior."""
-        total = self.rl_selections + self.fallback_selections + self.unshielded_selections
-        non_unshielded = self.rl_selections + self.fallback_selections
-        acceptance_rate = (self.rl_selections / non_unshielded
-                         if non_unshielded > 0 else 0.0)
-
-        return {
-            'rl_selections': self.rl_selections,
-            'fallback_selections': self.fallback_selections,
-            'unshielded_selections': self.unshielded_selections,
-            'total_selections': total,
-            'rl_acceptance_rate': acceptance_rate,
-        }
-
-    def reset_stats(self):
-        """Reset selection statistics."""
-        self.rl_selections = 0
-        self.fallback_selections = 0
-        self.unshielded_selections = 0
+    def reset(self):
+        """Reset belief to uniform prior and clear history tracking."""
+        self._belief.restart()
+        self._history_len = 0
 
 
 # ============================================================

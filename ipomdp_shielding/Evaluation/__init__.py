@@ -56,7 +56,9 @@ from ..MonteCarlo import (
     RandomActionSelector,
     UniformFallbackSelector,
     BeliefSelector,
+    ShieldedActionSelector,
     BeliefShieldedActionSelector,
+    SingleBeliefShieldedActionSelector,
     RLActionSelector,
     # Perception models (2-player game: Nature's strategy)
     PerceptionModel,
@@ -145,7 +147,9 @@ __all__ = [
     'RandomActionSelector',
     'UniformFallbackSelector',
     'BeliefSelector',
+    'ShieldedActionSelector',
     'BeliefShieldedActionSelector',
+    'SingleBeliefShieldedActionSelector',
     'RLActionSelector',
     # Perception models (Nature's strategy)
     'PerceptionModel',
