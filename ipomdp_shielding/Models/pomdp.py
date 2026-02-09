@@ -22,7 +22,7 @@ class POMDP:
     """
     states: List[State]
     observations: List[Observation]
-    actions: set
+    actions: List[Action]
     T: Dict[Tuple[State, Action], Dict[State, float]]
     P: Dict[State, Dict[Observation, float]]
 

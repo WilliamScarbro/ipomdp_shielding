@@ -5,6 +5,8 @@ from typing import Dict, Tuple, List, Hashable, Optional
 import random
 import numpy as np
 
+from .pomdp import POMDP
+
 State = Hashable
 Action = Hashable
 Observation = Hashable
@@ -242,4 +244,17 @@ class IPOMDP:
         out = self.T[(state, action)]
         weights = [out.get(s, 0.0) for s in self.states]
         return random.choices(self.states, weights=weights, k=1)[0]
+    
+
+    def to_pomdp(self) -> "POMDP":
+        expected_realizations = {s:
+         {o: (self.P_lower[s].get(o,0.0) + self.P_upper[s].get(o,0.0))/2 for o in self.observations}
+         for s in self.states}
+
+        return POMDP(
+            self.states,
+            self.observations,
+            self.actions,
+            self.T,
+            expected_realizations)
     

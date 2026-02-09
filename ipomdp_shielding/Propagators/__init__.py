@@ -6,6 +6,11 @@ from .exact_hmm import ExactIHMMBelief
 from .minmax_hmm import MinMaxIHMMBelief
 from .belief_polytope import BeliefPolytope, compute_volume
 from .lfp_propagator import LFPPropagator, Template, TemplateFactory
+from .forward_sampled_belief import (
+    ForwardSampledBelief,
+    LikelihoodSamplingStrategy,
+    PruningStrategy,
+)
 
 __all__ = [
     'IPOMDP_Belief',
@@ -17,4 +22,7 @@ __all__ = [
     'compute_volume',
     'Template',
     'TemplateFactory',
+    'ForwardSampledBelief',
+    'LikelihoodSamplingStrategy',
+    'PruningStrategy',
 ]
