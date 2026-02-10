@@ -45,7 +45,7 @@ Successfully integrated CartPole as a new case study in the ipomdp_shielding fra
 ### Data Files Structure
 
 ```
-lib/
+artifacts/
 ├── bin_edges.npy              # (4, 8) array of bin edges
 ├── x_confusion.npy            # (7, 7) confusion matrix
 ├── x_dot_confusion.npy        # (7, 7) confusion matrix

@@ -72,7 +72,7 @@ def cartpole_dynamics() -> MDP:
     Returns:
         MDP with empirical transition probabilities collected from gymnasium
     """
-    dynamics_file = Path(__file__).parent / "lib" / "dynamics_mdp.pkl"
+    dynamics_file = Path(__file__).parent / "artifacts" / "dynamics_mdp.pkl"
     with open(dynamics_file, "rb") as f:
         return pickle.load(f)
 

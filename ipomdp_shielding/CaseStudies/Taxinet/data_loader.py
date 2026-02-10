@@ -5,21 +5,21 @@ from pathlib import Path
 
 
 def _find_data_dir():
-    """Find the lib directory containing data files."""
+    """Find the artifacts directory containing data files."""
     # Try common locations
     candidates = [
-        Path(__file__).parent / "lib",
-        Path("./lib"),
-        Path("../lib"),
-        Path(__file__).parent.parent.parent.parent / "src" / "lib",
+        Path(__file__).parent / "artifacts",
+        Path("./artifacts"),
+        Path("../artifacts"),
+        Path(__file__).parent.parent.parent.parent / "src" / "artifacts",
     ]
     for path in candidates:
         if path.exists():
             return path
-    return Path("./lib")  # Default fallback
+    return Path("./artifacts")  # Default fallback
 
 def _data_dir():
-    return Path(__file__).parent / "./lib"
+    return Path(__file__).parent / "./artifacts"
 
 
 def get_cte_data(data_dir=None):

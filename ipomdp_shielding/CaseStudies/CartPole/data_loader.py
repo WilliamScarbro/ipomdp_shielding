@@ -1,6 +1,6 @@
 """Data loading utilities for CartPole case study.
 
-Loads confusion matrices and bin edges from the lib/ directory.
+Loads confusion matrices and bin edges from the artifacts/ directory.
 """
 
 from pathlib import Path
@@ -9,15 +9,15 @@ import numpy as np
 
 
 def _data_dir():
-    """Return the path to the lib/ data directory."""
-    return Path(__file__).parent / "lib"
+    """Return the path to the artifacts/ data directory."""
+    return Path(__file__).parent / "artifacts"
 
 
 def get_bin_edges(data_dir: Optional[Path] = None) -> np.ndarray:
     """Load bin edges for state discretization.
 
     Args:
-        data_dir: Optional path to data directory. If None, uses default lib/ directory.
+        data_dir: Optional path to data directory. If None, uses default artifacts/ directory.
 
     Returns:
         np.ndarray of shape (4, 8) containing bin edges for each dimension:
@@ -38,7 +38,7 @@ def get_confusion_data(dimension: str, data_dir: Optional[Path] = None) -> List[
 
     Args:
         dimension: One of "x", "x_dot", "theta", "theta_dot"
-        data_dir: Optional path to data directory. If None, uses default lib/ directory.
+        data_dir: Optional path to data directory. If None, uses default artifacts/ directory.
 
     Returns:
         List of (true_bin, estimated_bin) tuples representing the confusion data.

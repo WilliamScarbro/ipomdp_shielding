@@ -57,10 +57,10 @@ def prepare_perception_data(
         epochs: Number of training epochs
         seed: Random seed for reproducibility
         device: Device for training ("cuda" or "cpu")
-        data_dir: Directory to save data. If None, uses lib/ subdirectory
+        data_dir: Directory to save data. If None, uses artifacts/ subdirectory
     """
     if data_dir is None:
-        data_dir = Path(__file__).parent / "lib"
+        data_dir = Path(__file__).parent / "artifacts"
     data_dir.mkdir(exist_ok=True)
 
     print("=" * 60)
@@ -99,7 +99,7 @@ def prepare_perception_data(
     cms, edges_list = make_confusion_matrices(y_true, y_pred)
 
     print("\n" + "=" * 60)
-    print("STEP 5: Saving data to lib/...")
+    print("STEP 5: Saving data to artifacts/...")
     print("=" * 60)
 
     # Save bin edges
@@ -156,10 +156,10 @@ def prepare_dynamics_data(
         num_episodes: Number of episodes to collect
         max_steps: Maximum steps per episode
         seed: Random seed for reproducibility
-        data_dir: Directory to save data. If None, uses lib/ subdirectory
+        data_dir: Directory to save data. If None, uses artifacts/ subdirectory
     """
     if data_dir is None:
-        data_dir = Path(__file__).parent / "lib"
+        data_dir = Path(__file__).parent / "artifacts"
     data_dir.mkdir(exist_ok=True)
 
     # Load bin edges
