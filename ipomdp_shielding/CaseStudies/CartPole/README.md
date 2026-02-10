@@ -4,7 +4,10 @@ This case study demonstrates **vision-based perception shielding** for the CartP
 
 ## Key Features
 
-- **Continuous State Space**: 4D state (x, ẋ, θ, θ̇) discretized into 7 bins per dimension = 7^4 = 2,401 states
+- **Configurable Discretization**: Support for uniform or non-uniform binning across dimensions
+  - Default: 7 bins per dimension = 7^4 = 2,401 states
+  - Recommended for LFP propagator: 5 bins = 625 states
+  - Custom: e.g., [7, 5, 7, 5] for higher precision on position/angle
 - **Vision-Based Perception**: CNN trained on frame pairs to estimate state
 - **Factored Perception Model**: Independent perception models per dimension combined via product
 - **Empirical Dynamics**: MDP learned from 10,000+ gymnasium rollouts
@@ -92,16 +95,45 @@ from ipomdp_shielding.CaseStudies.CartPole import cartpole_evaluation
 ipomdp, pp_shield, test_data, rtips = cartpole_evaluation()
 ```
 
+## Configurable Discretization
+
+The state space discretization is now configurable to balance precision vs. computational cost:
+
+### Using Uniform Discretization
+
+```python
+# 5 bins per dimension → 625 states (recommended for LFP propagator)
+ipomdp, pp_shield, test_data, _ = build_cartpole_ipomdp(num_bins=5)
+```
+
+### Using Non-Uniform Discretization
+
+```python
+# Higher precision on position and angle
+# [n_x, n_xdot, n_theta, n_thetadot]
+ipomdp, pp_shield, test_data, _ = build_cartpole_ipomdp(num_bins=[7, 5, 7, 5])
+```
+
+### Recommended Configurations
+
+| Configuration | States | Use Case |
+|--------------|--------|----------|
+| `num_bins=7` | 2,401 | Too slow for LFP propagator |
+| `num_bins=5` | 625 | **Recommended for LFP** |
+| `num_bins=4` | 256 | Fast experiments |
+| `num_bins=[7,5,7,5]` | 1,225 | Precision on position/angle |
+
+**See [DISCRETIZATION_CONFIG.md](DISCRETIZATION_CONFIG.md) for detailed documentation.**
+
 ## Design Decisions
 
 ### State Space Discretization
 
-**7 bins per dimension** provides:
-- Manageable state space (2,401 states)
-- Sufficient granularity for safety predicates
-- Alignment with existing CartPole thresholds
+Bin edges are computed from training data to cover the observed range. The number of bins per dimension can be configured to match your computational budget:
 
-Bin edges are computed from training data to cover the observed range.
+- **Default (7 bins)**: Provides good granularity but results in 2,401 states (too large for LFP propagator)
+- **Recommended (5 bins)**: 625 states, feasible for most belief propagation methods
+- **Non-uniform**: Use more bins on safety-critical dimensions (position, angle) vs. velocities
 
 ### Factored Perception Model
 

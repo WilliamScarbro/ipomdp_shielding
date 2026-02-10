@@ -20,11 +20,14 @@ def get_bin_edges(data_dir: Optional[Path] = None) -> np.ndarray:
         data_dir: Optional path to data directory. If None, uses default artifacts/ directory.
 
     Returns:
-        np.ndarray of shape (4, 8) containing bin edges for each dimension:
-        - edges[0]: x position bins
-        - edges[1]: x velocity bins
-        - edges[2]: theta (angle) bins
-        - edges[3]: theta_dot (angular velocity) bins
+        np.ndarray of shape (4,) where each element is an array of bin edges for that dimension:
+        - edges[0]: x position bin edges (length n_x + 1)
+        - edges[1]: x velocity bin edges (length n_xdot + 1)
+        - edges[2]: theta (angle) bin edges (length n_theta + 1)
+        - edges[3]: theta_dot (angular velocity) bin edges (length n_thetadot + 1)
+
+        Note: For uniform discretization with k bins, edges[i] has length k+1.
+        For non-uniform discretization, each dimension can have different numbers of bins.
     """
     if data_dir is None:
         data_dir = _data_dir()

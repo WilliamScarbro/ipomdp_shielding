@@ -1,7 +1,7 @@
 """CartPole case study: Vision-based perception shielding for continuous state space.
 
 This module implements a CartPole IPOMDP where:
-- State space: 4D continuous (position, velocity, pole angle, angular velocity) discretized to 7^4 bins
+- State space: 4D continuous (position, velocity, pole angle, angular velocity) discretized with configurable bins per dimension
 - Actions: {0=left, 1=right}
 - Dynamics: Empirical MDP from gymnasium rollouts
 - Perception: Factored IMDP from CNN estimates (product of 4 independent dimension IMDPs)
@@ -11,7 +11,7 @@ This module implements a CartPole IPOMDP where:
 import pickle
 import random
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional, Set
+from typing import List, Dict, Tuple, Optional, Set, Union
 from collections import Counter
 
 import numpy as np
@@ -27,36 +27,55 @@ from .data_loader import get_bin_edges, get_confusion_data
 State = Tuple[int, int, int, int]  # (x_bin, x_dot_bin, theta_bin, theta_dot_bin)
 FAIL = "FAIL"  # Absorbing failure state
 
+# Discretization configuration type
+# Can be either:
+# - int: uniform bins across all dimensions
+# - List[int]: per-dimension bin counts [n_x, n_xdot, n_theta, n_thetadot]
+DiscretizationConfig = Union[int, List[int]]
 
-def cartpole_states(num_bins: int = 7, with_fail: bool = False) -> List:
+
+def cartpole_states(num_bins: DiscretizationConfig = 7, with_fail: bool = False) -> List:
     """Generate all discretized CartPole states.
 
     Args:
-        num_bins: Number of bins per dimension (default 7)
+        num_bins: Number of bins per dimension. Can be:
+            - int: Same number of bins for all dimensions (e.g., 7)
+            - List[int]: Per-dimension bins [n_x, n_xdot, n_theta, n_thetadot] (e.g., [5, 4, 5, 4])
         with_fail: Whether to include FAIL absorbing state
 
     Returns:
         List of states. Each non-FAIL state is a tuple (x_bin, x_dot_bin, theta_bin, theta_dot_bin)
     """
+    # Parse bin configuration
+    if isinstance(num_bins, int):
+        bins = [num_bins] * 4
+    else:
+        if len(num_bins) != 4:
+            raise ValueError(f"num_bins list must have 4 elements, got {len(num_bins)}")
+        bins = num_bins
+
     states = [
         (x_bin, xdot_bin, theta_bin, thetadot_bin)
-        for x_bin in range(num_bins)
-        for xdot_bin in range(num_bins)
-        for theta_bin in range(num_bins)
-        for thetadot_bin in range(num_bins)
+        for x_bin in range(bins[0])
+        for xdot_bin in range(bins[1])
+        for theta_bin in range(bins[2])
+        for thetadot_bin in range(bins[3])
     ]
     if with_fail:
         states.append(FAIL)
     return states
 
 
-def cartpole_actions() -> Dict:
+def cartpole_actions(num_bins: DiscretizationConfig = 7) -> Dict:
     """Generate action dictionary for CartPole.
+
+    Args:
+        num_bins: Number of bins per dimension (int or List[int])
 
     Returns:
         Dictionary mapping each state to list of available actions [0=left, 1=right]
     """
-    states = cartpole_states(with_fail=True)
+    states = cartpole_states(num_bins, with_fail=True)
     actions = {}
     for s in states:
         if s == FAIL:
@@ -127,7 +146,7 @@ def cartpole_perception(
     confidence_method: str,
     alpha: float,
     confusion_data: Dict[str, List[Tuple[int, int]]],
-    num_bins: int = 7,
+    num_bins: DiscretizationConfig = 7,
     smoothing: bool = True,
 ) -> IMDP:
     """Build factored perception IMDP from confusion matrix data.
@@ -140,23 +159,31 @@ def cartpole_perception(
         confidence_method: Confidence interval method (e.g., "Clopper_Pearson")
         alpha: Significance level for confidence intervals
         confusion_data: Dictionary mapping dimension names to (true_bin, est_bin) tuples
-        num_bins: Number of bins per dimension
+        num_bins: Number of bins per dimension (int or List[int])
         smoothing: Whether to fill unobserved state pairs with conservative bounds
 
     Returns:
         IMDP with 4D state space and single "PERC" action
     """
+    # Parse bin configuration
+    if isinstance(num_bins, int):
+        bins = [num_bins] * 4
+    else:
+        if len(num_bins) != 4:
+            raise ValueError(f"num_bins list must have 4 elements, got {len(num_bins)}")
+        bins = num_bins
+
     dim_names = ["x", "x_dot", "theta", "theta_dot"]
     dim_imdps = []
 
     perceive_action = "PERC"
 
-    for dim in dim_names:
+    for i, dim in enumerate(dim_names):
         # Build confidence interval model for this dimension
         dim_CI = ConfidenceInterval(confusion_data[dim])
 
-        # States for this dimension are just bin indices 0..num_bins-1
-        dim_states = list(range(num_bins))
+        # States for this dimension are bin indices 0..bins[i]-1
+        dim_states = list(range(bins[i]))
 
         # Produce IMDP for this dimension
         dim_imdp = dim_CI.produce_imdp(dim_states, perceive_action, confidence_method, alpha)
@@ -236,10 +263,10 @@ def build_cartpole_ipomdp(
     confidence_method: str = "Clopper_Pearson",
     alpha: float = 0.05,
     train_fraction: float = 0.8,
-    num_bins: int = 7,
+    num_bins: DiscretizationConfig = 7,
     smoothing: bool = True,
     seed: Optional[int] = None,
-) -> Tuple[IPOMDP, Dict, Dict]:
+) -> Tuple[IPOMDP, Dict, Dict, None]:
     """Build complete CartPole IPOMDP with train/test split.
 
     This is the main entry point for constructing a CartPole IPOMDP. It:
@@ -253,15 +280,18 @@ def build_cartpole_ipomdp(
         confidence_method: Confidence interval method
         alpha: Significance level (default 0.05 = 95% confidence)
         train_fraction: Fraction of data to use for training (default 0.8)
-        num_bins: Number of bins per dimension
+        num_bins: Number of bins per dimension. Can be:
+            - int: Same number of bins for all dimensions (e.g., 7)
+            - List[int]: Per-dimension bins [n_x, n_xdot, n_theta, n_thetadot] (e.g., [5, 4, 5, 4])
         smoothing: Whether to apply coverage-only smoothing
         seed: Random seed for train/test split
 
     Returns:
-        Tuple of (ipomdp, pp_shield, test_data) where:
+        Tuple of (ipomdp, pp_shield, test_data, None) where:
         - ipomdp: Complete IPOMDP model
         - pp_shield: Perfect-perception shield (dict mapping state -> set of safe actions)
         - test_data: Test set confusion data for validation
+        - None: Placeholder for interface compatibility
     """
     if seed is not None:
         random.seed(seed)
@@ -336,7 +366,7 @@ def build_cartpole_ipomdp(
     }
     pp_shield[FAIL] = set()  # No safe actions from FAIL
 
-    return cartpole_ipomdp, pp_shield, confusion_test
+    return cartpole_ipomdp, pp_shield, confusion_test, None
 
 
 def cartpole_evaluation():
@@ -358,7 +388,7 @@ def cartpole_evaluation():
 
     # Build IPOMDP
     print("\nBuilding IPOMDP...")
-    cartpole_ipomdp, pp_shield, test_data = build_cartpole_ipomdp()
+    cartpole_ipomdp, pp_shield, test_data, _ = build_cartpole_ipomdp()
 
     print(f"States: {len(cartpole_ipomdp.states)}")
     print(f"Actions: {len(cartpole_ipomdp.actions)}")
