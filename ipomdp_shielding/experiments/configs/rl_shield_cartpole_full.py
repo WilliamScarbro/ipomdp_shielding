@@ -20,4 +20,6 @@ config = RLShieldExperimentConfig(
     opt_cache_path="/tmp/full_rl_shield_cartpole_opt_realization.json",
     results_path="./data/full/rl_shield_cartpole_results.json",
     figures_dir="./data/full/rl_shield_cartpole_figures",
+    # Use coarser discretization: 5 bins per dimension = 625 states (vs 2401)
+    ipomdp_kwargs={"num_bins": 5},
 )

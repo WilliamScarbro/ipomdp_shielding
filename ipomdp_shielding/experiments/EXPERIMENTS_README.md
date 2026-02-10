@@ -35,9 +35,9 @@ cd /home/scarbro/claude/ipomdp_shielding/experiments
 
 This runs 4 experiments:
 1. Coarse + TaxiNet (10 trajectories, length 10)
-2. Coarse + CartPole (10 trajectories, length 10)
+2. Coarse + CartPole (10 trajectories, length 10, 625 states)
 3. RL Shield + TaxiNet (10 trials, length 10)
-4. RL Shield + CartPole (10 trials, length 10)
+4. RL Shield + CartPole (10 trials, length 10, 625 states)
 
 Results saved to `./data/prelim/`
 
@@ -50,9 +50,9 @@ cd /home/scarbro/claude/ipomdp_shielding/experiments
 
 This runs 4 experiments:
 1. Coarse + TaxiNet (100 trajectories, length 20)
-2. Coarse + CartPole (100 trajectories, length 20)
+2. Coarse + CartPole (100 trajectories, length 20, 625 states)
 3. RL Shield + TaxiNet (30 trials, length 20)
-4. RL Shield + CartPole (30 trials, length 20)
+4. RL Shield + CartPole (30 trials, length 20, 625 states)
 
 Results saved to `./data/full/`
 
@@ -126,6 +126,34 @@ python -m ipomdp_shielding.experiments.run_rl_shield_experiment configs.rl_shiel
 **Output:**
 - JSON file with safety metrics (fail/stuck/safe rates)
 - 6 PNG figures (3 outcomes x 2 perceptions)
+
+## CartPole Discretization
+
+CartPole experiments use a configurable discretization that reduces the state space from 7^4=2,401 states to 5^4=625 states, making LFP propagation feasible.
+
+**Current Configuration:**
+- All CartPole configs use `ipomdp_kwargs={"num_bins": 5}`
+- This creates 625 states instead of 2,401 (4× reduction)
+- Makes LFP propagator practical for both coarseness and RL shielding experiments
+
+**Alternative Configurations:**
+
+```python
+# Uniform discretization: 4 bins per dimension = 256 states (fastest)
+ipomdp_kwargs={"num_bins": 4}
+
+# Non-uniform: higher precision on position/angle = 1,225 states
+ipomdp_kwargs={"num_bins": [7, 5, 7, 5]}  # [x, x_dot, theta, theta_dot]
+```
+
+**Regenerating Data:**
+If you change `num_bins`, you must regenerate the CartPole data files:
+
+```bash
+python -m ipomdp_shielding.CaseStudies.CartPole.data_preparation
+```
+
+See `ipomdp_shielding/CaseStudies/CartPole/DISCRETIZATION_CONFIG.md` for detailed documentation.
 
 ## Configuration Files
 
