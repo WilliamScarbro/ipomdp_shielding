@@ -1,0 +1,36 @@
+# Experiment Plan
+
+
+## Infrastructure:
+
+Perception Realization
+* Uniform-Random (UniformPerceptionModel)
+* Adversarial-Greedy (AdversarialPerceptionModel)
+* Adversarial-Optimized (OptimizedRealizationTrainer)
+
+
+Action Selection:
+* Uniform-Random-Shielded (RandomActionSelector)
+* Best-Shielded-Action (BeliefSelector - "best")
+* RL (NeuralActionSelector)
+
+
+    
+Shielding Strategies:
+* None - use action selector
+* Observation-Shield - Baseline: apply PP shield directly to state estimate
+* Single-Belief-Shield - uses POMDP belief propagation
+* Envolope-Belief-Shield - Uses IPOMDP belief-envolope propogation and solves LP for action permission likelihood
+
+RL Shielding Classes
+* RL-UnShielded (NeuralActionSelector)
+* RL-Observation-Shielded (ObservationShieldedActionSelector with NeuralActionSelector)
+* RL-Sinlge-Belief-Shielded (SingleBeliefShieldedActionSelector with NeuralActionSelector)
+* RL-Envolope-Belief-Shielded (BeliefShieldedActionSelector with NeuralActionSelector)
+
+
+## Experiment:
+Perform analysis of only the RL action selection strategy using each of the shielding classes. Test these against Uniform-Random and Adversarial-Optimized perception realization. There should be 8 tests (4 shielding strategies x 2 perception realization strategies). Record final failure/stuck/safety probabilities.
+
+
+new line
