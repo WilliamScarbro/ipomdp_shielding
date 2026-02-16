@@ -19,6 +19,8 @@ import importlib
 
 import numpy as np
 
+from .experiment_io import build_metadata, save_experiment_results
+
 from ..Propagators import (
     LFPPropagator,
     BeliefPolytope,
@@ -99,14 +101,19 @@ def aggregate_reports(reports):
 
     Only tracks safe_gap since safe and unsafe gaps are symmetric
     (safe_gap == unsafe_gap by construction).
+
+    Includes distributional summaries: median + 10th/90th percentiles.
     """
     all_max_gap = [r.overall_max_safe_gap for r in reports]
     all_mean_gap = [r.overall_mean_safe_gap for r in reports]
 
-    # Per-timestep aggregation (average across trajectories)
+    # Per-timestep aggregation
     max_len = max(len(r.snapshots) for r in reports) if reports else 0
     timestep_max_gap = []
     timestep_mean_gap = []
+    timestep_max_gap_median = []
+    timestep_max_gap_p10 = []
+    timestep_max_gap_p90 = []
 
     for t in range(max_len):
         max_vals = []
@@ -117,6 +124,9 @@ def aggregate_reports(reports):
                 mean_vals.append(r.snapshots[t].mean_safe_gap)
         timestep_max_gap.append(float(np.mean(max_vals)) if max_vals else 0.0)
         timestep_mean_gap.append(float(np.mean(mean_vals)) if mean_vals else 0.0)
+        timestep_max_gap_median.append(float(np.median(max_vals)) if max_vals else 0.0)
+        timestep_max_gap_p10.append(float(np.percentile(max_vals, 10)) if max_vals else 0.0)
+        timestep_max_gap_p90.append(float(np.percentile(max_vals, 90)) if max_vals else 0.0)
 
     return {
         "num_trajectories": len(reports),
@@ -125,13 +135,20 @@ def aggregate_reports(reports):
             "std": float(np.std(all_max_gap)),
             "min": float(np.min(all_max_gap)),
             "max": float(np.max(all_max_gap)),
+            "median": float(np.median(all_max_gap)),
+            "p10": float(np.percentile(all_max_gap, 10)),
+            "p90": float(np.percentile(all_max_gap, 90)),
         },
         "overall_mean_gap": {
             "mean": float(np.mean(all_mean_gap)),
             "std": float(np.std(all_mean_gap)),
+            "median": float(np.median(all_mean_gap)),
         },
         "timestep_avg_max_gap": timestep_max_gap,
         "timestep_avg_mean_gap": timestep_mean_gap,
+        "timestep_max_gap_median": timestep_max_gap_median,
+        "timestep_max_gap_p10": timestep_max_gap_p10,
+        "timestep_max_gap_p90": timestep_max_gap_p90,
     }
 
 
@@ -164,8 +181,15 @@ def print_report(summary, case_study_name):
 
 
 def try_plot(summary, config):
-    """Attempt to plot coarseness over time. Silently skips if matplotlib unavailable."""
+    """Plot coarseness over time with distributional bands.
+
+    Shows mean per-trajectory max gap (with 10th/90th percentile band)
+    and mean per-trajectory mean gap for reference. Safe and unsafe gaps
+    are identical by construction, so only one is shown.
+    """
     try:
+        import matplotlib
+        matplotlib.use("Agg")
         import matplotlib.pyplot as plt
     except ImportError:
         print("\nmatplotlib not available — skipping plots.")
@@ -173,24 +197,34 @@ def try_plot(summary, config):
 
     ts_max = summary["timestep_avg_max_gap"]
     ts_mean = summary["timestep_avg_mean_gap"]
+    ts_p10 = summary.get("timestep_max_gap_p10", [0.0] * len(ts_max))
+    ts_p90 = summary.get("timestep_max_gap_p90", ts_max)
     timesteps = list(range(len(ts_max)))
 
-    _, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(8, 5))
 
-    ax.plot(timesteps, ts_max, "o-", label="Max Gap (avg over trajectories)")
-    ax.plot(timesteps, ts_mean, "s--", label="Mean Gap (avg over trajectories)")
+    # Percentile band
+    ax.fill_between(timesteps, ts_p10, ts_p90, alpha=0.2, color="steelblue",
+                    label="Max gap (10th–90th percentile)")
+    ax.plot(timesteps, ts_max, "o-", color="steelblue",
+            label="Mean max gap (avg over trajectories)")
+    ax.plot(timesteps, ts_mean, "s--", color="darkorange", alpha=0.8,
+            label="Mean gap (avg over trajectories)")
+
     ax.set_xlabel("Timestep")
-    ax.set_ylabel("Coarseness Gap")
-    ax.set_title(f"LFP Coarseness Over Time ({config.case_study_name.upper()})")
+    ax.set_ylabel("Coarseness gap (sampled under-approx − LFP envelope)")
+    ax.set_title(f"LFP Coarseness Over Time ({config.case_study_name.upper()})\n"
+                 f"budget={config.sampler_budget}, K={config.sampler_k}, "
+                 f"n={summary['num_trajectories']} trajectories")
     ax.legend()
     ax.set_ylim(bottom=-0.02)
     ax.grid(True, alpha=0.3)
 
     plt.tight_layout()
     plot_path = config.results_path.replace(".json", ".png")
-    plt.savefig(plot_path, dpi=150)
+    fig.savefig(plot_path, dpi=150)
     print(f"\nPlot saved to {plot_path}")
-    plt.close()
+    plt.close(fig)
 
 
 # ============================================================
@@ -265,24 +299,12 @@ def main():
 
     # 6. Aggregate and report
     summary = aggregate_reports(reports)
-    summary["config"] = {
-        "case_study": config.case_study_name,
-        "seed": config.seed,
-        "num_trajectories": config.num_trajectories,
-        "trajectory_length": config.trajectory_length,
-        "sampler_budget": config.sampler_budget,
-        "sampler_K": config.sampler_k,
-        "likelihood_strategy": config.sampler_likelihood_strategy.name,
-        "pruning_strategy": config.sampler_pruning_strategy.name,
-        "total_time_s": total_time,
-    }
 
     print_report(summary, config.case_study_name)
 
-    # 7. Save results
-    os.makedirs(os.path.dirname(config.results_path), exist_ok=True)
-    with open(config.results_path, "w") as f:
-        json.dump(summary, f, indent=2)
+    # 7. Save results with metadata
+    metadata = build_metadata(config, extra={"total_time_s": total_time})
+    save_experiment_results(config.results_path, summary, metadata)
     print(f"\nResults saved to {config.results_path}")
 
     # 8. Plot if possible

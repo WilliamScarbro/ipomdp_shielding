@@ -1,6 +1,6 @@
 """Base configuration classes for experiments."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable
 
 
@@ -66,6 +66,10 @@ class RLShieldExperimentConfig:
     opt_cache_path: str
     results_path: str
     figures_dir: str
+
+    # Which shield(s) the adversarial fixed realization is optimized against.
+    # Default preserves legacy behavior: optimize against the envelope shield.
+    adversarial_opt_targets: list[str] = field(default_factory=lambda: ["envelope"])
 
     # Optional build_ipomdp kwargs
     ipomdp_kwargs: dict = None

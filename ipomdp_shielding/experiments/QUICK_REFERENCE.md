@@ -127,6 +127,17 @@ RL shield experiments cache trained models to `/tmp/`:
 
 **To retrain from scratch:** Delete the relevant cache file
 
+### Adversarial optimized perception (per-shield targets)
+
+By default, the fixed `adversarial_opt` perception realization is trained to maximize failure against the **envelope** shield and then reused when evaluating other shields for apples-to-apples comparisons.
+
+If you want the adversarial realization optimized specifically against a different shield, set `adversarial_opt_targets` in the RL shield config (e.g., `["envelope", "single_belief"]`). This will create additional cache files next to `opt_cache_path`, e.g.:
+
+```
+/tmp/full_rl_shield_taxinet_opt_realization.json               # target=envelope (default)
+/tmp/full_rl_shield_taxinet_opt_realization_single_belief.json # target=single_belief
+```
+
 ---
 
 ## Configuration Files

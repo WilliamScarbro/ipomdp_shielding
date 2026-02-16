@@ -254,6 +254,10 @@ python -m ipomdp_shielding.experiments.run_coarse_experiment configs.coarse_taxi
 - **`rl_episodes`**: More episodes = better RL agent (100 prelim, 1000 full)
 - **`opt_candidates`**: More candidates = better optimization (5 prelim, 10 full)
 - **`opt_iterations`**: More iterations = convergence (5 prelim, 10 full)
+- **`adversarial_opt_targets`**: Which shield(s) to optimize the fixed adversarial realization against.
+  - Default: `["envelope"]` (legacy behavior).
+  - Optional: include `"single_belief"` to train a separate realization optimized against the single-belief shield.
+  - When multiple targets are enabled, the `adversarial_opt` perception realization is selected per shield when available.
 
 ## Output Files
 
@@ -312,6 +316,13 @@ RL shield experiments cache trained models to avoid retraining:
 ```
 
 To retrain from scratch, delete the relevant cache files.
+
+If `adversarial_opt_targets` contains multiple entries, additional cache files are created by suffixing the base `opt_cache_path`, e.g.:
+
+```
+/tmp/full_rl_shield_taxinet_opt_realization.json               # target=envelope
+/tmp/full_rl_shield_taxinet_opt_realization_single_belief.json # target=single_belief
+```
 
 ## Troubleshooting
 
