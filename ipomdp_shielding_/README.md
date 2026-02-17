@@ -53,7 +53,8 @@ ipomdp_shielding_/
 │   └── experiments/            # Experiment runners and configs
 │       ├── configs/            # All experiment configurations
 │       └── sweeps/             # Parameter sweep experiments
-├── docs/                       # Documentation and references
+├── docs/                       # Documentation (see below)
+│   └── archive/               # Implementation summaries and references
 ├── scripts/                    # Standalone debug/test scripts
 ├── results/                    # Experiment outputs (not tracked in git)
 │   ├── prelim/                 # Preliminary experiment results
@@ -64,3 +65,21 @@ ipomdp_shielding_/
 ├── run_experiments.sh          # Single entry point for all experiments
 └── pyproject.toml
 ```
+
+## Documentation
+
+Each file in `docs/` corresponds to a code module:
+
+| Document | Code Module |
+|----------|-------------|
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Overall system design |
+| [models.md](docs/models.md) | `Models/` (MDP, IMDP, POMDP, IPOMDP) |
+| [belief_propagation.md](docs/belief_propagation.md) | `Propagators/` (LFP, HMM, sampling) |
+| [runtime_shielding.md](docs/runtime_shielding.md) | `Evaluation/runtime_shield.py` |
+| [coarseness_measurement.md](docs/coarseness_measurement.md) | `Evaluation/coarseness_evaluator.py` |
+| [monte_carlo.md](docs/monte_carlo.md) | `MonteCarlo/` (simulation, evaluation) |
+| [neural_action_selector.md](docs/neural_action_selector.md) | `MonteCarlo/neural_action_selector.py` |
+| [experiments.md](docs/experiments.md) | `experiments/` (configs, runners) |
+| [cartpole.md](docs/cartpole.md) | `CaseStudies/CartPole/` |
+
+`docs/archive/` contains implementation summaries, reference papers, and historical notes.
