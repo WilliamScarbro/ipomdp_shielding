@@ -1,0 +1,19 @@
+# Experiment outputs
+results/
+
+# Python
+__pycache__/
+*.egg-info/
+*.pyc
+dist/
+build/
+
+# Trained models
+models/*.pt
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store

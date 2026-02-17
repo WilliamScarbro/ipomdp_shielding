@@ -1,0 +1,17 @@
+
+
+
+Distributionally Robust Partially Observable Markov Decision
+Process with Moment-based Ambiguity
+Hideaki Nakao∗ Ruiwei Jiang† Siqian Shen
+
+Addresses Interval POMDPS but avoids belief envelope construction by allowing access to the true state at the end of each step.
+Uses two player game (with nature playing interval realization) to solve Bellman equaitons for IPOMDP
+
+
+
+#########################################
+
+Bounded-parameter Markov decision processes
+Robert Givan a,∗, Sonia Leach b , Thomas Dean b
+
