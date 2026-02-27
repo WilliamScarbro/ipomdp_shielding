@@ -61,6 +61,7 @@ class SciPyHiGHSSolver:
             b_eq=None if b_eq is None else np.array(b_eq, dtype=float),
             bounds=bounds,
             method="highs",
+            options={"presolve": False},
         )
 
         if not res.success:
@@ -228,7 +229,7 @@ class LFPPropagator(IPOMDP_Belief):
         bool
             True if propagation succeeded, False if numerical error occurred.
         """
-        prior=self.belief
+        prior = self.belief
 
         A_ub, b_ub, A_eq, b_eq, lb, ub, slices = self.ipomdp.feasible_unnormalized_posterior_polytope(
             prior, action, obs
@@ -238,37 +239,101 @@ class LFPPropagator(IPOMDP_Belief):
         dim = 4 * n  # Total dimension of extended variable space
         sx = slices["x"]  # Slice for x variables (unnormalized posterior)
 
-        # Build extended numerator and denominator vectors
-        # Numerator: v^T x -> extend v to 4n dimensions, nonzero only on x-slice
         # Denominator: 1^T x -> ones on x-slice
         den_extended = np.zeros(dim, dtype=float)
-        den_extended[sx] = 1.0  # sum over x variables for normalization
+        den_extended[sx] = 1.0
 
+        # ------------------------------------------------------------------
+        # Precompute Charnes-Cooper LP constraint matrices ONCE for all K
+        # template directions.  The same A_ub2 / A_eq2 / bounds are reused
+        # across all K LP pairs; only the objective vector c2 changes.
+        # ------------------------------------------------------------------
+        #
+        # Charnes-Cooper substitution: y_cc = z * t,  t = 1/(den^T z) > 0
+        #   A_ub z <= b_ub   ->  A_ub y_cc - b_ub * t <= 0      (A1 block)
+        #   A_eq z  = b_eq   ->  A_eq y_cc - b_eq * t  = 0      (Aeq1 block)
+        #   den^T z = 1      ->  den^T y_cc             = 1      (normalization)
+        #   lb <= z <= ub    ->  y_cc - ub*t <= 0                (A_bound1)
+        #                        -y_cc + lb*t <= 0               (A_bound2)
+
+        # Inequality from original problem
+        if A_ub is not None and A_ub.size > 0:
+            # hstack once: (m_ub, dim+1)
+            A1 = np.hstack([A_ub, -b_ub.reshape(-1, 1)])
+            b1 = np.zeros(A_ub.shape[0], dtype=float)
+        else:
+            A1 = np.empty((0, dim + 1), dtype=float)
+            b1 = np.empty(0, dtype=float)
+
+        # Bound encoding (avoids creating np.eye(dim) inside the K-loop)
+        eye_dim = np.eye(dim, dtype=float)
+        A_bound1 = np.hstack([eye_dim, -ub.reshape(-1, 1)])   # (dim, dim+1)
+        A_bound2 = np.hstack([-eye_dim, lb.reshape(-1, 1)])   # (dim, dim+1)
+        del eye_dim
+
+        A_ub2 = np.vstack([A1, A_bound1, A_bound2])           # (m_ub+2*dim, dim+1)
+        b_ub2 = np.concatenate([b1, np.zeros(2 * dim, dtype=float)])
+        del A1, A_bound1, A_bound2
+
+        # Equality from original problem + normalization
+        Aeq_parts: List[np.ndarray] = []
+        beq_parts: List[np.ndarray] = []
+        if A_eq is not None and A_eq.size > 0:
+            Aeq_parts.append(np.hstack([A_eq, -b_eq.reshape(-1, 1)]))
+            beq_parts.append(np.zeros(A_eq.shape[0], dtype=float))
+        Aeq_parts.append(np.hstack([den_extended.reshape(1, -1), np.array([[0.0]])]))
+        beq_parts.append(np.array([1.0]))
+        A_eq2 = np.vstack(Aeq_parts)
+        b_eq2 = np.concatenate(beq_parts)
+
+        # Variable bounds: y_cc is unconstrained; t >= 0
+        lb2 = np.concatenate([-np.inf * np.ones(dim), [0.0]])
+        ub2 = np.concatenate([np.inf * np.ones(dim), [np.inf]])
+
+        # ------------------------------------------------------------------
+        # CC scaling: set normalization RHS to S0 ≈ E[sum(x)] to keep the
+        # Charnes-Cooper parameter t_s = S0/sum(x) ≈ O(1), avoiding the
+        # numerical conditioning issues that arise when sum(x) << 1.
+        # With this scaling the LP objective equals S0 * v^T(x/sum(x)),
+        # so we divide LP results by S0 to recover actual belief bounds.
+        # ------------------------------------------------------------------
+        sy = slices["y"]
+        sw_sl = slices["w"]
+        y_lo_v = lb[sy]
+        y_hi_v = ub[sy]
+        w_lo_v = lb[sw_sl]
+        w_hi_v = ub[sw_sl]
+        S_lo_est = float(np.dot(np.maximum(w_lo_v, 0.0), np.maximum(y_lo_v, 0.0)))
+        S_hi_est = float(np.dot(w_hi_v, y_hi_v))
+        if S_lo_est <= 0.0 or S_hi_est <= 0.0 or S_hi_est < S_lo_est:
+            S0 = 1.0
+        else:
+            S0 = float(np.sqrt(S_lo_est * S_hi_est))
+        b_eq2 = b_eq2.copy()
+        b_eq2[-1] = S0
+
+        # ------------------------------------------------------------------
+        # Solve K pairs of LPs, varying only the objective vector c2
+        # ------------------------------------------------------------------
         A_new = []
         d_new = []
 
         for k in range(self.template.K):
             v = self.template.V[k]
 
-            # Extend template vector to 4n dimensions
-            num_extended = np.zeros(dim, dtype=float)
-            num_extended[sx] = v  # template applied to x (unnormalized posterior)
+            # Objective: v^T x_cc  (only the x-slice of y_cc is nonzero)
+            c2 = np.zeros(dim + 1, dtype=float)
+            c2[sx] = v
 
-            lo_res = solve_lfp_charnes_cooper(
-                self.solver, num=num_extended, den=den_extended,
-                A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, lb=lb, ub=ub, sense="min"
-            )
-            hi_res = solve_lfp_charnes_cooper(
-                self.solver, num=num_extended, den=den_extended,
-                A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, lb=lb, ub=ub, sense="max"
-            )
+            lo_res = self.solver.solve(c2, A_ub2, b_ub2, A_eq2, b_eq2, lb2, ub2, sense="min")
+            hi_res = self.solver.solve(c2, A_ub2, b_ub2, A_eq2, b_eq2, lb2, ub2, sense="max")
 
             if lo_res.status != "optimal" or hi_res.status != "optimal":
                 # Numerical error - propagation failed
                 return False
 
-            lo = lo_res.obj
-            hi = hi_res.obj
+            lo = lo_res.obj / S0
+            hi = hi_res.obj / S0
 
             # Constraints on the n-dimensional normalized posterior belief
             A_new.append(v.copy())

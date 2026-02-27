@@ -356,12 +356,57 @@ def build_cartpole_ipomdp(
     dyn_mdp = cartpole_dynamics()
     actions = [0, 1]
 
+    # Filter dynamics to the requested state space.
+    # The stored dynamics_mdp.pkl may have been generated with a different (e.g. coarser)
+    # number of bins.  Any next-state that falls outside the requested state space is
+    # treated as a transition to FAIL (absorbing failure state).
+    states_set = set(states)
+    filtered_P: Dict[Tuple, Dict] = {}
+    for (s, a), dist in dyn_mdp.P.items():
+        if s not in states_set:
+            continue  # source state is out of range – skip
+        fd: Dict = {}
+        for sp, p in dist.items():
+            if sp in states_set:
+                fd[sp] = fd.get(sp, 0.0) + p
+            else:
+                fd[FAIL] = fd.get(FAIL, 0.0) + p
+        filtered_P[(s, a)] = fd if fd else {FAIL: 1.0}
+    # Ensure every (s, a) pair for in-range states has an entry
+    for s in states:
+        if s == FAIL:
+            continue
+        for a in actions:
+            if (s, a) not in filtered_P:
+                filtered_P[(s, a)] = {s: 1.0}  # conservative self-loop
+
+    filtered_dyn = MDP(states, cartpole_actions(num_bins), filtered_P)
+
+    # Filter perception bounds so that all observation keys are valid states.
+    # Out-of-range observations are dropped from lower bounds (keeps sum ≤ 1) and
+    # their upper-bound mass is transferred to FAIL (keeps sum ≥ 1).
+    filtered_perc_L: Dict = {}
+    filtered_perc_U: Dict = {}
+    for s in states:
+        lo: Dict = {}
+        hi: Dict = {}
+        for s2, p in perc_L[s].items():
+            if s2 in states_set:
+                lo[s2] = p
+        for s2, p in perc_U[s].items():
+            if s2 in states_set:
+                hi[s2] = p
+            else:
+                hi[FAIL] = hi.get(FAIL, 0.0) + p
+        filtered_perc_L[s] = lo
+        filtered_perc_U[s] = hi
+
     # Construct IPOMDP
-    cartpole_ipomdp = IPOMDP(states, states, actions, dyn_mdp.P, perc_L, perc_U)
+    cartpole_ipomdp = IPOMDP(states, states, actions, filtered_P, filtered_perc_L, filtered_perc_U)
 
     # Build perfect-perception shield (one-step lookahead)
     pp_shield = {
-        s: {a for a in actions if cartpole_safe_action(s, a, dyn_mdp, bin_edges)}
+        s: {a for a in actions if cartpole_safe_action(s, a, filtered_dyn, bin_edges)}
         for s in states if s != FAIL
     }
     pp_shield[FAIL] = set()  # No safe actions from FAIL
