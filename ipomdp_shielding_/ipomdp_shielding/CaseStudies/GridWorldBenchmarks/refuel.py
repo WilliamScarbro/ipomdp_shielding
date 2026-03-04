@@ -309,6 +309,7 @@ def build_refuel_ipomdp(
     N: int = 7,
     ENERGY: int = 6,
     obs_noise: float = 0.1,
+    seed=None,
 ) -> Tuple[IPOMDP, Dict, List, None]:
     """Build the complete Refuel IPOMDP.
 

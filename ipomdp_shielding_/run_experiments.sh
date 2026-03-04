@@ -20,20 +20,34 @@ run_prelim() {
     echo "=== Running prelim coarseness experiments ==="
 #    "$PYTHON" -mipomdp_shielding.experiments.run_coarse_experiment configs.coarse_taxinet_prelim
     "$PYTHON" -mipomdp_shielding.experiments.run_coarse_experiment configs.coarse_cartpole_prelim
+    "$PYTHON" -mipomdp_shielding.experiments.run_coarse_experiment configs.coarse_obstacle_prelim
+    "$PYTHON" -mipomdp_shielding.experiments.run_coarse_experiment configs.coarse_refuel_prelim
 
     echo "=== Running prelim RL shielding experiments ==="
     "$PYTHON" -mipomdp_shielding.experiments.run_rl_shield_experiment configs.rl_shield_taxinet_prelim
 #    "$PYTHON" -mipomdp_shielding.experiments.run_rl_shield_experiment configs.rl_shield_cartpole_prelim
+    "$PYTHON" -mipomdp_shielding.experiments.run_rl_shield_experiment configs.rl_shield_obstacle_prelim
+    "$PYTHON" -mipomdp_shielding.experiments.run_rl_shield_experiment configs.rl_shield_refuel_prelim
+
+    echo "=== Generating summary charts ==="
+    "$PYTHON" -mipomdp_shielding.experiments.plot_summary --results-root results --output-dir results/summary --mode prelim
 }
 
 run_full() {
     echo "=== Running full coarseness experiments ==="
 #    "$PYTHON" -mipomdp_shielding.experiments.run_coarse_experiment configs.coarse_taxinet_full
     "$PYTHON" -mipomdp_shielding.experiments.run_coarse_experiment configs.coarse_cartpole_full
+    "$PYTHON" -mipomdp_shielding.experiments.run_coarse_experiment configs.coarse_obstacle_full
+    "$PYTHON" -mipomdp_shielding.experiments.run_coarse_experiment configs.coarse_refuel_full
 
     echo "=== Running full RL shielding experiments ==="
     "$PYTHON" -mipomdp_shielding.experiments.run_rl_shield_experiment configs.rl_shield_taxinet_full
 #    "$PYTHON" -mipomdp_shielding.experiments.run_rl_shield_experiment configs.rl_shield_cartpole_full
+    "$PYTHON" -mipomdp_shielding.experiments.run_rl_shield_experiment configs.rl_shield_obstacle_full
+    "$PYTHON" -mipomdp_shielding.experiments.run_rl_shield_experiment configs.rl_shield_refuel_full
+
+    echo "=== Generating summary charts ==="
+    "$PYTHON" -mipomdp_shielding.experiments.plot_summary --results-root results --output-dir results/summary --mode full
 }
 
 run_carr() {

@@ -244,7 +244,17 @@ def main():
         os.path.join(data_root, "sweep", "rl_alpha_beta_taxinet", "figures"),
         os.path.join(data_root, "sweep", "carr_comparison", "figures"),
         os.path.join(data_root, "sweep", "coarseness_sensitivity", "figures"),
+        # Per-case-study RL shield figures (prelim and full)
         os.path.join(data_root, "prelim", "rl_shield_taxinet_figures"),
+        os.path.join(data_root, "prelim", "rl_shield_cartpole_figures"),
+        os.path.join(data_root, "prelim", "rl_shield_obstacle_figures"),
+        os.path.join(data_root, "prelim", "rl_shield_refuel_figures"),
+        os.path.join(data_root, "full", "rl_shield_taxinet_figures"),
+        os.path.join(data_root, "full", "rl_shield_cartpole_figures"),
+        os.path.join(data_root, "full", "rl_shield_obstacle_figures"),
+        os.path.join(data_root, "full", "rl_shield_refuel_figures"),
+        # Cross-case-study summary charts
+        os.path.join(data_root, "summary"),
     ]
     copy_figures(figure_sources, figures_dir)
 

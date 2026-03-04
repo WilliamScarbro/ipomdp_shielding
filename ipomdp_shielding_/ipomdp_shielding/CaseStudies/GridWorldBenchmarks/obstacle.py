@@ -186,6 +186,7 @@ def obstacle_dynamics(N: int) -> Dict:
 def build_obstacle_ipomdp(
     N: int = 7,
     obs_noise: float = 0.1,
+    seed=None,
 ) -> Tuple[IPOMDP, Dict, List, None]:
     """Build the complete Obstacle IPOMDP.
 
