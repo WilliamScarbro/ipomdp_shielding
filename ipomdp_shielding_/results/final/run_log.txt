@@ -1,0 +1,879 @@
+
+######################################################################
+# COARSE EXPERIMENTS
+######################################################################
+
+>>> Loading config: coarse_taxinet_final
+
+======================================================================
+COARSENESS EXPERIMENT: TAXINET
+Trajectories: 100, Length: 20, Seed: 42
+Sampler budget: 200, K: 20
+======================================================================
+
+Building TAXINET IPOMDP...
+  States: 16, Actions: 3, Observations: 16
+
+Creating LFP propagator (canonical templates)...
+Creating ForwardSampledBelief propagator...
+
+Generating 100 trajectories (length 20)...
+  Trajectory lengths: min=2, max=20, mean=15.2
+
+Evaluating coarseness...
+  [1/100] max_gap=0.3766  mean_gap=0.0370  (2.4s)
+  [5/100] max_gap=1.0000  mean_gap=0.1908  (8.7s)
+  [10/100] max_gap=0.1946  mean_gap=0.0320  (16.7s)
+  [15/100] max_gap=0.6991  mean_gap=0.0667  (24.7s)
+  [20/100] max_gap=0.2114  mean_gap=0.0256  (34.8s)
+  [25/100] max_gap=0.1333  mean_gap=0.0119  (44.4s)
+  [30/100] max_gap=0.8156  mean_gap=0.0527  (53.1s)
+  [35/100] max_gap=0.9999  mean_gap=0.2476  (60.6s)
+  [40/100] max_gap=0.4259  mean_gap=0.0306  (70.1s)
+  [45/100] max_gap=0.1572  mean_gap=0.0179  (81.9s)
+  [50/100] max_gap=0.9976  mean_gap=0.1221  (91.0s)
+  [55/100] max_gap=0.3681  mean_gap=0.0656  (98.3s)
+  [60/100] max_gap=0.1187  mean_gap=0.0156  (104.8s)
+  [65/100] max_gap=0.1031  mean_gap=0.0121  (112.2s)
+  [70/100] max_gap=0.0753  mean_gap=0.0262  (120.1s)
+  [75/100] max_gap=0.5079  mean_gap=0.0636  (130.5s)
+  [80/100] max_gap=0.1742  mean_gap=0.0297  (141.3s)
+  [85/100] max_gap=0.5813  mean_gap=0.0559  (152.5s)
+  [90/100] max_gap=0.1619  mean_gap=0.0206  (162.0s)
+  [95/100] max_gap=0.6312  mean_gap=0.0597  (171.9s)
+  [100/100] max_gap=0.4594  mean_gap=0.0722  (181.6s)
+
+Total evaluation time: 181.6s
+
+======================================================================
+COARSENESS EVALUATION RESULTS
+======================================================================
+Case study: taxinet
+Trajectories evaluated: 100
+
+--- Overall Max Gap (sampled_min_allowed - lfp_min_allowed) ---
+  Mean: 0.3576  Std: 0.2623  Min: 0.0324  Max: 1.0000
+
+--- Overall Mean Gap ---
+  Mean: 0.0536  Std: 0.0476
+
+--- Per-Timestep Average Max Gap ---
+  t= 0: 0.0526 ##
+  t= 1: 0.0926 ####
+  t= 2: 0.1415 #######
+  t= 3: 0.1486 #######
+  t= 4: 0.1604 ########
+  t= 5: 0.1433 #######
+  t= 6: 0.1630 ########
+  t= 7: 0.1588 #######
+  t= 8: 0.1395 ######
+  t= 9: 0.1445 #######
+  t=10: 0.1255 ######
+  t=11: 0.1236 ######
+  t=12: 0.1384 ######
+  t=13: 0.1487 #######
+  t=14: 0.1280 ######
+  t=15: 0.1152 #####
+  t=16: 0.1070 #####
+  t=17: 0.1045 #####
+  t=18: 0.1107 #####
+  t=19: 0.1350 ######
+
+Results saved to results/final/coarse_taxinet_results.json
+
+Plot saved to results/final/coarse_taxinet_results.png
+
+======================================================================
+COARSE TAXINET COMPLETE
+======================================================================
+
+>>> Loading config: coarse_cartpole_final
+
+======================================================================
+COARSENESS EXPERIMENT: CARTPOLE
+Trajectories: 30, Length: 15, Seed: 42
+Sampler budget: 100, K: 10
+======================================================================
+
+Building CARTPOLE IPOMDP...
+  States: 82, Actions: 2, Observations: 82
+
+Creating LFP propagator (canonical templates)...
+Creating ForwardSampledBelief propagator...
+
+Generating 30 trajectories (length 15)...
+  Trajectory lengths: min=15, max=15, mean=15.0
+
+Evaluating coarseness...
+  [1/30] max_gap=1.0000  mean_gap=0.4490  (26.0s)
+  [5/30] max_gap=1.0000  mean_gap=0.3624  (120.1s)
+  [10/30] max_gap=0.9997  mean_gap=0.2965  (241.6s)
+  [15/30] max_gap=1.0000  mean_gap=0.4445  (365.8s)
+  [20/30] max_gap=1.0000  mean_gap=0.2703  (490.3s)
+  [25/30] max_gap=0.9929  mean_gap=0.1690  (615.6s)
+  [30/30] max_gap=0.9474  mean_gap=0.1824  (739.1s)
+
+Total evaluation time: 739.1s
+
+======================================================================
+COARSENESS EVALUATION RESULTS
+======================================================================
+Case study: cartpole
+Trajectories evaluated: 30
+
+--- Overall Max Gap (sampled_min_allowed - lfp_min_allowed) ---
+  Mean: 0.9943  Std: 0.0172  Min: 0.9171  Max: 1.0000
+
+--- Overall Mean Gap ---
+  Mean: 0.3810  Std: 0.0979
+
+--- Per-Timestep Average Max Gap ---
+  t= 0: 0.3142 ###############
+  t= 1: 0.6120 ##############################
+  t= 2: 0.7933 #######################################
+  t= 3: 0.8345 #########################################
+  t= 4: 0.8367 #########################################
+  t= 5: 0.8255 #########################################
+  t= 6: 0.8025 ########################################
+  t= 7: 0.8487 ##########################################
+  t= 8: 0.8131 ########################################
+  t= 9: 0.7647 ######################################
+  t=10: 0.7453 #####################################
+  t=11: 0.7784 ######################################
+  t=12: 0.8069 ########################################
+  t=13: 0.8353 #########################################
+  t=14: 0.8195 ########################################
+
+Results saved to results/final/coarse_cartpole_results.json
+
+Plot saved to results/final/coarse_cartpole_results.png
+
+======================================================================
+COARSE CARTPOLE COMPLETE
+======================================================================
+
+>>> Loading config: coarse_obstacle_final
+
+======================================================================
+COARSENESS EXPERIMENT: OBSTACLE
+Trajectories: 50, Length: 20, Seed: 42
+Sampler budget: 100, K: 10
+======================================================================
+
+Building OBSTACLE IPOMDP...
+  States: 50, Actions: 4, Observations: 3
+
+Creating LFP propagator (canonical templates)...
+Creating ForwardSampledBelief propagator...
+
+Generating 50 trajectories (length 20)...
+  Trajectory lengths: min=20, max=20, mean=20.0
+
+Evaluating coarseness...
+  [1/50] max_gap=0.7588  mean_gap=0.1790  (11.9s)
+  [5/50] max_gap=1.0000  mean_gap=0.4586  (63.3s)
+  [10/50] max_gap=0.9996  mean_gap=0.3332  (129.6s)
+  [15/50] max_gap=0.9985  mean_gap=0.7586  (195.5s)
+  [20/50] max_gap=0.9993  mean_gap=0.5032  (261.4s)
+  [25/50] max_gap=0.9939  mean_gap=0.3322  (327.7s)
+  [30/50] max_gap=0.9973  mean_gap=0.4548  (393.4s)
+  [35/50] max_gap=0.9995  mean_gap=0.3040  (457.3s)
+  [40/50] max_gap=0.9509  mean_gap=0.2158  (522.4s)
+  [45/50] max_gap=1.0000  mean_gap=0.2853  (585.6s)
+  [50/50] max_gap=0.9991  mean_gap=0.1995  (650.3s)
+
+Total evaluation time: 650.3s
+
+======================================================================
+COARSENESS EVALUATION RESULTS
+======================================================================
+Case study: obstacle
+Trajectories evaluated: 50
+
+--- Overall Max Gap (sampled_min_allowed - lfp_min_allowed) ---
+  Mean: 0.9596  Std: 0.1021  Min: 0.4323  Max: 1.0000
+
+--- Overall Mean Gap ---
+  Mean: 0.4018  Std: 0.1973
+
+--- Per-Timestep Average Max Gap ---
+  t= 0: 0.0463 ##
+  t= 1: 0.1092 #####
+  t= 2: 0.2496 ############
+  t= 3: 0.2796 #############
+  t= 4: 0.4186 ####################
+  t= 5: 0.4890 ########################
+  t= 6: 0.5597 ###########################
+  t= 7: 0.5842 #############################
+  t= 8: 0.6481 ################################
+  t= 9: 0.7297 ####################################
+  t=10: 0.7282 ####################################
+  t=11: 0.7781 ######################################
+  t=12: 0.7308 ####################################
+  t=13: 0.6748 #################################
+  t=14: 0.7731 ######################################
+  t=15: 0.7815 #######################################
+  t=16: 0.7677 ######################################
+  t=17: 0.8142 ########################################
+  t=18: 0.7510 #####################################
+  t=19: 0.8032 ########################################
+
+Results saved to results/final/coarse_obstacle_results.json
+
+Plot saved to results/final/coarse_obstacle_results.png
+
+======================================================================
+/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/MonteCarlo/neural_action_selector.py:946: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(filepath, map_location=device)
+COARSE OBSTACLE COMPLETE
+======================================================================
+
+>>> Loading config: coarse_refuel_final
+
+======================================================================
+COARSENESS EXPERIMENT: REFUEL
+Trajectories: 10, Length: 10, Seed: 42
+Sampler budget: 50, K: 5
+======================================================================
+
+Building REFUEL IPOMDP...
+  States: 344, Actions: 5, Observations: 43
+
+Creating LFP propagator (canonical templates)...
+Creating ForwardSampledBelief propagator...
+
+Generating 10 trajectories (length 10)...
+  Trajectory lengths: min=10, max=10, mean=10.0
+
+Evaluating coarseness...
+  [1/10] max_gap=0.5943  mean_gap=0.0514  (1233.9s)
+  [5/10] max_gap=1.0000  mean_gap=0.6104  (6701.5s)
+  [10/10] max_gap=1.0000  mean_gap=0.5943  (13524.3s)
+
+Total evaluation time: 13524.3s
+
+======================================================================
+COARSENESS EVALUATION RESULTS
+======================================================================
+Case study: refuel
+Trajectories evaluated: 10
+
+--- Overall Max Gap (sampled_min_allowed - lfp_min_allowed) ---
+  Mean: 0.8651  Std: 0.2955  Min: 0.0563  Max: 1.0000
+
+--- Overall Mean Gap ---
+  Mean: 0.5565  Std: 0.2794
+
+--- Per-Timestep Average Max Gap ---
+  t= 0: 0.4517 ######################
+  t= 1: 0.3780 ##################
+  t= 2: 0.3949 ###################
+  t= 3: 0.5998 #############################
+  t= 4: 0.7998 #######################################
+  t= 5: 0.7999 #######################################
+  t= 6: 0.7789 ######################################
+  t= 7: 0.7996 #######################################
+  t= 8: 0.8000 #######################################
+  t= 9: 0.8000 #######################################
+
+Results saved to results/final/coarse_refuel_results.json
+
+Plot saved to results/final/coarse_refuel_results.png
+
+======================================================================
+COARSE REFUEL COMPLETE
+======================================================================
+
+######################################################################
+# RL SHIELDING EXPERIMENTS
+######################################################################
+
+>>> Loading config: rl_shield_taxinet_final
+
+======================================================================
+RL SHIELDING EXPERIMENT: TAXINET
+Trials: 100, Length: 20, Seed: 42
+======================================================================
+
+Loading TAXINET IPOMDP...
+  States: 16, Actions: 3, Observations: 16
+
+======================================================================
+SETUP: RL AGENT
+======================================================================
+Loading cached RL agent from results/cache/prelim_rl_shield_taxinet_agent.pt
+
+======================================================================
+SETUP: OPTIMIZED REALIZATIONS
+======================================================================
+Loading cached optimized realization (envelope) from results/cache/prelim_rl_shield_taxinet_opt_realization.json
+
+Experiment grid: 24 combinations (2 perceptions x 3 selectors x 4 shields)
+
+[1/24] Running: uniform/random/none ... fail=100.0%  stuck=0.0%  safe=0.0%  (0.0s)
+
+[2/24] Running: uniform/random/observation ... fail=6.0%  stuck=94.0%  safe=0.0%  (0.0s)
+
+[3/24] Running: uniform/random/single_belief ... fail=77.0%  stuck=1.0%  safe=22.0%  (0.0s)
+
+[4/24] Running: uniform/random/envelope ... fail=58.0%  stuck=6.0%  safe=36.0%  (92.9s)
+
+[5/24] Running: uniform/best/none ... fail=100.0%  stuck=0.0%  safe=0.0%  (0.0s)
+
+[6/24] Running: uniform/best/observation ... fail=7.0%  stuck=93.0%  safe=0.0%  (0.0s)
+
+[7/24] Running: uniform/best/single_belief ... fail=55.0%  stuck=2.0%  safe=43.0%  (0.1s)
+
+[8/24] Running: uniform/best/envelope ... fail=51.0%  stuck=12.0%  safe=37.0%  (108.4s)
+
+[9/24] Running: uniform/rl/none ... fail=95.0%  stuck=0.0%  safe=5.0%  (0.1s)
+
+[10/24] Running: uniform/rl/observation ... fail=9.0%  stuck=91.0%  safe=0.0%  (0.0s)
+
+[11/24] Running: uniform/rl/single_belief ... fail=68.0%  stuck=1.0%  safe=31.0%  (0.2s)
+
+[12/24] Running: uniform/rl/envelope ... fail=61.0%  stuck=4.0%  safe=35.0%  (90.7s)
+
+[13/24] Running: adversarial_opt/random/none ... fail=100.0%  stuck=0.0%  safe=0.0%  (0.0s)
+
+[14/24] Running: adversarial_opt/random/observation ... fail=3.0%  stuck=97.0%  safe=0.0%  (0.0s)
+
+[15/24] Running: adversarial_opt/random/single_belief ... fail=68.0%  stuck=1.0%  safe=31.0%  (0.0s)
+
+[16/24] Running: adversarial_opt/random/envelope ... fail=62.0%  stuck=4.0%  safe=34.0%  (91.1s)
+
+[17/24] Running: adversarial_opt/best/none ... fail=100.0%  stuck=0.0%  safe=0.0%  (0.0s)
+
+[18/24] Running: adversarial_opt/best/observation ... fail=6.0%  stuck=94.0%  safe=0.0%  (0.0s)
+
+[19/24] Running: adversarial_opt/best/single_belief ... fail=55.0%  stuck=1.0%  safe=44.0%  (0.0s)
+
+[20/24] Running: adversarial_opt/best/envelope ... fail=54.0%  stuck=11.0%  safe=35.0%  (104.2s)
+
+[21/24] Running: adversarial_opt/rl/none ... fail=98.0%  stuck=0.0%  safe=2.0%  (0.1s)
+
+[22/24] Running: adversarial_opt/rl/observation ... fail=5.0%  stuck=95.0%  safe=0.0%  (0.0s)
+
+[23/24] Running: adversarial_opt/rl/single_belief ... fail=70.0%  stuck=1.0%  safe=29.0%  (0.1s)
+
+[24/24] Running: adversarial_opt/rl/envelope ... /home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/MonteCarlo/neural_action_selector.py:946: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(filepath, map_location=device)
+fail=55.0%  stuck=5.0%  safe=40.0%  (100.1s)
+
+==========================================================================================
+RL SHIELDING EXPERIMENT RESULTS - TAXINET
+==========================================================================================
+Perception        Selector   Shield             Fail%  Stuck%   Safe%   Steps
+------------------------------------------------------------------------------------------
+adversarial_opt   best       envelope          54.0%  11.0%  35.0%    10.5
+adversarial_opt   best       none             100.0%   0.0%   0.0%     3.0
+adversarial_opt   best       observation        6.0%  94.0%   0.0%     0.1
+adversarial_opt   best       single_belief     55.0%   1.0%  44.0%    12.5
+adversarial_opt   random     envelope          62.0%   4.0%  34.0%     9.9
+adversarial_opt   random     none             100.0%   0.0%   0.0%     2.9
+adversarial_opt   random     observation        3.0%  97.0%   0.0%     0.1
+adversarial_opt   random     single_belief     68.0%   1.0%  31.0%     9.4
+adversarial_opt   rl         envelope          55.0%   5.0%  40.0%    10.8
+adversarial_opt   rl         none              98.0%   0.0%   2.0%     7.3
+adversarial_opt   rl         observation        5.0%  95.0%   0.0%     0.1
+adversarial_opt   rl         single_belief     70.0%   1.0%  29.0%     9.3
+uniform           best       envelope          51.0%  12.0%  37.0%    10.9
+uniform           best       none             100.0%   0.0%   0.0%     3.7
+uniform           best       observation        7.0%  93.0%   0.0%     0.1
+uniform           best       single_belief     55.0%   2.0%  43.0%    12.2
+uniform           random     envelope          58.0%   6.0%  36.0%    10.1
+uniform           random     none             100.0%   0.0%   0.0%     2.9
+uniform           random     observation        6.0%  94.0%   0.0%     0.1
+uniform           random     single_belief     77.0%   1.0%  22.0%     7.6
+uniform           rl         envelope          61.0%   4.0%  35.0%     9.8
+uniform           rl         none              95.0%   0.0%   5.0%     7.5
+uniform           rl         observation        9.0%  91.0%   0.0%     0.1
+uniform           rl         single_belief     68.0%   1.0%  31.0%    10.5
+
+==========================================================================================
+ANALYSIS: SHIELD COMPARISON FOR RL
+==========================================================================================
+
+  Perception: uniform
+    none             fail=95.0%  stuck=0.0%  safe=5.0%
+    observation      fail=9.0%  stuck=91.0%  safe=0.0%
+    single_belief    fail=68.0%  stuck=1.0%  safe=31.0%
+    envelope         fail=61.0%  stuck=4.0%  safe=35.0%
+
+  Perception: adversarial_opt
+    none             fail=98.0%  stuck=0.0%  safe=2.0%
+    observation      fail=5.0%  stuck=95.0%  safe=0.0%
+    single_belief    fail=70.0%  stuck=1.0%  safe=29.0%
+    envelope         fail=55.0%  stuck=5.0%  safe=40.0%
+
+==========================================================================================
+ANALYSIS: ENVELOPE vs SINGLE-BELIEF (expected: envelope better under adversarial)
+==========================================================================================
+  rl/uniform: envelope - single_belief = -7.0% fail rate
+  rl/adversarial_opt: envelope - single_belief = -15.0% fail rate
+  random/uniform: envelope - single_belief = -19.0% fail rate
+  random/adversarial_opt: envelope - single_belief = -6.0% fail rate
+  best/uniform: envelope - single_belief = -4.0% fail rate
+  best/adversarial_opt: envelope - single_belief = -1.0% fail rate
+
+Results saved to results/final/rl_shield_taxinet_results.json
+
+Generating figures...
+  Saved uniform_fail.png
+  Saved uniform_stuck.png
+  Saved adversarial_opt_fail.png
+  Saved adversarial_opt_stuck.png
+  Saved uniform_intervention_rate.png
+  Saved adversarial_opt_intervention_rate.png
+
+Total experiment time: 588.2s
+======================================================================
+RL SHIELD TAXINET COMPLETE
+======================================================================
+
+>>> Loading config: rl_shield_cartpole_final
+
+======================================================================
+RL SHIELDING EXPERIMENT: CARTPOLE
+Trials: 25, Length: 15, Seed: 42
+======================================================================
+
+Loading CARTPOLE IPOMDP...
+  States: 82, Actions: 2, Observations: 82
+
+======================================================================
+SETUP: RL AGENT
+======================================================================
+Loading cached RL agent from results/cache/prelim_rl_shield_cartpole3_agent.pt
+
+======================================================================
+SETUP: OPTIMIZED REALIZATIONS
+======================================================================
+Loading cached optimized realization (envelope) from results/cache/prelim_rl_shield_cartpole3_opt_realization.json
+
+Experiment grid: 24 combinations (2 perceptions x 3 selectors x 4 shields)
+
+[1/24] Running: uniform/random/none ... fail=32.0%  stuck=0.0%  safe=68.0%  (0.0s)
+
+[2/24] Running: uniform/random/observation ... fail=8.0%  stuck=72.0%  safe=20.0%  (0.0s)
+
+[3/24] Running: uniform/random/single_belief ... fail=4.0%  stuck=0.0%  safe=96.0%  (0.1s)
+
+[4/24] Running: uniform/random/envelope ... fail=8.0%  stuck=20.0%  safe=72.0%  (522.0s)
+
+[5/24] Running: uniform/best/none ... fail=28.0%  stuck=0.0%  safe=72.0%  (0.0s)
+
+[6/24] Running: uniform/best/observation ... fail=8.0%  stuck=60.0%  safe=32.0%  (0.0s)
+
+[7/24] Running: uniform/best/single_belief ... fail=4.0%  stuck=0.0%  safe=96.0%  (0.1s)
+
+[8/24] Running: uniform/best/envelope ... fail=4.0%  stuck=24.0%  safe=72.0%  (506.9s)
+
+[9/24] Running: uniform/rl/none ... fail=12.0%  stuck=0.0%  safe=88.0%  (0.1s)
+
+[10/24] Running: uniform/rl/observation ... fail=4.0%  stuck=56.0%  safe=40.0%  (0.0s)
+
+[11/24] Running: uniform/rl/single_belief ... fail=4.0%  stuck=0.0%  safe=96.0%  (0.1s)
+
+[12/24] Running: uniform/rl/envelope ... fail=4.0%  stuck=16.0%  safe=80.0%  (555.0s)
+
+[13/24] Running: adversarial_opt/random/none ... fail=24.0%  stuck=0.0%  safe=76.0%  (0.0s)
+
+[14/24] Running: adversarial_opt/random/observation ... fail=8.0%  stuck=56.0%  safe=36.0%  (0.0s)
+
+[15/24] Running: adversarial_opt/random/single_belief ... fail=8.0%  stuck=0.0%  safe=92.0%  (0.0s)
+
+[16/24] Running: adversarial_opt/random/envelope ... fail=8.0%  stuck=16.0%  safe=76.0%  (527.3s)
+
+[17/24] Running: adversarial_opt/best/none ... fail=24.0%  stuck=0.0%  safe=76.0%  (0.0s)
+
+[18/24] Running: adversarial_opt/best/observation ... fail=4.0%  stuck=56.0%  safe=40.0%  (0.0s)
+
+[19/24] Running: adversarial_opt/best/single_belief ... fail=4.0%  stuck=0.0%  safe=96.0%  (0.0s)
+
+[20/24] Running: adversarial_opt/best/envelope ... fail=4.0%  stuck=24.0%  safe=72.0%  (513.4s)
+
+[21/24] Running: adversarial_opt/rl/none ... fail=12.0%  stuck=0.0%  safe=88.0%  (0.0s)
+
+[22/24] Running: adversarial_opt/rl/observation ... fail=4.0%  stuck=36.0%  safe=60.0%  (0.0s)
+
+[23/24] Running: adversarial_opt/rl/single_belief ... fail=4.0%  stuck=0.0%  safe=96.0%  (0.1s)
+
+[24/24] Running: adversarial_opt/rl/envelope ... /home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/MonteCarlo/neural_action_selector.py:946: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(filepath, map_location=device)
+fail=4.0%  stuck=20.0%  safe=76.0%  (533.3s)
+
+==========================================================================================
+RL SHIELDING EXPERIMENT RESULTS - CARTPOLE
+==========================================================================================
+Perception        Selector   Shield             Fail%  Stuck%   Safe%   Steps
+------------------------------------------------------------------------------------------
+adversarial_opt   best       envelope           4.0%  24.0%  72.0%    12.0
+adversarial_opt   best       none              24.0%   0.0%  76.0%    12.4
+adversarial_opt   best       observation        4.0%  56.0%  40.0%     8.3
+adversarial_opt   best       single_belief      4.0%   0.0%  96.0%    14.4
+adversarial_opt   random     envelope           8.0%  16.0%  76.0%    12.0
+adversarial_opt   random     none              24.0%   0.0%  76.0%    12.3
+adversarial_opt   random     observation        8.0%  56.0%  36.0%     8.2
+adversarial_opt   random     single_belief      8.0%   0.0%  92.0%    13.8
+adversarial_opt   rl         envelope           4.0%  20.0%  76.0%    12.3
+adversarial_opt   rl         none              12.0%   0.0%  88.0%    14.1
+adversarial_opt   rl         observation        4.0%  36.0%  60.0%    11.0
+adversarial_opt   rl         single_belief      4.0%   0.0%  96.0%    14.4
+uniform           best       envelope           4.0%  24.0%  72.0%    11.6
+uniform           best       none              28.0%   0.0%  72.0%    12.7
+uniform           best       observation        8.0%  60.0%  32.0%     6.9
+uniform           best       single_belief      4.0%   0.0%  96.0%    14.4
+uniform           random     envelope           8.0%  20.0%  72.0%    11.9
+uniform           random     none              32.0%   0.0%  68.0%    11.9
+uniform           random     observation        8.0%  72.0%  20.0%     6.2
+uniform           random     single_belief      4.0%   0.0%  96.0%    14.4
+uniform           rl         envelope           4.0%  16.0%  80.0%    12.9
+uniform           rl         none              12.0%   0.0%  88.0%    14.1
+uniform           rl         observation        4.0%  56.0%  40.0%     8.4
+uniform           rl         single_belief      4.0%   0.0%  96.0%    14.4
+
+==========================================================================================
+ANALYSIS: SHIELD COMPARISON FOR RL
+==========================================================================================
+
+  Perception: uniform
+    none             fail=12.0%  stuck=0.0%  safe=88.0%
+    observation      fail=4.0%  stuck=56.0%  safe=40.0%
+    single_belief    fail=4.0%  stuck=0.0%  safe=96.0%
+    envelope         fail=4.0%  stuck=16.0%  safe=80.0%
+
+  Perception: adversarial_opt
+    none             fail=12.0%  stuck=0.0%  safe=88.0%
+    observation      fail=4.0%  stuck=36.0%  safe=60.0%
+    single_belief    fail=4.0%  stuck=0.0%  safe=96.0%
+    envelope         fail=4.0%  stuck=20.0%  safe=76.0%
+
+==========================================================================================
+ANALYSIS: ENVELOPE vs SINGLE-BELIEF (expected: envelope better under adversarial)
+==========================================================================================
+  rl/uniform: envelope - single_belief = +0.0% fail rate
+  rl/adversarial_opt: envelope - single_belief = +0.0% fail rate
+  random/uniform: envelope - single_belief = +4.0% fail rate
+  random/adversarial_opt: envelope - single_belief = +0.0% fail rate
+  best/uniform: envelope - single_belief = +0.0% fail rate
+  best/adversarial_opt: envelope - single_belief = +0.0% fail rate
+
+Results saved to results/final/rl_shield_cartpole_results.json
+
+Generating figures...
+  Saved uniform_fail.png
+  Saved uniform_stuck.png
+  Saved adversarial_opt_fail.png
+  Saved adversarial_opt_stuck.png
+  Saved uniform_intervention_rate.png
+  Saved adversarial_opt_intervention_rate.png
+
+Total experiment time: 3158.6s
+======================================================================
+RL SHIELD CARTPOLE COMPLETE
+======================================================================
+
+>>> Loading config: rl_shield_obstacle_final
+
+======================================================================
+RL SHIELDING EXPERIMENT: OBSTACLE
+Trials: 50, Length: 25, Seed: 42
+======================================================================
+
+Loading OBSTACLE IPOMDP...
+  States: 50, Actions: 4, Observations: 3
+
+======================================================================
+SETUP: RL AGENT
+======================================================================
+Loading cached RL agent from results/cache/prelim_rl_shield_obstacle_agent.pt
+
+======================================================================
+SETUP: OPTIMIZED REALIZATIONS
+======================================================================
+Loading cached optimized realization (envelope) from results/cache/prelim_rl_shield_obstacle_opt_realization.json
+
+Experiment grid: 24 combinations (2 perceptions x 3 selectors x 4 shields)
+
+[1/24] Running: uniform/random/none ... fail=80.0%  stuck=0.0%  safe=20.0%  (0.1s)
+
+[2/24] Running: uniform/random/observation ... fail=2.0%  stuck=98.0%  safe=0.0%  (0.0s)
+
+[3/24] Running: uniform/random/single_belief ... fail=32.0%  stuck=44.0%  safe=24.0%  (0.1s)
+
+[4/24] Running: uniform/random/envelope ... fail=12.0%  stuck=56.0%  safe=32.0%  (347.5s)
+
+[5/24] Running: uniform/best/none ... fail=84.0%  stuck=0.0%  safe=16.0%  (0.1s)
+
+[6/24] Running: uniform/best/observation ... fail=2.0%  stuck=98.0%  safe=0.0%  (0.0s)
+
+[7/24] Running: uniform/best/single_belief ... fail=16.0%  stuck=14.0%  safe=70.0%  (0.2s)
+
+[8/24] Running: uniform/best/envelope ... fail=18.0%  stuck=62.0%  safe=20.0%  (306.2s)
+
+[9/24] Running: uniform/rl/none ... fail=82.0%  stuck=0.0%  safe=18.0%  (0.2s)
+
+[10/24] Running: uniform/rl/observation ... fail=2.0%  stuck=98.0%  safe=0.0%  (0.0s)
+
+[11/24] Running: uniform/rl/single_belief ... fail=40.0%  stuck=34.0%  safe=26.0%  (0.2s)
+
+[12/24] Running: uniform/rl/envelope ... fail=22.0%  stuck=72.0%  safe=6.0%  (214.6s)
+
+[13/24] Running: adversarial_opt/random/none ... fail=78.0%  stuck=0.0%  safe=22.0%  (0.0s)
+
+[14/24] Running: adversarial_opt/random/observation ... fail=2.0%  stuck=98.0%  safe=0.0%  (0.0s)
+
+[15/24] Running: adversarial_opt/random/single_belief ... fail=38.0%  stuck=26.0%  safe=36.0%  (0.0s)
+
+[16/24] Running: adversarial_opt/random/envelope ... fail=28.0%  stuck=54.0%  safe=18.0%  (275.1s)
+
+[17/24] Running: adversarial_opt/best/none ... fail=84.0%  stuck=0.0%  safe=16.0%  (0.0s)
+
+[18/24] Running: adversarial_opt/best/observation ... fail=2.0%  stuck=98.0%  safe=0.0%  (0.0s)
+
+[19/24] Running: adversarial_opt/best/single_belief ... fail=20.0%  stuck=20.0%  safe=60.0%  (0.1s)
+
+[20/24] Running: adversarial_opt/best/envelope ... fail=18.0%  stuck=52.0%  safe=30.0%  (400.5s)
+
+[21/24] Running: adversarial_opt/rl/none ... fail=80.0%  stuck=0.0%  safe=20.0%  (0.1s)
+
+[22/24] Running: adversarial_opt/rl/observation ... fail=4.0%  stuck=96.0%  safe=0.0%  (0.0s)
+
+[23/24] Running: adversarial_opt/rl/single_belief ... fail=38.0%  stuck=26.0%  safe=36.0%  (0.1s)
+
+[24/24] Running: adversarial_opt/rl/envelope ... /home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/MonteCarlo/neural_action_selector.py:946: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(filepath, map_location=device)
+fail=16.0%  stuck=50.0%  safe=34.0%  (434.7s)
+
+==========================================================================================
+RL SHIELDING EXPERIMENT RESULTS - OBSTACLE
+==========================================================================================
+Perception        Selector   Shield             Fail%  Stuck%   Safe%   Steps
+------------------------------------------------------------------------------------------
+adversarial_opt   best       envelope          18.0%  52.0%  30.0%    11.6
+adversarial_opt   best       none              84.0%   0.0%  16.0%     9.9
+adversarial_opt   best       observation        2.0%  98.0%   0.0%     0.2
+adversarial_opt   best       single_belief     20.0%  20.0%  60.0%    15.7
+adversarial_opt   random     envelope          28.0%  54.0%  18.0%     8.1
+adversarial_opt   random     none              78.0%   0.0%  22.0%    11.2
+adversarial_opt   random     observation        2.0%  98.0%   0.0%     0.2
+adversarial_opt   random     single_belief     38.0%  26.0%  36.0%    11.8
+adversarial_opt   rl         envelope          16.0%  50.0%  34.0%    13.0
+adversarial_opt   rl         none              80.0%   0.0%  20.0%    11.4
+adversarial_opt   rl         observation        4.0%  96.0%   0.0%     0.1
+adversarial_opt   rl         single_belief     38.0%  26.0%  36.0%    12.9
+uniform           best       envelope          18.0%  62.0%  20.0%     8.4
+uniform           best       none              84.0%   0.0%  16.0%     9.1
+uniform           best       observation        2.0%  98.0%   0.0%     0.0
+uniform           best       single_belief     16.0%  14.0%  70.0%    17.7
+uniform           random     envelope          12.0%  56.0%  32.0%    10.4
+uniform           random     none              80.0%   0.0%  20.0%    10.5
+uniform           random     observation        2.0%  98.0%   0.0%     0.0
+uniform           random     single_belief     32.0%  44.0%  24.0%     9.9
+uniform           rl         envelope          22.0%  72.0%   6.0%     5.7
+uniform           rl         none              82.0%   0.0%  18.0%    10.9
+uniform           rl         observation        2.0%  98.0%   0.0%     0.0
+uniform           rl         single_belief     40.0%  34.0%  26.0%    10.3
+
+==========================================================================================
+ANALYSIS: SHIELD COMPARISON FOR RL
+==========================================================================================
+
+  Perception: uniform
+    none             fail=82.0%  stuck=0.0%  safe=18.0%
+    observation      fail=2.0%  stuck=98.0%  safe=0.0%
+    single_belief    fail=40.0%  stuck=34.0%  safe=26.0%
+    envelope         fail=22.0%  stuck=72.0%  safe=6.0%
+
+  Perception: adversarial_opt
+    none             fail=80.0%  stuck=0.0%  safe=20.0%
+    observation      fail=4.0%  stuck=96.0%  safe=0.0%
+    single_belief    fail=38.0%  stuck=26.0%  safe=36.0%
+    envelope         fail=16.0%  stuck=50.0%  safe=34.0%
+
+==========================================================================================
+ANALYSIS: ENVELOPE vs SINGLE-BELIEF (expected: envelope better under adversarial)
+==========================================================================================
+  rl/uniform: envelope - single_belief = -18.0% fail rate
+  rl/adversarial_opt: envelope - single_belief = -22.0% fail rate
+  random/uniform: envelope - single_belief = -20.0% fail rate
+  random/adversarial_opt: envelope - single_belief = -10.0% fail rate
+  best/uniform: envelope - single_belief = +2.0% fail rate
+  best/adversarial_opt: envelope - single_belief = -2.0% fail rate
+
+Results saved to results/final/rl_shield_obstacle_results.json
+
+Generating figures...
+  Saved uniform_fail.png
+  Saved uniform_stuck.png
+  Saved adversarial_opt_fail.png
+  Saved adversarial_opt_stuck.png
+  Saved uniform_intervention_rate.png
+  Saved adversarial_opt_intervention_rate.png
+
+Total experiment time: 1979.6s
+======================================================================
+RL SHIELD OBSTACLE COMPLETE
+======================================================================
+
+>>> Loading config: rl_shield_refuel_final
+
+======================================================================
+RL SHIELDING EXPERIMENT: REFUEL
+Trials: 50, Length: 30, Seed: 42
+Excluded shields: ['envelope']
+======================================================================
+
+Loading REFUEL IPOMDP...
+  States: 344, Actions: 5, Observations: 43
+
+======================================================================
+SETUP: RL AGENT
+======================================================================
+Loading cached RL agent from results/cache/prelim_rl_shield_refuel_agent.pt
+
+======================================================================
+SETUP: OPTIMIZED REALIZATIONS
+======================================================================
+Loading cached optimized realization (single_belief) from results/cache/prelim_rl_shield_refuel_sb_opt_realization_single_belief.json
+
+Experiment grid: 18 combinations (envelope excluded)
+
+[1/18] Running: uniform/random/none ... fail=6.0%  stuck=0.0%  safe=94.0%  (0.7s)
+
+[2/18] Running: uniform/random/observation ... fail=2.0%  stuck=46.0%  safe=52.0%  (0.5s)
+
+[3/18] Running: uniform/random/single_belief ... fail=0.0%  stuck=16.0%  safe=84.0%  (0.9s)
+
+[4/18] Running: uniform/best/none ... fail=10.0%  stuck=0.0%  safe=90.0%  (0.6s)
+
+[5/18] Running: uniform/best/observation ... fail=0.0%  stuck=48.0%  safe=52.0%  (0.5s)
+
+[6/18] Running: uniform/best/single_belief ... fail=0.0%  stuck=20.0%  safe=80.0%  (1.1s)
+
+[7/18] Running: uniform/rl/none ... fail=0.0%  stuck=0.0%  safe=100.0%  (0.9s)
+
+[8/18] Running: uniform/rl/observation ... fail=0.0%  stuck=40.0%  safe=60.0%  (0.7s)
+
+[9/18] Running: uniform/rl/single_belief ... fail=0.0%  stuck=18.0%  safe=82.0%  (1.1s)
+
+[10/18] Running: adversarial_opt/random/none ... fail=14.0%  stuck=0.0%  safe=86.0%  (0.0s)
+
+[11/18] Running: adversarial_opt/random/observation ... fail=0.0%  stuck=48.0%  safe=52.0%  (0.0s)
+
+[12/18] Running: adversarial_opt/random/single_belief ... fail=2.0%  stuck=16.0%  safe=82.0%  (0.4s)
+
+[13/18] Running: adversarial_opt/best/none ... fail=8.0%  stuck=0.0%  safe=92.0%  (0.0s)
+
+[14/18] Running: adversarial_opt/best/observation ... fail=2.0%  stuck=50.0%  safe=48.0%  (0.0s)
+
+[15/18] Running: adversarial_opt/best/single_belief ... fail=0.0%  stuck=22.0%  safe=78.0%  (0.6s)
+
+[16/18] Running: adversarial_opt/rl/none ... fail=0.0%  stuck=0.0%  safe=100.0%  (0.2s)
+
+[17/18] Running: adversarial_opt/rl/observation ... fail=0.0%  stuck=48.0%  safe=52.0%  (0.1s)
+
+[18/18] Running: adversarial_opt/rl/single_belief ... fail=0.0%  stuck=10.0%  safe=90.0%  (0.6s)
+
+==========================================================================================
+RL SHIELDING EXPERIMENT RESULTS - REFUEL
+==========================================================================================
+Perception        Selector   Shield             Fail%  Stuck%   Safe%   Steps
+------------------------------------------------------------------------------------------
+adversarial_opt   best       none               8.0%   0.0%  92.0%    27.9
+adversarial_opt   best       observation        2.0%  50.0%  48.0%    18.7
+adversarial_opt   best       single_belief      0.0%  22.0%  78.0%    23.4
+adversarial_opt   random     none              14.0%   0.0%  86.0%    26.4
+adversarial_opt   random     observation        0.0%  48.0%  52.0%    21.5
+adversarial_opt   random     single_belief      2.0%  16.0%  82.0%    24.7
+adversarial_opt   rl         none               0.0%   0.0% 100.0%    30.0
+adversarial_opt   rl         observation        0.0%  48.0%  52.0%    19.5
+adversarial_opt   rl         single_belief      0.0%  10.0%  90.0%    27.2
+uniform           best       none              10.0%   0.0%  90.0%    28.0
+uniform           best       observation        0.0%  48.0%  52.0%    19.4
+uniform           best       single_belief      0.0%  20.0%  80.0%    24.0
+uniform           random     none               6.0%   0.0%  94.0%    28.5
+uniform           random     observation        2.0%  46.0%  52.0%    21.8
+uniform           random     single_belief      0.0%  16.0%  84.0%    25.2
+uniform           rl         none               0.0%   0.0% 100.0%    30.0
+uniform           rl         observation        0.0%  40.0%  60.0%    21.5
+uniform           rl         single_belief      0.0%  18.0%  82.0%    24.6
+
+==========================================================================================
+ANALYSIS: SHIELD COMPARISON FOR RL
+==========================================================================================
+
+  Perception: uniform
+    none             fail=0.0%  stuck=0.0%  safe=100.0%
+    observation      fail=0.0%  stuck=40.0%  safe=60.0%
+    single_belief    fail=0.0%  stuck=18.0%  safe=82.0%
+
+  Perception: adversarial_opt
+    none             fail=0.0%  stuck=0.0%  safe=100.0%
+    observation      fail=0.0%  stuck=48.0%  safe=52.0%
+    single_belief    fail=0.0%  stuck=10.0%  safe=90.0%
+
+==========================================================================================
+ANALYSIS: ENVELOPE vs SINGLE-BELIEF (expected: envelope better under adversarial)
+==========================================================================================
+
+Results saved to results/final/rl_shield_refuel_results.json
+
+Generating figures...
+  Saved uniform_fail.png
+  Saved uniform_stuck.png
+  Saved adversarial_opt_fail.png
+  Saved adversarial_opt_stuck.png
+  Saved uniform_intervention_rate.png
+  Saved adversarial_opt_intervention_rate.png
+
+Total experiment time: 9.0s
+======================================================================
+RL SHIELD REFUEL COMPLETE
+======================================================================
+
+######################################################################
+# SUMMARY CHARTS
+######################################################################
+======================================================================
+SUMMARY CHART GENERATOR
+Results root: results  Mode: final
+Output: results/final/summary
+======================================================================
+
+Loading taxinet: results/final/rl_shield_taxinet_results.json
+
+Loading cartpole: results/final/rl_shield_cartpole_results.json
+
+Loading obstacle: results/final/rl_shield_obstacle_results.json
+
+Loading refuel: results/final/rl_shield_refuel_results.json
+
+Generating obstacle charts -> results/final/summary/rl_shield_obstacle_figures
+
+Generating refuel charts -> results/final/summary/rl_shield_refuel_figures
+
+Generating summary charts -> results/final/summary
+  Saved results/final/summary/summary_all_case_studies.png
+  Saved results/final/summary/summary_envelope_vs_none.png
+  Saved results/final/summary/summary_shield_progression.png
+
+======================================================================
+DONE
+======================================================================
+
+======================================================================
+FINAL RUN COMPLETE — TIMING SUMMARY
+======================================================================
+  coarse_taxinet            00h 03m 01s  (182s)
+  coarse_cartpole           00h 12m 19s  (739s)
+  coarse_obstacle           00h 10m 50s  (650s)
+  coarse_refuel             03h 45m 24s  (13524s)
+  rl_taxinet                00h 09m 48s  (588s)
+  rl_cartpole               00h 52m 38s  (3159s)
+  rl_obstacle               00h 32m 59s  (1980s)
+  rl_refuel                 00h 00m 08s  (9s)
+
+  TOTAL                     05h 47m 15s  (20836s)
+======================================================================

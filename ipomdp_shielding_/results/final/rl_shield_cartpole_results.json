@@ -1,0 +1,417 @@
+{
+  "metadata": {
+    "timestamp": "2026-03-09T07:25:38.614261+00:00",
+    "git_sha": "9edba5f8ed86cc03cd2ce4d5d60453e7d221060a",
+    "machine": {
+      "platform": "Linux-6.11.0-21-generic-x86_64-with-glibc2.36",
+      "python_version": "3.11.2",
+      "machine": "x86_64",
+      "node": "3f00eeba5ebc"
+    },
+    "config": {
+      "case_study_name": "cartpole",
+      "build_ipomdp_fn": "<function build_cartpole_ipomdp at 0x72894a2968e0>",
+      "seed": 42,
+      "num_trials": 25,
+      "trial_length": 15,
+      "rl_episodes": 300,
+      "rl_episode_length": 15,
+      "opt_candidates": 8,
+      "opt_trials_per_candidate": 5,
+      "opt_iterations": 8,
+      "shield_threshold": 0.8,
+      "rl_cache_path": "results/cache/prelim_rl_shield_cartpole3_agent.pt",
+      "opt_cache_path": "results/cache/prelim_rl_shield_cartpole3_opt_realization.json",
+      "results_path": "results/final/rl_shield_cartpole_results.json",
+      "figures_dir": "results/final/rl_shield_cartpole_figures",
+      "adversarial_opt_targets": [
+        "envelope"
+      ],
+      "ipomdp_kwargs": {
+        "num_bins": 3
+      }
+    },
+    "rl_agent_cached": true,
+    "rl_cache_path": "results/cache/prelim_rl_shield_cartpole3_agent.pt",
+    "adversarial_opt_targets": [
+      "envelope"
+    ],
+    "opt_realization_cached_by_target": {
+      "envelope": true
+    },
+    "opt_cache_paths_by_target": {
+      "envelope": "results/cache/prelim_rl_shield_cartpole3_opt_realization.json"
+    },
+    "intervention_stats": {
+      "uniform/rl/none": {
+        "primary_count": 353,
+        "fallback_count": 0,
+        "intervention_rate": 0.0
+      },
+      "uniform/rl/observation": {
+        "primary_count": 185,
+        "fallback_count": 26,
+        "intervention_rate": 0.12322274881516587
+      },
+      "uniform/rl/single_belief": {
+        "primary_count": 345,
+        "fallback_count": 15,
+        "intervention_rate": 0.041666666666666664
+      },
+      "uniform/rl/envelope": {
+        "primary_count": 239,
+        "fallback_count": 83,
+        "intervention_rate": 0.2577639751552795
+      },
+      "adversarial_opt/rl/none": {
+        "primary_count": 353,
+        "fallback_count": 0,
+        "intervention_rate": 0.0
+      },
+      "adversarial_opt/rl/observation": {
+        "primary_count": 255,
+        "fallback_count": 21,
+        "intervention_rate": 0.07608695652173914
+      },
+      "adversarial_opt/rl/single_belief": {
+        "primary_count": 349,
+        "fallback_count": 11,
+        "intervention_rate": 0.030555555555555555
+      },
+      "adversarial_opt/rl/envelope": {
+        "primary_count": 224,
+        "fallback_count": 83,
+        "intervention_rate": 0.2703583061889251
+      }
+    },
+    "perception_regimes": {
+      "uniform": "UniformPerceptionModel",
+      "adversarial_opt": "FixedRealizationPerceptionModel (trained via train_optimal_realization; if multiple adversarial_opt_targets are provided, the adversarial_opt realization is selected per shield when available)"
+    },
+    "selectors": {
+      "random": "RandomActionSelector",
+      "best": "BeliefSelector(mode='best')",
+      "rl": "NeuralActionSelector wrapped by ShieldCompliantSelector"
+    },
+    "shields": {
+      "none": "NoShield (passthrough)",
+      "observation": "ObservationShield (pp_shield[obs])",
+      "single_belief": "SingleBeliefShield (POMDP belief, threshold=0.8)",
+      "envelope": "RuntimeImpShield (LFP polytope, threshold=0.8)"
+    }
+  },
+  "results": {
+    "uniform/random/none": {
+      "fail_rate": 0.32,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.68,
+      "mean_steps": 11.92,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.14949542261356955,
+      "fail_rate_ci_high": 0.5350007174973723,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.1371851715307125,
+      "safe_rate_ci_low": 0.4649992825026277,
+      "safe_rate_ci_high": 0.8505045773864304
+    },
+    "uniform/random/observation": {
+      "fail_rate": 0.08,
+      "stuck_rate": 0.72,
+      "safe_rate": 0.2,
+      "mean_steps": 6.24,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.00983959001879751,
+      "fail_rate_ci_high": 0.2603058421052142,
+      "stuck_rate_ci_low": 0.5061231781937445,
+      "stuck_rate_ci_high": 0.8792833114959333,
+      "safe_rate_ci_low": 0.06831146401248402,
+      "safe_rate_ci_high": 0.4070374322786773
+    },
+    "uniform/random/single_belief": {
+      "fail_rate": 0.04,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.96,
+      "mean_steps": 14.4,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.0010121996993108446,
+      "fail_rate_ci_high": 0.203516913922414,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.1371851715307125,
+      "safe_rate_ci_low": 0.796483086077586,
+      "safe_rate_ci_high": 0.9989878003006891
+    },
+    "uniform/random/envelope": {
+      "fail_rate": 0.08,
+      "stuck_rate": 0.2,
+      "safe_rate": 0.72,
+      "mean_steps": 11.88,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.00983959001879751,
+      "fail_rate_ci_high": 0.2603058421052142,
+      "stuck_rate_ci_low": 0.06831146401248402,
+      "stuck_rate_ci_high": 0.4070374322786773,
+      "safe_rate_ci_low": 0.5061231781937445,
+      "safe_rate_ci_high": 0.8792833114959333
+    },
+    "uniform/best/none": {
+      "fail_rate": 0.28,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.72,
+      "mean_steps": 12.72,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.12071668850406661,
+      "fail_rate_ci_high": 0.49387682180625553,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.1371851715307125,
+      "safe_rate_ci_low": 0.5061231781937445,
+      "safe_rate_ci_high": 0.8792833114959333
+    },
+    "uniform/best/observation": {
+      "fail_rate": 0.08,
+      "stuck_rate": 0.6,
+      "safe_rate": 0.32,
+      "mean_steps": 6.92,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.00983959001879751,
+      "fail_rate_ci_high": 0.2603058421052142,
+      "stuck_rate_ci_low": 0.38665349625683987,
+      "stuck_rate_ci_high": 0.788745193534858,
+      "safe_rate_ci_low": 0.14949542261356955,
+      "safe_rate_ci_high": 0.5350007174973723
+    },
+    "uniform/best/single_belief": {
+      "fail_rate": 0.04,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.96,
+      "mean_steps": 14.4,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.0010121996993108446,
+      "fail_rate_ci_high": 0.203516913922414,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.1371851715307125,
+      "safe_rate_ci_low": 0.796483086077586,
+      "safe_rate_ci_high": 0.9989878003006891
+    },
+    "uniform/best/envelope": {
+      "fail_rate": 0.04,
+      "stuck_rate": 0.24,
+      "safe_rate": 0.72,
+      "mean_steps": 11.56,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.0010121996993108446,
+      "fail_rate_ci_high": 0.203516913922414,
+      "stuck_rate_ci_low": 0.09356443933174285,
+      "stuck_rate_ci_high": 0.4512880178166864,
+      "safe_rate_ci_low": 0.5061231781937445,
+      "safe_rate_ci_high": 0.8792833114959333
+    },
+    "uniform/rl/none": {
+      "fail_rate": 0.12,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.88,
+      "mean_steps": 14.12,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.025465396647733195,
+      "fail_rate_ci_high": 0.31219030728623537,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.1371851715307125,
+      "safe_rate_ci_low": 0.6878096927137646,
+      "safe_rate_ci_high": 0.9745346033522668
+    },
+    "uniform/rl/observation": {
+      "fail_rate": 0.04,
+      "stuck_rate": 0.56,
+      "safe_rate": 0.4,
+      "mean_steps": 8.44,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.0010121996993108446,
+      "fail_rate_ci_high": 0.203516913922414,
+      "stuck_rate_ci_low": 0.34928163399133577,
+      "stuck_rate_ci_high": 0.7559763348527919,
+      "safe_rate_ci_low": 0.211254806465142,
+      "safe_rate_ci_high": 0.61334650374316
+    },
+    "uniform/rl/single_belief": {
+      "fail_rate": 0.04,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.96,
+      "mean_steps": 14.4,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.0010121996993108446,
+      "fail_rate_ci_high": 0.203516913922414,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.1371851715307125,
+      "safe_rate_ci_low": 0.796483086077586,
+      "safe_rate_ci_high": 0.9989878003006891
+    },
+    "uniform/rl/envelope": {
+      "fail_rate": 0.04,
+      "stuck_rate": 0.16,
+      "safe_rate": 0.8,
+      "mean_steps": 12.88,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.0010121996993108446,
+      "fail_rate_ci_high": 0.203516913922414,
+      "stuck_rate_ci_low": 0.04537945237170958,
+      "stuck_rate_ci_high": 0.3608284544592721,
+      "safe_rate_ci_low": 0.5929625677213226,
+      "safe_rate_ci_high": 0.931688535987516
+    },
+    "adversarial_opt/random/none": {
+      "fail_rate": 0.24,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.76,
+      "mean_steps": 12.28,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.09356443933174285,
+      "fail_rate_ci_high": 0.4512880178166864,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.1371851715307125,
+      "safe_rate_ci_low": 0.5487119821833135,
+      "safe_rate_ci_high": 0.9064355606682571
+    },
+    "adversarial_opt/random/observation": {
+      "fail_rate": 0.08,
+      "stuck_rate": 0.56,
+      "safe_rate": 0.36,
+      "mean_steps": 8.24,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.00983959001879751,
+      "fail_rate_ci_high": 0.2603058421052142,
+      "stuck_rate_ci_low": 0.34928163399133577,
+      "stuck_rate_ci_high": 0.7559763348527919,
+      "safe_rate_ci_low": 0.17971682058365537,
+      "safe_rate_ci_high": 0.5747936504461505
+    },
+    "adversarial_opt/random/single_belief": {
+      "fail_rate": 0.08,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.92,
+      "mean_steps": 13.8,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.00983959001879751,
+      "fail_rate_ci_high": 0.2603058421052142,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.1371851715307125,
+      "safe_rate_ci_low": 0.7396941578947858,
+      "safe_rate_ci_high": 0.9901604099812025
+    },
+    "adversarial_opt/random/envelope": {
+      "fail_rate": 0.08,
+      "stuck_rate": 0.16,
+      "safe_rate": 0.76,
+      "mean_steps": 12.04,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.00983959001879751,
+      "fail_rate_ci_high": 0.2603058421052142,
+      "stuck_rate_ci_low": 0.04537945237170958,
+      "stuck_rate_ci_high": 0.3608284544592721,
+      "safe_rate_ci_low": 0.5487119821833135,
+      "safe_rate_ci_high": 0.9064355606682571
+    },
+    "adversarial_opt/best/none": {
+      "fail_rate": 0.24,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.76,
+      "mean_steps": 12.36,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.09356443933174285,
+      "fail_rate_ci_high": 0.4512880178166864,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.1371851715307125,
+      "safe_rate_ci_low": 0.5487119821833135,
+      "safe_rate_ci_high": 0.9064355606682571
+    },
+    "adversarial_opt/best/observation": {
+      "fail_rate": 0.04,
+      "stuck_rate": 0.56,
+      "safe_rate": 0.4,
+      "mean_steps": 8.28,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.0010121996993108446,
+      "fail_rate_ci_high": 0.203516913922414,
+      "stuck_rate_ci_low": 0.34928163399133577,
+      "stuck_rate_ci_high": 0.7559763348527919,
+      "safe_rate_ci_low": 0.211254806465142,
+      "safe_rate_ci_high": 0.61334650374316
+    },
+    "adversarial_opt/best/single_belief": {
+      "fail_rate": 0.04,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.96,
+      "mean_steps": 14.4,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.0010121996993108446,
+      "fail_rate_ci_high": 0.203516913922414,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.1371851715307125,
+      "safe_rate_ci_low": 0.796483086077586,
+      "safe_rate_ci_high": 0.9989878003006891
+    },
+    "adversarial_opt/best/envelope": {
+      "fail_rate": 0.04,
+      "stuck_rate": 0.24,
+      "safe_rate": 0.72,
+      "mean_steps": 12.04,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.0010121996993108446,
+      "fail_rate_ci_high": 0.203516913922414,
+      "stuck_rate_ci_low": 0.09356443933174285,
+      "stuck_rate_ci_high": 0.4512880178166864,
+      "safe_rate_ci_low": 0.5061231781937445,
+      "safe_rate_ci_high": 0.8792833114959333
+    },
+    "adversarial_opt/rl/none": {
+      "fail_rate": 0.12,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.88,
+      "mean_steps": 14.12,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.025465396647733195,
+      "fail_rate_ci_high": 0.31219030728623537,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.1371851715307125,
+      "safe_rate_ci_low": 0.6878096927137646,
+      "safe_rate_ci_high": 0.9745346033522668
+    },
+    "adversarial_opt/rl/observation": {
+      "fail_rate": 0.04,
+      "stuck_rate": 0.36,
+      "safe_rate": 0.6,
+      "mean_steps": 11.04,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.0010121996993108446,
+      "fail_rate_ci_high": 0.203516913922414,
+      "stuck_rate_ci_low": 0.17971682058365537,
+      "stuck_rate_ci_high": 0.5747936504461505,
+      "safe_rate_ci_low": 0.38665349625683987,
+      "safe_rate_ci_high": 0.788745193534858
+    },
+    "adversarial_opt/rl/single_belief": {
+      "fail_rate": 0.04,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.96,
+      "mean_steps": 14.4,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.0010121996993108446,
+      "fail_rate_ci_high": 0.203516913922414,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.1371851715307125,
+      "safe_rate_ci_low": 0.796483086077586,
+      "safe_rate_ci_high": 0.9989878003006891
+    },
+    "adversarial_opt/rl/envelope": {
+      "fail_rate": 0.04,
+      "stuck_rate": 0.2,
+      "safe_rate": 0.76,
+      "mean_steps": 12.28,
+      "num_trials": 25,
+      "fail_rate_ci_low": 0.0010121996993108446,
+      "fail_rate_ci_high": 0.203516913922414,
+      "stuck_rate_ci_low": 0.06831146401248402,
+      "stuck_rate_ci_high": 0.4070374322786773,
+      "safe_rate_ci_low": 0.5487119821833135,
+      "safe_rate_ci_high": 0.9064355606682571
+    }
+  }
+}

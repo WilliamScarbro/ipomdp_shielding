@@ -1,0 +1,56 @@
+{
+  "results": [
+    {
+      "case_study": "taxinet",
+      "n_states": 16,
+      "n_observations": 16,
+      "num_trials": 5,
+      "trial_length": 10,
+      "total_steps": 36,
+      "elapsed_s": 3.4,
+      "time_per_step_s": 0.095,
+      "fail_rate": 0.2,
+      "stuck_rate": 0.2,
+      "safe_rate": 0.6
+    },
+    {
+      "case_study": "obstacle",
+      "n_states": 50,
+      "n_observations": 3,
+      "num_trials": 5,
+      "trial_length": 10,
+      "total_steps": 30,
+      "elapsed_s": 20.37,
+      "time_per_step_s": 0.679,
+      "fail_rate": 0.0,
+      "stuck_rate": 0.4,
+      "safe_rate": 0.6
+    },
+    {
+      "case_study": "cartpole",
+      "n_states": 82,
+      "n_observations": 82,
+      "num_trials": 5,
+      "trial_length": 10,
+      "total_steps": 27,
+      "elapsed_s": 50.65,
+      "time_per_step_s": 1.876,
+      "fail_rate": 0.2,
+      "stuck_rate": 0.4,
+      "safe_rate": 0.4
+    },
+    {
+      "case_study": "refuel",
+      "n_states": 344,
+      "n_observations": 43,
+      "num_trials": 5,
+      "trial_length": 10,
+      "total_steps": 23,
+      "elapsed_s": 3300.11,
+      "time_per_step_s": 143.483,
+      "fail_rate": 0.0,
+      "stuck_rate": 0.8,
+      "safe_rate": 0.2
+    }
+  ]
+}
