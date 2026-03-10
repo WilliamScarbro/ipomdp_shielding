@@ -1,0 +1,5 @@
+{
+  "status": "infeasible",
+  "reason": "State space too large for support-MDP BFS (n_states=344, n_obs=29, ratio=11.9). Declared infeasible.",
+  "elapsed_s": 0.0
+}
