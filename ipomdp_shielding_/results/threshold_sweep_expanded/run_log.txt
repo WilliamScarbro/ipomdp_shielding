@@ -1,0 +1,513 @@
+/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/MonteCarlo/neural_action_selector.py:946: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(filepath, map_location=device)
+======================================================================
+EXPANDED THRESHOLD SWEEP (200 trials, Refuel v2, CartPole env excluded)
+======================================================================
+
+######################################################################
+# THRESHOLD SWEEP: TAXINET
+# Trials: 200, Length: 20
+# Exclude envelope: False
+# Thresholds: [0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+######################################################################
+
+Loading TAXINET IPOMDP...
+  States: 16, Actions: 3, Observations: 16
+
+======================================================================
+SETUP: RL AGENT
+======================================================================
+Loading cached RL agent from results/cache/prelim_rl_shield_taxinet_agent.pt
+
+======================================================================
+SETUP: OPTIMIZED REALIZATIONS
+======================================================================
+Loading cached optimized realization (envelope) from results/cache/prelim_rl_shield_taxinet_opt_realization.json
+
+--- [1/9] Threshold: 0.5 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=76.5%  stuck=0.0%  safe=23.5%  (0.4s)
+
+[2/4] Running: uniform/rl/envelope ... fail=69.5%  stuck=2.5%  safe=28.0%  (189.5s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=74.0%  stuck=0.0%  safe=26.0%  (0.3s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=66.5%  stuck=3.5%  safe=30.0%  (200.3s)
+  Done in 390.5s
+
+--- [2/9] Threshold: 0.6 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=78.5%  stuck=0.0%  safe=21.5%  (0.3s)
+
+[2/4] Running: uniform/rl/envelope ... fail=65.0%  stuck=4.5%  safe=30.5%  (198.0s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=69.5%  stuck=0.0%  safe=30.5%  (0.3s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=62.0%  stuck=2.5%  safe=35.5%  (201.5s)
+  Done in 400.2s
+
+--- [3/9] Threshold: 0.65 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=78.0%  stuck=0.0%  safe=22.0%  (0.3s)
+
+[2/4] Running: uniform/rl/envelope ... fail=66.5%  stuck=9.5%  safe=24.0%  (171.9s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=69.5%  stuck=0.0%  safe=30.5%  (0.3s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=68.5%  stuck=3.0%  safe=28.5%  (182.9s)
+  Done in 355.4s
+
+--- [4/9] Threshold: 0.7 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=72.0%  stuck=0.0%  safe=28.0%  (0.4s)
+
+[2/4] Running: uniform/rl/envelope ... fail=64.0%  stuck=5.5%  safe=30.5%  (184.6s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=70.0%  stuck=0.0%  safe=30.0%  (0.3s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=62.5%  stuck=3.0%  safe=34.5%  (202.5s)
+  Done in 387.7s
+
+--- [5/9] Threshold: 0.75 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=70.0%  stuck=0.0%  safe=30.0%  (0.4s)
+
+[2/4] Running: uniform/rl/envelope ... fail=65.5%  stuck=4.5%  safe=30.0%  (180.3s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=63.0%  stuck=0.0%  safe=37.0%  (0.3s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=55.5%  stuck=3.5%  safe=41.0%  (213.9s)
+  Done in 394.9s
+
+--- [6/9] Threshold: 0.8 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=64.5%  stuck=2.0%  safe=33.5%  (0.4s)
+
+[2/4] Running: uniform/rl/envelope ... fail=56.0%  stuck=5.0%  safe=39.0%  (194.9s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=65.5%  stuck=1.0%  safe=33.5%  (0.3s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=53.0%  stuck=3.5%  safe=43.5%  (215.6s)
+  Done in 411.2s
+
+--- [7/9] Threshold: 0.85 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=66.0%  stuck=2.0%  safe=32.0%  (0.3s)
+
+[2/4] Running: uniform/rl/envelope ... fail=51.5%  stuck=9.5%  safe=39.0%  (194.0s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=55.5%  stuck=0.5%  safe=44.0%  (0.3s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=50.5%  stuck=7.5%  safe=42.0%  (216.2s)
+  Done in 410.8s
+
+--- [8/9] Threshold: 0.9 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=51.5%  stuck=1.0%  safe=47.5%  (0.4s)
+
+[2/4] Running: uniform/rl/envelope ... fail=45.0%  stuck=14.5%  safe=40.5%  (191.0s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=54.5%  stuck=1.0%  safe=44.5%  (0.3s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=44.0%  stuck=14.5%  safe=41.5%  (203.5s)
+  Done in 395.3s
+
+--- [9/9] Threshold: 0.95 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=44.0%  stuck=11.0%  safe=45.0%  (0.4s)
+
+[2/4] Running: uniform/rl/envelope ... fail=35.0%  stuck=34.0%  safe=31.0%  (153.5s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=43.0%  stuck=8.5%  safe=48.5%  (0.3s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... /home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/MonteCarlo/neural_action_selector.py:946: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(filepath, map_location=device)
+fail=34.0%  stuck=36.0%  safe=30.0%  (152.2s)
+  Done in 306.4s
+
+TAXINET sweep complete in 3452.3s (57.5 min)
+  Saved results/threshold_sweep_expanded/taxinet_sweep.json
+
+>>> TAXINET results saved to results/threshold_sweep_expanded/taxinet_sweep.json
+
+######################################################################
+# THRESHOLD SWEEP: CARTPOLE
+# Trials: 200, Length: 15
+# Exclude envelope: True
+# Thresholds: [0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+######################################################################
+
+Loading CARTPOLE IPOMDP...
+  States: 82, Actions: 2, Observations: 82
+
+======================================================================
+SETUP: RL AGENT
+======================================================================
+Loading cached RL agent from results/cache/prelim_rl_shield_cartpole3_agent.pt
+
+======================================================================
+SETUP: OPTIMIZED REALIZATIONS
+======================================================================
+Loading cached optimized realization (envelope) from results/cache/prelim_rl_shield_cartpole3_opt_realization.json
+
+--- [1/9] Threshold: 0.5 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=3.5%  stuck=0.0%  safe=96.5%  (0.9s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=3.5%  stuck=0.0%  safe=96.5%  (0.6s)
+  Done in 1.5s
+
+--- [2/9] Threshold: 0.6 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=3.0%  stuck=0.0%  safe=97.0%  (0.9s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=4.5%  stuck=0.0%  safe=95.5%  (0.6s)
+  Done in 1.5s
+
+--- [3/9] Threshold: 0.65 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=2.5%  stuck=0.0%  safe=97.5%  (0.9s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=4.0%  stuck=0.0%  safe=96.0%  (0.6s)
+  Done in 1.5s
+
+--- [4/9] Threshold: 0.7 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=2.5%  stuck=0.0%  safe=97.5%  (0.9s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=3.5%  stuck=0.0%  safe=96.5%  (0.6s)
+  Done in 1.5s
+
+--- [5/9] Threshold: 0.75 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=2.5%  stuck=0.0%  safe=97.5%  (0.9s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=2.5%  stuck=0.0%  safe=97.5%  (0.6s)
+  Done in 1.5s
+
+--- [6/9] Threshold: 0.8 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=2.5%  stuck=4.5%  safe=93.0%  (0.8s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=1.5%  stuck=6.5%  safe=92.0%  (0.6s)
+  Done in 1.4s
+
+--- [7/9] Threshold: 0.85 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=2.5%  stuck=5.5%  safe=92.0%  (0.8s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=2.0%  stuck=6.5%  safe=91.5%  (0.6s)
+  Done in 1.4s
+
+--- [8/9] Threshold: 0.9 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=1.5%  stuck=5.5%  safe=93.0%  (0.8s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=2.0%  stuck=6.0%  safe=92.0%  (0.6s)
+  Done in 1.4s
+
+--- [9/9] Threshold: 0.95 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=1.5%  stuck=4.5%  safe=94.0%  (0.8s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=1.0%  stuck=5.0%  safe=94.0%  (0.6s)
+  Done in 1.4s
+
+CARTPOLE sweep complete in 13.1s (0.2 min)
+  Saved results/threshold_sweep_expanded/cartpole_sweep.json
+
+>>> CARTPOLE results saved to results/threshold_sweep_expanded/cartpole_sweep.json
+
+######################################################################
+# THRESHOLD SWEEP: OBSTACLE
+# Trials: 200, Length: 25
+# Exclude envelope: False
+# Thresholds: [0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+######################################################################
+
+Loading OBSTACLE IPOMDP...
+  States: 50, Actions: 4, Observations: 3
+
+======================================================================
+SETUP: RL AGENT
+======================================================================
+Loading cached RL agent from results/cache/prelim_rl_shield_obstacle_agent.pt
+
+======================================================================
+SETUP: OPTIMIZED REALIZATIONS
+======================================================================
+Loading cached optimized realization (envelope) from results/cache/prelim_rl_shield_obstacle_opt_realization.json
+
+--- [1/9] Threshold: 0.5 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=50.5%  stuck=30.5%  safe=19.0%  (0.6s)
+
+[2/4] Running: uniform/rl/envelope ... fail=24.0%  stuck=58.0%  safe=18.0%  (1146.7s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=53.5%  stuck=29.5%  safe=17.0%  (0.3s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=30.5%  stuck=45.0%  safe=24.5%  (1347.3s)
+  Done in 2495.0s
+
+--- [2/9] Threshold: 0.6 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=45.0%  stuck=35.0%  safe=20.0%  (0.7s)
+
+[2/4] Running: uniform/rl/envelope ... fail=23.5%  stuck=54.0%  safe=22.5%  (1243.2s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=46.0%  stuck=31.0%  safe=23.0%  (0.3s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=27.0%  stuck=46.5%  safe=26.5%  (1393.4s)
+  Done in 2637.7s
+
+--- [3/9] Threshold: 0.65 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=45.5%  stuck=31.5%  safe=23.0%  (0.8s)
+
+[2/4] Running: uniform/rl/envelope ... fail=32.5%  stuck=50.5%  safe=17.0%  (1088.0s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=47.5%  stuck=30.0%  safe=22.5%  (0.3s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=30.5%  stuck=46.0%  safe=23.5%  (1327.1s)
+  Done in 2416.1s
+
+--- [4/9] Threshold: 0.7 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=45.0%  stuck=26.5%  safe=28.5%  (0.8s)
+
+[2/4] Running: uniform/rl/envelope ... fail=24.0%  stuck=52.0%  safe=24.0%  (1193.3s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=50.5%  stuck=23.0%  safe=26.5%  (0.4s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=26.5%  stuck=52.5%  safe=21.0%  (1323.5s)
+  Done in 2518.0s
+
+--- [5/9] Threshold: 0.75 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=46.0%  stuck=33.0%  safe=21.0%  (0.7s)
+
+[2/4] Running: uniform/rl/envelope ... fail=17.0%  stuck=59.0%  safe=24.0%  (1358.6s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=43.0%  stuck=29.0%  safe=28.0%  (0.4s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=22.5%  stuck=49.5%  safe=28.0%  (1474.8s)
+  Done in 2834.5s
+
+--- [6/9] Threshold: 0.8 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=38.5%  stuck=35.0%  safe=26.5%  (0.8s)
+
+[2/4] Running: uniform/rl/envelope ... fail=17.5%  stuck=68.5%  safe=14.0%  (1078.9s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=32.0%  stuck=28.0%  safe=40.0%  (0.4s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=15.5%  stuck=52.5%  safe=32.0%  (1629.9s)
+  Done in 2710.0s
+
+--- [7/9] Threshold: 0.85 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=31.0%  stuck=32.0%  safe=37.0%  (0.9s)
+
+[2/4] Running: uniform/rl/envelope ... fail=21.5%  stuck=63.0%  safe=15.5%  (1169.2s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=28.0%  stuck=33.5%  safe=38.5%  (0.4s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=20.0%  stuck=54.5%  safe=25.5%  (1549.6s)
+  Done in 2720.1s
+
+--- [8/9] Threshold: 0.9 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=22.5%  stuck=35.0%  safe=42.5%  (0.9s)
+
+[2/4] Running: uniform/rl/envelope ... fail=10.0%  stuck=75.5%  safe=14.5%  (946.8s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=22.5%  stuck=34.0%  safe=43.5%  (0.4s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=11.5%  stuck=75.5%  safe=13.0%  (1141.1s)
+  Done in 2089.3s
+
+--- [9/9] Threshold: 0.95 ---
+  Grid: 4 combinations
+
+[1/4] Running: uniform/rl/single_belief ... fail=13.5%  stuck=49.5%  safe=37.0%  (0.8s)
+
+[2/4] Running: uniform/rl/envelope ... fail=3.0%  stuck=85.0%  safe=12.0%  (601.9s)
+
+[3/4] Running: adversarial_opt/rl/single_belief ... fail=11.5%  stuck=54.5%  safe=34.0%  (0.4s)
+
+[4/4] Running: adversarial_opt/rl/envelope ... fail=5.0%  stuck=82.5%  safe=12.5%  (631.7s)
+  Done in 1234.8s
+
+OBSTACLE sweep complete in 21655.4s (360.9 min)
+  Saved results/threshold_sweep_expanded/obstacle_sweep.json
+
+>>> OBSTACLE results saved to results/threshold_sweep_expanded/obstacle_sweep.json
+
+######################################################################
+# THRESHOLD SWEEP: REFUEL_V2
+# Trials: 200, Length: 30
+# Exclude envelope: True
+# Thresholds: [0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+######################################################################
+
+Loading REFUEL_V2 IPOMDP...
+  States: 344, Actions: 5, Observations: 29
+
+======================================================================
+SETUP: RL AGENT
+======================================================================
+Training RL agent (500 episodes, adversarial-greedy perception)...
+Ep   50: safe=94.00%, ε=0.778, reward=11.65
+Ep  100: safe=92.00%, ε=0.606, reward=11.20
+Ep  150: safe=88.00%, ε=0.471, reward=10.39
+Ep  200: safe=94.00%, ε=0.367, reward=11.64
+Ep  250: safe=98.00%, ε=0.286, reward=12.54
+Ep  300: safe=100.00%, ε=0.222, reward=13.00
+Ep  350: safe=96.00%, ε=0.173, reward=12.10
+Ep  400: safe=98.00%, ε=0.135, reward=12.54
+Ep  450: safe=98.00%, ε=0.105, reward=12.54
+Ep  500: safe=98.00%, ε=0.082, reward=12.54
+RL agent saved to results/cache/v2_rl_shield_refuel_agent.pt
+  Final safe rate: 95.60%
+
+======================================================================
+SETUP: OPTIMIZED REALIZATIONS
+======================================================================
+Training optimized realization (single_belief) (10 iterations)...
+============================================================
+Training Optimal Fixed Realization
+============================================================
+Parameter shape: (343, 29)
+Candidates per iteration: 10
+Trials per candidate: 5
+Max iterations: 10
+============================================================
+Iteration 1/10: best=0.2000, mean=0.0200, elite_mean=0.0200, std=0.2432
+Iteration 2/10: best=0.2000, mean=0.0000, elite_mean=0.0000, std=0.2019
+Iteration 3/10: best=0.2000, mean=0.0400, elite_mean=0.0400, std=0.1705
+Iteration 4/10: best=0.2000, mean=0.0000, elite_mean=0.0000, std=0.1459
+Iteration 5/10: best=0.2000, mean=0.0000, elite_mean=0.0000, std=0.1258
+Iteration 6/10: best=0.2000, mean=0.0000, elite_mean=0.0000, std=0.1089
+Iteration 7/10: best=0.2000, mean=0.0000, elite_mean=0.0000, std=0.0942
+Iteration 8/10: best=0.2000, mean=0.0200, elite_mean=0.0200, std=0.0817
+Iteration 9/10: best=0.2000, mean=0.0000, elite_mean=0.0000, std=0.0710
+Iteration 10/10: best=0.2000, mean=0.0000, elite_mean=0.0000, std=0.0619
+============================================================
+Training complete! Best score: 0.2000
+============================================================
+
+Saved optimal realization to: results/cache/v2_rl_shield_refuel_sb_opt_realization_single_belief.json
+Optimized realization (single_belief) saved to results/cache/v2_rl_shield_refuel_sb_opt_realization_single_belief.json
+  Best score (single_belief): 0.2
+
+--- [1/9] Threshold: 0.5 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=2.0%  stuck=37.5%  safe=60.5%  (2.3s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=1.5%  stuck=31.5%  safe=67.0%  (1.7s)
+  Done in 4.1s
+
+--- [2/9] Threshold: 0.6 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=3.0%  stuck=46.5%  safe=50.5%  (2.0s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=1.5%  stuck=47.0%  safe=51.5%  (1.4s)
+  Done in 3.4s
+
+--- [3/9] Threshold: 0.65 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=1.5%  stuck=48.0%  safe=50.5%  (2.0s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=2.0%  stuck=51.0%  safe=47.0%  (1.3s)
+  Done in 3.3s
+
+--- [4/9] Threshold: 0.7 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=0.5%  stuck=54.5%  safe=45.0%  (1.8s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=2.5%  stuck=53.5%  safe=44.0%  (1.2s)
+  Done in 3.0s
+
+--- [5/9] Threshold: 0.75 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=1.5%  stuck=64.5%  safe=34.0%  (1.4s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=1.5%  stuck=60.5%  safe=38.0%  (1.1s)
+  Done in 2.4s
+
+--- [6/9] Threshold: 0.8 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=0.5%  stuck=74.0%  safe=25.5%  (1.1s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=0.5%  stuck=73.0%  safe=26.5%  (0.7s)
+  Done in 1.8s
+
+--- [7/9] Threshold: 0.85 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=0.5%  stuck=84.0%  safe=15.5%  (0.7s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=0.0%  stuck=80.5%  safe=19.5%  (0.6s)
+  Done in 1.3s
+
+--- [8/9] Threshold: 0.9 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=0.0%  stuck=79.0%  safe=21.0%  (0.9s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=0.0%  stuck=84.5%  safe=15.5%  (0.5s)
+  Done in 1.4s
+
+--- [9/9] Threshold: 0.95 ---
+  Grid: 2 combinations
+
+[1/2] Running: uniform/rl/single_belief ... fail=0.0%  stuck=100.0%  safe=0.0%  (0.1s)
+
+[2/2] Running: adversarial_opt/rl/single_belief ... fail=0.5%  stuck=99.5%  safe=0.0%  (0.1s)
+  Done in 0.2s
+
+REFUEL_V2 sweep complete in 20.8s (0.3 min)
+  Saved results/threshold_sweep_expanded/refuel_v2_sweep.json
+
+>>> REFUEL_V2 results saved to results/threshold_sweep_expanded/refuel_v2_sweep.json
+
+======================================================================
+THRESHOLD SWEEP COMPLETE — 07h 01m 42s
+Results in results/threshold_sweep_expanded/
+  taxinet      cumulative 00h 57m 32s
+  cartpole     cumulative 00h 57m 46s
+  obstacle     cumulative 06h 58m 41s
+  refuel_v2    cumulative 07h 01m 42s
+======================================================================

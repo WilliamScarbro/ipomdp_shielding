@@ -14,6 +14,7 @@ The deterministic PRISM observation function is perturbed by obs_noise to
 create a proper interval POMDP (non-trivial P_lower / P_upper bounds).
 """
 
+import math
 from typing import Dict, List, Set, Tuple
 
 from ...Models.ipomdp import IPOMDP
@@ -118,18 +119,21 @@ def refuel_observation_fn(N: int, ENERGY: int):
         2: ay > 0                              # can go north
         3: ay < N-1                            # can go south
         4: ax == N-1 and ay == N-1             # amdone (at goal)
-        5: ax == N-2 and ay == N-2             # hascrash (at obstacle)
-        6: atStation and fuel < ENERGY         # refuelAllowed
-        7: fuel > 0                            # has fuel (non-empty)
-        8: fuel == ENERGY                      # fuel full
-        9: fuel // max(ENERGY // 2, 1)         # fuel meter (coarse level)
+        5: atStation and fuel < ENERGY         # refuelAllowed
+        6: fuel == ENERGY                      # fuel full
+        7: fuel // max(ENERGY // 2, 1)         # fuel meter (coarse level)
+
+    Note: hascrash (obstacle position) and fuel > 0 are intentionally omitted
+    so that the agent cannot directly observe safety-critical state features.
+    This makes belief tracking over fuel level and obstacle proximity necessary,
+    which is precisely where IPOMDP shielding adds value.
 
     Args:
         N:      Grid size.
         ENERGY: Maximum fuel level.
 
     Returns:
-        Callable s -> 10-element tuple.
+        Callable s -> 8-element tuple.
     """
     stations = refuel_station_positions(N)
     obstacle = refuel_obstacle_pos(N)
@@ -137,19 +141,19 @@ def refuel_observation_fn(N: int, ENERGY: int):
 
     def obs_fn(s) -> tuple:
         if s == FAIL:
-            # Crash signal: use obstacle position with zero fuel as template.
+            # FAIL emits the observation of the obstacle cell with zero fuel.
+            # hascrash and fuel > 0 are not in the observation, so FAIL is
+            # indistinguishable from a low-fuel non-station non-goal state.
             oax, oay = obstacle
             return (
                 oax > 0,
                 oax < N - 1,
                 oay > 0,
                 oay < N - 1,
-                False,                            # amdone
-                True,                             # hascrash
-                False,                            # refuelAllowed
-                False,                            # has fuel
-                False,                            # fuel full
-                0,                                # fuel meter
+                False,   # amdone
+                False,   # refuelAllowed
+                False,   # fuel full
+                0,       # fuel meter
             )
         ax, ay, fuel = s
         atStation = (ax, ay) in stations
@@ -158,12 +162,10 @@ def refuel_observation_fn(N: int, ENERGY: int):
             ax < N - 1,
             ay > 0,
             ay < N - 1,
-            ax == N - 1 and ay == N - 1,          # amdone
-            ax == N - 2 and ay == N - 2,          # hascrash
-            atStation and fuel < ENERGY,           # refuelAllowed
-            fuel > 0,                             # has fuel
-            fuel == ENERGY,                       # fuel full
-            fuel // fuel_divisor,                 # fuel meter
+            ax == N - 1 and ay == N - 1,   # amdone
+            atStation and fuel < ENERGY,    # refuelAllowed
+            fuel == ENERGY,                 # fuel full
+            fuel // fuel_divisor,           # fuel meter
         )
 
     return obs_fn
@@ -180,7 +182,7 @@ def refuel_observations(N: int, ENERGY: int) -> List[tuple]:
         ENERGY: Maximum fuel level.
 
     Returns:
-        Sorted list of distinct 10-element observation tuples.
+        Sorted list of distinct 8-element observation tuples.
     """
     obs_fn = refuel_observation_fn(N, ENERGY)
     seen = set()
@@ -308,7 +310,7 @@ def refuel_dynamics(N: int, ENERGY: int) -> Dict:
 def build_refuel_ipomdp(
     N: int = 7,
     ENERGY: int = 6,
-    obs_noise: float = 0.1,
+    obs_noise: float = 0.3,
     seed=None,
 ) -> Tuple[IPOMDP, Dict, List, None]:
     """Build the complete Refuel IPOMDP.
@@ -316,7 +318,10 @@ def build_refuel_ipomdp(
     Args:
         N:         Grid size (default 7).
         ENERGY:    Maximum fuel level (default 6).
-        obs_noise: Observation noise level in [0, 1) (default 0.1).
+        obs_noise: Observation noise level in [0, 1) (default 0.3).
+                   Set to 0.3 so that the RL agent fails ~10-15% without
+                   shielding; lower values (e.g. 0.05) allow the agent to
+                   memorise a safe path, making shielding unnecessary.
 
     Returns:
         (ipomdp, pp_shield, initial_states, None) where:
@@ -338,8 +343,24 @@ def build_refuel_ipomdp(
     obs_fn = refuel_observation_fn(N, ENERGY)
     fail_obs = obs_fn(FAIL)
 
+    # Distance-scaled noise: concentrate uncertainty on observations similar
+    # to the true observation.  Observations differing in few elements receive
+    # up to obs_noise mass; maximally dissimilar observations receive nearly 0.
+    # Uses a Gaussian kernel on normalised Hamming distance over the 8-tuple:
+    #   elements 0-6 (bool): each contributes 1 if different
+    #   element 7 (fuel_meter int): contributes |Δ| / max_fuel_meter
+    #   total distance normalised to [0, 1] by dividing by 8
+    # alpha = 5  ->  1 bit different: scale ≈ 0.54,  4 bits: ≈ 0.08,  all: ≈ 0.002
+    _max_fm = max(o[7] for o in observations) or 1
+
+    def _refuel_obs_noise_scale(o_true, o_other, _max_fm=_max_fm, _alpha=5.0):
+        bool_dist = sum(abs(int(a) - int(b)) for a, b in zip(o_true[:7], o_other[:7]))
+        fuel_dist = abs(o_true[7] - o_other[7]) / _max_fm
+        return math.exp(-_alpha * (bool_dist + fuel_dist) / 8.0)
+
     P_lower, P_upper = _make_interval_perception(
-        regular_states, observations, obs_fn, obs_noise, FAIL, fail_obs
+        regular_states, observations, obs_fn, obs_noise, FAIL, fail_obs,
+        obs_noise_scale_fn=_refuel_obs_noise_scale,
     )
 
     ipomdp = IPOMDP(states, observations, actions, T, P_lower, P_upper)

@@ -65,19 +65,31 @@ class NoShield:
 
 
 class ObservationShield:
-    """Baseline shield: applies pp_shield directly to observed state.
+    """Baseline shield: safe actions are the intersection across all states
+    consistent with the current observation (P_lower[s][obs] > 0).
 
-    No belief propagation -- just looks up pp_shield[obs].
+    Works for both fully-observable settings (where obs == state) and
+    partially-observable settings.  Previously this looked up pp_shield[obs]
+    directly, which only worked when states and observations were the same
+    objects (e.g. TaxiNet).
     """
 
-    def __init__(self, pp_shield):
+    def __init__(self, pp_shield, obs_to_states, all_actions):
         self.pp_shield = pp_shield
+        self.obs_to_states = obs_to_states
+        self.all_actions = list(all_actions)
         self.stuck_count = 0
         self.error_count = 0
 
     def next_actions(self, evidence):
         obs, _action = evidence
-        allowed = list(self.pp_shield.get(obs, set()))
+        consistent = self.obs_to_states.get(obs, [])
+        if not consistent:
+            return list(self.all_actions)
+        allowed = [
+            a for a in self.all_actions
+            if all(a in self.pp_shield.get(s, set()) for s in consistent)
+        ]
         if not allowed:
             self.stuck_count += 1
         return allowed
@@ -152,9 +164,9 @@ def create_no_shield_factory(all_actions):
     return factory
 
 
-def create_observation_shield_factory(pp_shield):
+def create_observation_shield_factory(pp_shield, obs_to_states, all_actions):
     def factory():
-        return ObservationShield(pp_shield)
+        return ObservationShield(pp_shield, obs_to_states, all_actions)
     return factory
 
 
@@ -339,6 +351,13 @@ def build_grid(ipomdp, pp_shield, rl_selector, optimized_perceptions, config):
     all_actions = list(ipomdp.actions)
     pomdp = ipomdp.to_pomdp()
 
+    # Build obs_to_states: obs -> states where P_lower[s][obs] > 0
+    obs_to_states = {}
+    for s in ipomdp.states:
+        for obs in ipomdp.observations:
+            if ipomdp.P_lower[s].get(obs, 0.0) > 0:
+                obs_to_states.setdefault(obs, []).append(s)
+
     # Factor 1: Perception models
     uniform_perception = UniformPerceptionModel()
 
@@ -367,7 +386,7 @@ def build_grid(ipomdp, pp_shield, rl_selector, optimized_perceptions, config):
     # Factor 3: Shield strategies (independent of selector)
     shields = {
         "none": create_no_shield_factory(all_actions),
-        "observation": create_observation_shield_factory(pp_shield),
+        "observation": create_observation_shield_factory(pp_shield, obs_to_states, all_actions),
         "single_belief": create_single_belief_shield_factory(
             pomdp, pp_shield, config.shield_threshold),
         "envelope": create_envelope_shield_factory(

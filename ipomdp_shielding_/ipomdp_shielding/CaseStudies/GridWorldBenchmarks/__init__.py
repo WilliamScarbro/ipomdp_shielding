@@ -5,7 +5,10 @@ pattern of CartPole and TaxiNet.  Deterministic PRISM observation functions are
 perturbed with an obs_noise parameter to produce non-trivial interval bounds:
 
     P_lower[s][o_true] = 1 - obs_noise,  P_upper[s][o_true] = 1.0
-    P_lower[s][o']     = 0.0,             P_upper[s][o']     = obs_noise   (o' != o_true)
+    P_lower[s][o']     = 0.0,             P_upper[s][o']     = obs_noise * scale(o_true, o')
+
+where scale() = 1.0 (uniform) by default, or a caller-supplied distance-based
+function that concentrates noise mass on observations similar to o_true.
 """
 
 from .obstacle import (
@@ -62,12 +65,19 @@ __all__ = [
 ]
 
 
-def _make_interval_perception(states, observations, obs_fn, obs_noise, fail_state, fail_obs):
+def _make_interval_perception(
+    states, observations, obs_fn, obs_noise, fail_state, fail_obs,
+    obs_noise_scale_fn=None,
+):
     """Build P_lower, P_upper from a deterministic observation function + noise level.
 
-    For each regular state s:
-        P_lower[s][o_true(s)] = 1 - obs_noise,  P_upper[s][o_true(s)] = 1.0
-        P_lower[s][o']        = 0.0,             P_upper[s][o']        = obs_noise
+    For each regular state s with true observation o_true = obs_fn(s):
+        P_lower[s][o_true] = 1 - obs_noise,  P_upper[s][o_true] = 1.0
+        P_lower[s][o']     = 0.0,             P_upper[s][o']     = obs_noise * scale(o_true, o')
+
+    where scale(o_true, o') = obs_noise_scale_fn(o_true, o') if provided, else 1.0.
+    The scale function should return values in [0, 1] and can be used to
+    concentrate noise on observations close to o_true (e.g. via a distance kernel).
 
     For the absorbing FAIL state:
         P_lower[FAIL][fail_obs] = 1.0,  P_upper[FAIL][fail_obs] = 1.0
@@ -77,12 +87,15 @@ def _make_interval_perception(states, observations, obs_fn, obs_noise, fail_stat
         sum_o P_lower[s][o] <= 1 <= sum_o P_upper[s][o]  for all s.
 
     Args:
-        states:       List of regular (non-FAIL) states.
-        observations: List of all possible observations.
-        obs_fn:       Callable s -> observation (deterministic).
-        obs_noise:    Noise level in [0, 1).
-        fail_state:   The absorbing FAIL state (added to the output dicts).
-        fail_obs:     The observation emitted with certainty by fail_state.
+        states:             List of regular (non-FAIL) states.
+        observations:       List of all possible observations.
+        obs_fn:             Callable s -> observation (deterministic).
+        obs_noise:          Noise level in [0, 1).
+        fail_state:         The absorbing FAIL state (added to the output dicts).
+        fail_obs:           The observation emitted with certainty by fail_state.
+        obs_noise_scale_fn: Optional callable (o_true, o') -> float in [0, 1].
+                            Scales the noise budget for each non-true observation.
+                            Defaults to uniform (scale = 1 for all o').
 
     Returns:
         (P_lower, P_upper) each mapping state -> {obs -> float}.
@@ -92,9 +105,15 @@ def _make_interval_perception(states, observations, obs_fn, obs_noise, fail_stat
     for s in states:
         o_true = obs_fn(s)
         P_lower[s] = {o: 0.0 for o in observations}
-        P_upper[s] = {o: obs_noise for o in observations}
+        if obs_noise_scale_fn is not None:
+            P_upper[s] = {
+                o: (1.0 if o == o_true else obs_noise * obs_noise_scale_fn(o_true, o))
+                for o in observations
+            }
+        else:
+            P_upper[s] = {o: obs_noise for o in observations}
+            P_upper[s][o_true] = 1.0
         P_lower[s][o_true] = 1.0 - obs_noise
-        P_upper[s][o_true] = 1.0
 
     # FAIL emits fail_obs with certainty (point interval).
     P_lower[fail_state] = {o: 0.0 for o in observations}

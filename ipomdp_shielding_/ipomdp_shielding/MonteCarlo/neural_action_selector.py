@@ -157,6 +157,8 @@ class ObservationActionEncoder:
             Encoded observation vector
         """
         if self.obs_mode == "tuple":
+            if not isinstance(obs, tuple):
+                return np.zeros(self.obs_dim, dtype=np.float32)
             return np.array(obs, dtype=np.float32)
         elif self.obs_mode == "discrete":
             vec = np.zeros(self.obs_dim, dtype=np.float32)

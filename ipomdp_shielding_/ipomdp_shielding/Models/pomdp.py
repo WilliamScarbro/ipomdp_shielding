@@ -92,7 +92,7 @@ class POMDP_Belief:
         for s in self.pomdp.states:
             if self.belief[s] == 0.0:
                 continue
-            trans = self.pomdp.T[(s, a_t)]
+            trans = self.pomdp.T.get((s, a_t), {})
             for s_next, p_trans in trans.items():
                 if p_trans > 0:
                     next_belief[s_next] += p_trans * self.belief[s]
