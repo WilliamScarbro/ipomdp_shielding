@@ -27,12 +27,17 @@ This is the theoretically correct "safe for every state the agent cannot rule ou
 
 **Impact on results:**
 
-| Case study | Prelim observation-shield stuck% (RL) | Final stuck% (RL) | Reason |
-|---|---|---|---|
-| TaxiNet  | 0%  | 91% | Each obs consistent with 6–15 states; intersection empty |
-| CartPole | 40% | 56% | 1:1 obs–state (bijective); stuck = pp_shield has no safe action for state |
-| Obstacle | 40% | 98% | 3 obs × ~17 states each; intersection almost always empty |
-| Refuel   | 10% | 40% | 43 obs × ~8 states each; partial overlap reduces intersection |
+<table>
+<thead>
+<tr><th>Case study</th><th>Prelim observation-shield stuck% (RL)</th><th>Final stuck% (RL)</th><th>Reason</th></tr>
+</thead>
+<tbody>
+<tr><td>TaxiNet</td><td>0%</td><td>91%</td><td>Each obs consistent with 6–15 states; intersection empty</td></tr>
+<tr><td>CartPole</td><td>40%</td><td>56%</td><td>1:1 obs–state (bijective); stuck = pp_shield has no safe action for state</td></tr>
+<tr><td>Obstacle</td><td>40%</td><td>98%</td><td>3 obs × ~17 states each; intersection almost always empty</td></tr>
+<tr><td>Refuel</td><td>10%</td><td>40%</td><td>43 obs × ~8 states each; partial overlap reduces intersection</td></tr>
+</tbody>
+</table>
 
 For TaxiNet and Obstacle the corrected shield is effectively unusable (near-total stuck rate).
 For CartPole (bijective) it is equivalent to the perfect-perception shield and stuck events
@@ -41,12 +46,17 @@ to the preliminary version.
 
 ### 2. Increased sample sizes
 
-| Case Study | Prelim trials / length | Final trials / length | Prelim traj / length | Final traj / length |
-|---|---|---|---|---|
-| TaxiNet  | 10 / 10 | 100 / 20 | 10 / 10 | 100 / 20 |
-| CartPole | 10 / 10 | 25 / 15  | 10 / 10 | 30 / 15  |
-| Obstacle | 10 / 20 | 50 / 25  | 10 / 10 | 50 / 20  |
-| Refuel   | 10 / 20 | 50 / 30  | 10 / 10 | 10 / 10  |
+<table>
+<thead>
+<tr><th>Case Study</th><th>Prelim trials / length</th><th>Final trials / length</th><th>Prelim traj / length</th><th>Final traj / length</th></tr>
+</thead>
+<tbody>
+<tr><td>TaxiNet</td><td>10 / 10</td><td>100 / 20</td><td>10 / 10</td><td>100 / 20</td></tr>
+<tr><td>CartPole</td><td>10 / 10</td><td>25 / 15</td><td>10 / 10</td><td>30 / 15</td></tr>
+<tr><td>Obstacle</td><td>10 / 20</td><td>50 / 25</td><td>10 / 10</td><td>50 / 20</td></tr>
+<tr><td>Refuel</td><td>10 / 20</td><td>50 / 30</td><td>10 / 10</td><td>10 / 10</td></tr>
+</tbody>
+</table>
 
 ### 3. Cached RL agents and optimized realizations
 
@@ -59,12 +69,17 @@ single-belief (Refuel, where envelope LP is infeasible).
 
 ## 1. Case Study Characteristics
 
-| Case Study | States | Actions | Observations | Obs/State ratio | Source |
-|---|---|---|---|---|---|
-| TaxiNet  | 16  | 3 | 16 | ~6–15 states/obs | Neural network controller |
-| CartPole | 82  | 2 | 82 | 1:1 (bijective)  | Discretised continuous env |
-| Obstacle | 50  | 4 |  3 | ~17 states/obs   | Gridworld benchmark (Carr et al.) |
-| Refuel   | 344 | 5 | 43 | ~8 states/obs    | Gridworld benchmark (Carr et al.) |
+<table>
+<thead>
+<tr><th>Case Study</th><th>States</th><th>Actions</th><th>Observations</th><th>Obs/State ratio</th><th>Source</th></tr>
+</thead>
+<tbody>
+<tr><td>TaxiNet</td><td>16</td><td>3</td><td>16</td><td>~6–15 states/obs</td><td>Neural network controller</td></tr>
+<tr><td>CartPole</td><td>82</td><td>2</td><td>82</td><td>1:1 (bijective)</td><td>Discretised continuous env</td></tr>
+<tr><td>Obstacle</td><td>50</td><td>4</td><td>3</td><td>~17 states/obs</td><td>Gridworld benchmark (Carr et al.)</td></tr>
+<tr><td>Refuel</td><td>344</td><td>5</td><td>43</td><td>~8 states/obs</td><td>Gridworld benchmark (Carr et al.)</td></tr>
+</tbody>
+</table>
 
 **Note on TaxiNet observability:** Although TaxiNet has equal numbers of states and
 observations, the IPOMDP perception intervals `P_lower[s][obs]` place each observation
@@ -74,12 +89,17 @@ in the support of 6–15 states (not bijective).  TaxiNet is partially observabl
 
 ## 2. Coarseness of the LFP Bound
 
-| Case Study | n traj / len | Mean max-gap | Std | Mean avg-gap | Interpretation |
-|---|---|---|---|---|---|
-| TaxiNet  | 100 / 20 | 0.358 | 0.262 | 0.054 | **Tight** — LFP nearly matches sampler |
-| CartPole | 30 / 15  | 0.994 | 0.017 | 0.381 | **Very loose** — LFP maximally conservative |
-| Obstacle | 50 / 20  | 0.960 | 0.102 | 0.402 | **Very loose** — higher than prelim's 0.784 |
-| Refuel   | 10 / 10  | 0.865 | 0.296 | 0.557 | **Loose** — slightly lower than prelim's 0.989 |
+<table>
+<thead>
+<tr><th>Case Study</th><th>n traj / len</th><th>Mean max-gap</th><th>Std</th><th>Mean avg-gap</th><th>Interpretation</th></tr>
+</thead>
+<tbody>
+<tr><td>TaxiNet</td><td>100 / 20</td><td>0.358</td><td>0.262</td><td>0.054</td><td>**Tight** — LFP nearly matches sampler</td></tr>
+<tr><td>CartPole</td><td>30 / 15</td><td>0.994</td><td>0.017</td><td>0.381</td><td>**Very loose** — LFP maximally conservative</td></tr>
+<tr><td>Obstacle</td><td>50 / 20</td><td>0.960</td><td>0.102</td><td>0.402</td><td>**Very loose** — higher than prelim's 0.784</td></tr>
+<tr><td>Refuel</td><td>10 / 10</td><td>0.865</td><td>0.296</td><td>0.557</td><td>**Loose** — slightly lower than prelim's 0.989</td></tr>
+</tbody>
+</table>
 
 Timing: TaxiNet 3 min, CartPole 12 min, Obstacle 11 min, Refuel 3 h 45 min.
 
@@ -100,12 +120,17 @@ supported by larger samples:
 
 ## 3. Shield Definitions
 
-| Shield | Description |
-|---|---|
-| **None** | Passthrough — all actions always allowed. Baseline failure rate. |
-| **Observation** | Allows action *a* only if *a* ∈ pp_shield[s] **for every state s** with P_lower[s][obs] > 0. |
-| **Single-belief** | Maintains POMDP point belief; allows *a* if P(safe \| belief) ≥ 0.8. |
-| **Envelope** | Maintains full LFP belief polytope; allows *a* if ∃ valid distribution with P(safe) ≥ 0.8. |
+<table>
+<thead>
+<tr><th>Shield</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>**None**</td><td>Passthrough — all actions always allowed. Baseline failure rate.</td></tr>
+<tr><td>**Observation**</td><td>Allows action *a* only if *a* ∈ pp_shield[s] **for every state s** with P_lower[s][obs] > 0.</td></tr>
+<tr><td>**Single-belief**</td><td>Maintains POMDP point belief; allows *a* if P(safe \</td><td>belief) ≥ 0.8.</td></tr>
+<tr><td>**Envelope**</td><td>Maintains full LFP belief polytope; allows *a* if ∃ valid distribution with P(safe) ≥ 0.8.</td></tr>
+</tbody>
+</table>
 
 Two **perception regimes**: Uniform (cooperative), Adversarial-opt (fixed realization trained
 to maximise failure rate against the target shield).
@@ -127,45 +152,55 @@ RL-selector trials.
 
 **RL selector results:**
 
-| Perception | Shield | Fail% | Stuck% | Safe% | Interv% |
-|---|---|---|---|---|---|
-| Uniform     | None          | 95% | 0%  | 5%  | —     |
-| Uniform     | Observation   | 9%  | 91% | 0%  | 30.8% |
-| Uniform     | Single-belief | 68% | 1%  | 31% | 19.7% |
-| Uniform     | Envelope      | 61% | 4%  | 35% | 23.6% |
-| Adversarial | None          | 98% | 0%  | 2%  | —     |
-| Adversarial | Observation   | 5%  | 95% | 0%  | 40.0% |
-| Adversarial | Single-belief | 70% | 1%  | 29% | 19.8% |
-| Adversarial | Envelope      | 55% | 5%  | 40% | 23.0% |
+<table>
+<thead>
+<tr><th>Perception</th><th>Shield</th><th>Fail%</th><th>Stuck%</th><th>Safe%</th><th>Interv%</th></tr>
+</thead>
+<tbody>
+<tr><td>Uniform</td><td>None</td><td>95%</td><td>0%</td><td>5%</td><td>—</td></tr>
+<tr><td>Uniform</td><td>Observation</td><td>9%</td><td>91%</td><td>0%</td><td>30.8%</td></tr>
+<tr><td>Uniform</td><td>Single-belief</td><td>68%</td><td>1%</td><td>31%</td><td>19.7%</td></tr>
+<tr><td>Uniform</td><td>Envelope</td><td>61%</td><td>4%</td><td>35%</td><td>23.6%</td></tr>
+<tr><td>Adversarial</td><td>None</td><td>98%</td><td>0%</td><td>2%</td><td>—</td></tr>
+<tr><td>Adversarial</td><td>Observation</td><td>5%</td><td>95%</td><td>0%</td><td>40.0%</td></tr>
+<tr><td>Adversarial</td><td>Single-belief</td><td>70%</td><td>1%</td><td>29%</td><td>19.8%</td></tr>
+<tr><td>Adversarial</td><td>Envelope</td><td>55%</td><td>5%</td><td>40%</td><td>23.0%</td></tr>
+</tbody>
+</table>
 
 **Full results (n=100 per combination):**
 
-| Perception | Selector | Shield | Fail% | Stuck% | Safe% |
-|---|---|---|---|---|---|
-| Uniform     | Random | None          |100% |  0% |  0% |
-| Uniform     | Random | Observation   |  6% | 94% |  0% |
-| Uniform     | Random | Single-belief | 77% |  1% | 22% |
-| Uniform     | Random | Envelope      | 58% |  6% | 36% |
-| Uniform     | Best   | None          |100% |  0% |  0% |
-| Uniform     | Best   | Observation   |  7% | 93% |  0% |
-| Uniform     | Best   | Single-belief | 55% |  2% | 43% |
-| Uniform     | Best   | Envelope      | 51% | 12% | 37% |
-| Uniform     | RL     | None          | 95% |  0% |  5% |
-| Uniform     | RL     | Observation   |  9% | 91% |  0% |
-| Uniform     | RL     | Single-belief | 68% |  1% | 31% |
-| Uniform     | RL     | Envelope      | 61% |  4% | 35% |
-| Adversarial | Random | None          |100% |  0% |  0% |
-| Adversarial | Random | Observation   |  3% | 97% |  0% |
-| Adversarial | Random | Single-belief | 68% |  1% | 31% |
-| Adversarial | Random | Envelope      | 62% |  4% | 34% |
-| Adversarial | Best   | None          |100% |  0% |  0% |
-| Adversarial | Best   | Observation   |  6% | 94% |  0% |
-| Adversarial | Best   | Single-belief | 55% |  1% | 44% |
-| Adversarial | Best   | Envelope      | 54% | 11% | 35% |
-| Adversarial | RL     | None          | 98% |  0% |  2% |
-| Adversarial | RL     | Observation   |  5% | 95% |  0% |
-| Adversarial | RL     | Single-belief | 70% |  1% | 29% |
-| Adversarial | RL     | Envelope      | 55% |  5% | 40% |
+<table>
+<thead>
+<tr><th>Perception</th><th>Selector</th><th>Shield</th><th>Fail%</th><th>Stuck%</th><th>Safe%</th></tr>
+</thead>
+<tbody>
+<tr><td>Uniform</td><td>Random</td><td>None</td><td>100%</td><td>0%</td><td>0%</td></tr>
+<tr><td>Uniform</td><td>Random</td><td>Observation</td><td>6%</td><td>94%</td><td>0%</td></tr>
+<tr><td>Uniform</td><td>Random</td><td>Single-belief</td><td>77%</td><td>1%</td><td>22%</td></tr>
+<tr><td>Uniform</td><td>Random</td><td>Envelope</td><td>58%</td><td>6%</td><td>36%</td></tr>
+<tr><td>Uniform</td><td>Best</td><td>None</td><td>100%</td><td>0%</td><td>0%</td></tr>
+<tr><td>Uniform</td><td>Best</td><td>Observation</td><td>7%</td><td>93%</td><td>0%</td></tr>
+<tr><td>Uniform</td><td>Best</td><td>Single-belief</td><td>55%</td><td>2%</td><td>43%</td></tr>
+<tr><td>Uniform</td><td>Best</td><td>Envelope</td><td>51%</td><td>12%</td><td>37%</td></tr>
+<tr><td>Uniform</td><td>RL</td><td>None</td><td>95%</td><td>0%</td><td>5%</td></tr>
+<tr><td>Uniform</td><td>RL</td><td>Observation</td><td>9%</td><td>91%</td><td>0%</td></tr>
+<tr><td>Uniform</td><td>RL</td><td>Single-belief</td><td>68%</td><td>1%</td><td>31%</td></tr>
+<tr><td>Uniform</td><td>RL</td><td>Envelope</td><td>61%</td><td>4%</td><td>35%</td></tr>
+<tr><td>Adversarial</td><td>Random</td><td>None</td><td>100%</td><td>0%</td><td>0%</td></tr>
+<tr><td>Adversarial</td><td>Random</td><td>Observation</td><td>3%</td><td>97%</td><td>0%</td></tr>
+<tr><td>Adversarial</td><td>Random</td><td>Single-belief</td><td>68%</td><td>1%</td><td>31%</td></tr>
+<tr><td>Adversarial</td><td>Random</td><td>Envelope</td><td>62%</td><td>4%</td><td>34%</td></tr>
+<tr><td>Adversarial</td><td>Best</td><td>None</td><td>100%</td><td>0%</td><td>0%</td></tr>
+<tr><td>Adversarial</td><td>Best</td><td>Observation</td><td>6%</td><td>94%</td><td>0%</td></tr>
+<tr><td>Adversarial</td><td>Best</td><td>Single-belief</td><td>55%</td><td>1%</td><td>44%</td></tr>
+<tr><td>Adversarial</td><td>Best</td><td>Envelope</td><td>54%</td><td>11%</td><td>35%</td></tr>
+<tr><td>Adversarial</td><td>RL</td><td>None</td><td>98%</td><td>0%</td><td>2%</td></tr>
+<tr><td>Adversarial</td><td>RL</td><td>Observation</td><td>5%</td><td>95%</td><td>0%</td></tr>
+<tr><td>Adversarial</td><td>RL</td><td>Single-belief</td><td>70%</td><td>1%</td><td>29%</td></tr>
+<tr><td>Adversarial</td><td>RL</td><td>Envelope</td><td>55%</td><td>5%</td><td>40%</td></tr>
+</tbody>
+</table>
 
 **Observations:**
 - **Overall safety is low**: with n=100 trials and trial_length=20, the RL agent (trained
@@ -193,16 +228,21 @@ observation shield is equivalent to the perfect-perception shield.
 
 **RL selector results:**
 
-| Perception | Shield | Fail% | Stuck% | Safe% | Interv% |
-|---|---|---|---|---|---|
-| Uniform     | None          | 12% | 0%  | 88% | —     |
-| Uniform     | Observation   | 4%  | 56% | 40% | 12.3% |
-| Uniform     | Single-belief | 4%  | 0%  | 96% | 4.2%  |
-| Uniform     | Envelope      | 4%  | 16% | 80% | 25.8% |
-| Adversarial | None          | 12% | 0%  | 88% | —     |
-| Adversarial | Observation   | 4%  | 36% | 60% | 7.6%  |
-| Adversarial | Single-belief | 4%  | 0%  | 96% | 3.1%  |
-| Adversarial | Envelope      | 4%  | 20% | 76% | 27.0% |
+<table>
+<thead>
+<tr><th>Perception</th><th>Shield</th><th>Fail%</th><th>Stuck%</th><th>Safe%</th><th>Interv%</th></tr>
+</thead>
+<tbody>
+<tr><td>Uniform</td><td>None</td><td>12%</td><td>0%</td><td>88%</td><td>—</td></tr>
+<tr><td>Uniform</td><td>Observation</td><td>4%</td><td>56%</td><td>40%</td><td>12.3%</td></tr>
+<tr><td>Uniform</td><td>Single-belief</td><td>4%</td><td>0%</td><td>96%</td><td>4.2%</td></tr>
+<tr><td>Uniform</td><td>Envelope</td><td>4%</td><td>16%</td><td>80%</td><td>25.8%</td></tr>
+<tr><td>Adversarial</td><td>None</td><td>12%</td><td>0%</td><td>88%</td><td>—</td></tr>
+<tr><td>Adversarial</td><td>Observation</td><td>4%</td><td>36%</td><td>60%</td><td>7.6%</td></tr>
+<tr><td>Adversarial</td><td>Single-belief</td><td>4%</td><td>0%</td><td>96%</td><td>3.1%</td></tr>
+<tr><td>Adversarial</td><td>Envelope</td><td>4%</td><td>20%</td><td>76%</td><td>27.0%</td></tr>
+</tbody>
+</table>
 
 **Observations:**
 - **Single-belief is the best shield** (96% safe) under both perception regimes.  In a
@@ -230,45 +270,55 @@ observation) and a moderate-to-loose LFP bound.
 
 **RL selector results:**
 
-| Perception | Shield | Fail% | Stuck% | Safe% | Interv% |
-|---|---|---|---|---|---|
-| Uniform     | None          | 82% | 0%  | 18% | —     |
-| Uniform     | Observation   | 2%  | 98% | 0%  | 0.0%  |
-| Uniform     | Single-belief | 40% | 34% | 26% | 12.7% |
-| Uniform     | Envelope      | 22% | 72% | 6%  | 25.7% |
-| Adversarial | None          | 80% | 0%  | 20% | —     |
-| Adversarial | Observation   | 4%  | 96% | 0%  | 0.0%  |
-| Adversarial | Single-belief | 38% | 26% | 36% | 14.3% |
-| Adversarial | Envelope      | 16% | 50% | 34% | 29.6% |
+<table>
+<thead>
+<tr><th>Perception</th><th>Shield</th><th>Fail%</th><th>Stuck%</th><th>Safe%</th><th>Interv%</th></tr>
+</thead>
+<tbody>
+<tr><td>Uniform</td><td>None</td><td>82%</td><td>0%</td><td>18%</td><td>—</td></tr>
+<tr><td>Uniform</td><td>Observation</td><td>2%</td><td>98%</td><td>0%</td><td>0.0%</td></tr>
+<tr><td>Uniform</td><td>Single-belief</td><td>40%</td><td>34%</td><td>26%</td><td>12.7%</td></tr>
+<tr><td>Uniform</td><td>Envelope</td><td>22%</td><td>72%</td><td>6%</td><td>25.7%</td></tr>
+<tr><td>Adversarial</td><td>None</td><td>80%</td><td>0%</td><td>20%</td><td>—</td></tr>
+<tr><td>Adversarial</td><td>Observation</td><td>4%</td><td>96%</td><td>0%</td><td>0.0%</td></tr>
+<tr><td>Adversarial</td><td>Single-belief</td><td>38%</td><td>26%</td><td>36%</td><td>14.3%</td></tr>
+<tr><td>Adversarial</td><td>Envelope</td><td>16%</td><td>50%</td><td>34%</td><td>29.6%</td></tr>
+</tbody>
+</table>
 
 **Full results (n=50 per combination):**
 
-| Perception | Selector | Shield | Fail% | Stuck% | Safe% |
-|---|---|---|---|---|---|
-| Uniform     | Random | None          | 80% |  0% | 20% |
-| Uniform     | Random | Observation   |  2% | 98% |  0% |
-| Uniform     | Random | Single-belief | 32% | 44% | 24% |
-| Uniform     | Random | Envelope      | 12% | 56% | 32% |
-| Uniform     | Best   | None          | 84% |  0% | 16% |
-| Uniform     | Best   | Observation   |  2% | 98% |  0% |
-| Uniform     | Best   | Single-belief | 16% | 14% | 70% |
-| Uniform     | Best   | Envelope      | 18% | 62% | 20% |
-| Uniform     | RL     | None          | 82% |  0% | 18% |
-| Uniform     | RL     | Observation   |  2% | 98% |  0% |
-| Uniform     | RL     | Single-belief | 40% | 34% | 26% |
-| Uniform     | RL     | Envelope      | 22% | 72% |  6% |
-| Adversarial | Random | None          | 78% |  0% | 22% |
-| Adversarial | Random | Observation   |  2% | 98% |  0% |
-| Adversarial | Random | Single-belief | 38% | 26% | 36% |
-| Adversarial | Random | Envelope      | 28% | 54% | 18% |
-| Adversarial | Best   | None          | 84% |  0% | 16% |
-| Adversarial | Best   | Observation   |  2% | 98% |  0% |
-| Adversarial | Best   | Single-belief | 20% | 20% | 60% |
-| Adversarial | Best   | Envelope      | 18% | 52% | 30% |
-| Adversarial | RL     | None          | 80% |  0% | 20% |
-| Adversarial | RL     | Observation   |  4% | 96% |  0% |
-| Adversarial | RL     | Single-belief | 38% | 26% | 36% |
-| Adversarial | RL     | Envelope      | 16% | 50% | 34% |
+<table>
+<thead>
+<tr><th>Perception</th><th>Selector</th><th>Shield</th><th>Fail%</th><th>Stuck%</th><th>Safe%</th></tr>
+</thead>
+<tbody>
+<tr><td>Uniform</td><td>Random</td><td>None</td><td>80%</td><td>0%</td><td>20%</td></tr>
+<tr><td>Uniform</td><td>Random</td><td>Observation</td><td>2%</td><td>98%</td><td>0%</td></tr>
+<tr><td>Uniform</td><td>Random</td><td>Single-belief</td><td>32%</td><td>44%</td><td>24%</td></tr>
+<tr><td>Uniform</td><td>Random</td><td>Envelope</td><td>12%</td><td>56%</td><td>32%</td></tr>
+<tr><td>Uniform</td><td>Best</td><td>None</td><td>84%</td><td>0%</td><td>16%</td></tr>
+<tr><td>Uniform</td><td>Best</td><td>Observation</td><td>2%</td><td>98%</td><td>0%</td></tr>
+<tr><td>Uniform</td><td>Best</td><td>Single-belief</td><td>16%</td><td>14%</td><td>70%</td></tr>
+<tr><td>Uniform</td><td>Best</td><td>Envelope</td><td>18%</td><td>62%</td><td>20%</td></tr>
+<tr><td>Uniform</td><td>RL</td><td>None</td><td>82%</td><td>0%</td><td>18%</td></tr>
+<tr><td>Uniform</td><td>RL</td><td>Observation</td><td>2%</td><td>98%</td><td>0%</td></tr>
+<tr><td>Uniform</td><td>RL</td><td>Single-belief</td><td>40%</td><td>34%</td><td>26%</td></tr>
+<tr><td>Uniform</td><td>RL</td><td>Envelope</td><td>22%</td><td>72%</td><td>6%</td></tr>
+<tr><td>Adversarial</td><td>Random</td><td>None</td><td>78%</td><td>0%</td><td>22%</td></tr>
+<tr><td>Adversarial</td><td>Random</td><td>Observation</td><td>2%</td><td>98%</td><td>0%</td></tr>
+<tr><td>Adversarial</td><td>Random</td><td>Single-belief</td><td>38%</td><td>26%</td><td>36%</td></tr>
+<tr><td>Adversarial</td><td>Random</td><td>Envelope</td><td>28%</td><td>54%</td><td>18%</td></tr>
+<tr><td>Adversarial</td><td>Best</td><td>None</td><td>84%</td><td>0%</td><td>16%</td></tr>
+<tr><td>Adversarial</td><td>Best</td><td>Observation</td><td>2%</td><td>98%</td><td>0%</td></tr>
+<tr><td>Adversarial</td><td>Best</td><td>Single-belief</td><td>20%</td><td>20%</td><td>60%</td></tr>
+<tr><td>Adversarial</td><td>Best</td><td>Envelope</td><td>18%</td><td>52%</td><td>30%</td></tr>
+<tr><td>Adversarial</td><td>RL</td><td>None</td><td>80%</td><td>0%</td><td>20%</td></tr>
+<tr><td>Adversarial</td><td>RL</td><td>Observation</td><td>4%</td><td>96%</td><td>0%</td></tr>
+<tr><td>Adversarial</td><td>RL</td><td>Single-belief</td><td>38%</td><td>26%</td><td>36%</td></tr>
+<tr><td>Adversarial</td><td>RL</td><td>Envelope</td><td>16%</td><td>50%</td><td>34%</td></tr>
+</tbody>
+</table>
 
 **Observations:**
 - **Observation shield is effectively unusable** (98% stuck): with 3 coarse observations
@@ -301,37 +351,47 @@ Adversarial perception was optimized against the single-belief shield.
 
 **RL selector results (envelope excluded):**
 
-| Perception | Shield | Fail% | Stuck% | Safe% | Interv% |
-|---|---|---|---|---|---|
-| Uniform     | None          | 0%  | 0%  | 100% | —    |
-| Uniform     | Observation   | 0%  | 40% | 60%  | 1.5% |
-| Uniform     | Single-belief | 0%  | 18% | 82%  | 0.2% |
-| Adversarial | None          | 0%  | 0%  | 100% | —    |
-| Adversarial | Observation   | 0%  | 48% | 52%  | 1.5% |
-| Adversarial | Single-belief | 0%  | 10% | 90%  | 0.1% |
+<table>
+<thead>
+<tr><th>Perception</th><th>Shield</th><th>Fail%</th><th>Stuck%</th><th>Safe%</th><th>Interv%</th></tr>
+</thead>
+<tbody>
+<tr><td>Uniform</td><td>None</td><td>0%</td><td>0%</td><td>100%</td><td>—</td></tr>
+<tr><td>Uniform</td><td>Observation</td><td>0%</td><td>40%</td><td>60%</td><td>1.5%</td></tr>
+<tr><td>Uniform</td><td>Single-belief</td><td>0%</td><td>18%</td><td>82%</td><td>0.2%</td></tr>
+<tr><td>Adversarial</td><td>None</td><td>0%</td><td>0%</td><td>100%</td><td>—</td></tr>
+<tr><td>Adversarial</td><td>Observation</td><td>0%</td><td>48%</td><td>52%</td><td>1.5%</td></tr>
+<tr><td>Adversarial</td><td>Single-belief</td><td>0%</td><td>10%</td><td>90%</td><td>0.1%</td></tr>
+</tbody>
+</table>
 
 **Full results (n=50 per combination):**
 
-| Perception | Selector | Shield | Fail% | Stuck% | Safe% |
-|---|---|---|---|---|---|
-| Uniform     | Random | None          |  6% |  0% | 94% |
-| Uniform     | Random | Observation   |  2% | 46% | 52% |
-| Uniform     | Random | Single-belief |  0% | 16% | 84% |
-| Uniform     | Best   | None          | 10% |  0% | 90% |
-| Uniform     | Best   | Observation   |  0% | 48% | 52% |
-| Uniform     | Best   | Single-belief |  0% | 20% | 80% |
-| Uniform     | RL     | None          |  0% |  0% |100% |
-| Uniform     | RL     | Observation   |  0% | 40% | 60% |
-| Uniform     | RL     | Single-belief |  0% | 18% | 82% |
-| Adversarial | Random | None          | 14% |  0% | 86% |
-| Adversarial | Random | Observation   |  0% | 48% | 52% |
-| Adversarial | Random | Single-belief |  2% | 16% | 82% |
-| Adversarial | Best   | None          |  8% |  0% | 92% |
-| Adversarial | Best   | Observation   |  2% | 50% | 48% |
-| Adversarial | Best   | Single-belief |  0% | 22% | 78% |
-| Adversarial | RL     | None          |  0% |  0% |100% |
-| Adversarial | RL     | Observation   |  0% | 48% | 52% |
-| Adversarial | RL     | Single-belief |  0% | 10% | 90% |
+<table>
+<thead>
+<tr><th>Perception</th><th>Selector</th><th>Shield</th><th>Fail%</th><th>Stuck%</th><th>Safe%</th></tr>
+</thead>
+<tbody>
+<tr><td>Uniform</td><td>Random</td><td>None</td><td>6%</td><td>0%</td><td>94%</td></tr>
+<tr><td>Uniform</td><td>Random</td><td>Observation</td><td>2%</td><td>46%</td><td>52%</td></tr>
+<tr><td>Uniform</td><td>Random</td><td>Single-belief</td><td>0%</td><td>16%</td><td>84%</td></tr>
+<tr><td>Uniform</td><td>Best</td><td>None</td><td>10%</td><td>0%</td><td>90%</td></tr>
+<tr><td>Uniform</td><td>Best</td><td>Observation</td><td>0%</td><td>48%</td><td>52%</td></tr>
+<tr><td>Uniform</td><td>Best</td><td>Single-belief</td><td>0%</td><td>20%</td><td>80%</td></tr>
+<tr><td>Uniform</td><td>RL</td><td>None</td><td>0%</td><td>0%</td><td>100%</td></tr>
+<tr><td>Uniform</td><td>RL</td><td>Observation</td><td>0%</td><td>40%</td><td>60%</td></tr>
+<tr><td>Uniform</td><td>RL</td><td>Single-belief</td><td>0%</td><td>18%</td><td>82%</td></tr>
+<tr><td>Adversarial</td><td>Random</td><td>None</td><td>14%</td><td>0%</td><td>86%</td></tr>
+<tr><td>Adversarial</td><td>Random</td><td>Observation</td><td>0%</td><td>48%</td><td>52%</td></tr>
+<tr><td>Adversarial</td><td>Random</td><td>Single-belief</td><td>2%</td><td>16%</td><td>82%</td></tr>
+<tr><td>Adversarial</td><td>Best</td><td>None</td><td>8%</td><td>0%</td><td>92%</td></tr>
+<tr><td>Adversarial</td><td>Best</td><td>Observation</td><td>2%</td><td>50%</td><td>48%</td></tr>
+<tr><td>Adversarial</td><td>Best</td><td>Single-belief</td><td>0%</td><td>22%</td><td>78%</td></tr>
+<tr><td>Adversarial</td><td>RL</td><td>None</td><td>0%</td><td>0%</td><td>100%</td></tr>
+<tr><td>Adversarial</td><td>RL</td><td>Observation</td><td>0%</td><td>48%</td><td>52%</td></tr>
+<tr><td>Adversarial</td><td>RL</td><td>Single-belief</td><td>0%</td><td>10%</td><td>90%</td></tr>
+</tbody>
+</table>
 
 **Observations:**
 - **No-shield with RL is optimal** (100% safe under both perceptions, n=50).  The RL agent
@@ -353,12 +413,17 @@ Adversarial perception was optimized against the single-belief shield.
 
 ## 5. When Does the Envelope Shield Add Value?
 
-| Case Study | Envelope vs None (RL, adv.) | Envelope vs Single-belief (RL, adv.) | Verdict |
-|---|---|---|---|
-| TaxiNet (16 states)  | +38 pp safe (40% vs 2%)  | +11 pp safe (40% vs 29%)  | **Envelope wins under adversarial** |
-| CartPole (82 states) | +12 pp fail reduction     | ≈ equal fail, +20% stuck  | Envelope slightly worse (stuck overhead) |
-| Obstacle (50 states) | +64 pp safe (34% vs 20%) | −24 pp fail (16% vs 38%)  | **Envelope wins under adversarial** |
-| Refuel (344 states)  | — (infeasible)            | — (infeasible)             | No-shield optimal; envelope infeasible |
+<table>
+<thead>
+<tr><th>Case Study</th><th>Envelope vs None (RL, adv.)</th><th>Envelope vs Single-belief (RL, adv.)</th><th>Verdict</th></tr>
+</thead>
+<tbody>
+<tr><td>TaxiNet (16 states)</td><td>+38 pp safe (40% vs 2%)</td><td>+11 pp safe (40% vs 29%)</td><td>**Envelope wins under adversarial**</td></tr>
+<tr><td>CartPole (82 states)</td><td>+12 pp fail reduction</td><td>≈ equal fail, +20% stuck</td><td>Envelope slightly worse (stuck overhead)</td></tr>
+<tr><td>Obstacle (50 states)</td><td>+64 pp safe (34% vs 20%)</td><td>−24 pp fail (16% vs 38%)</td><td>**Envelope wins under adversarial**</td></tr>
+<tr><td>Refuel (344 states)</td><td>— (infeasible)</td><td>— (infeasible)</td><td>No-shield optimal; envelope infeasible</td></tr>
+</tbody>
+</table>
 
 The envelope shield provides its largest benefits in **TaxiNet** and **Obstacle** under
 adversarial perception.  The pattern is clear:
@@ -384,12 +449,17 @@ milliseconds, achieves near-optimal safety, and avoids the stuck overhead of the
 
 **Δ safe% (adversarial − uniform) for RL selector:**
 
-| Case Study | None | Observation | Single-belief | Envelope | Opt. target |
-|---|---|---|---|---|---|
-| TaxiNet  | −3  | −1  | −2  | +5  | envelope |
-| CartPole | 0   | +20 | 0   | −4  | envelope |
-| Obstacle | +2  | +2  | +10 | +28 | envelope |
-| Refuel   | 0   | −8  | +8  | N/A | single_belief |
+<table>
+<thead>
+<tr><th>Case Study</th><th>None</th><th>Observation</th><th>Single-belief</th><th>Envelope</th><th>Opt. target</th></tr>
+</thead>
+<tbody>
+<tr><td>TaxiNet</td><td>−3</td><td>−1</td><td>−2</td><td>+5</td><td>envelope</td></tr>
+<tr><td>CartPole</td><td>0</td><td>+20</td><td>0</td><td>−4</td><td>envelope</td></tr>
+<tr><td>Obstacle</td><td>+2</td><td>+2</td><td>+10</td><td>+28</td><td>envelope</td></tr>
+<tr><td>Refuel</td><td>0</td><td>−8</td><td>+8</td><td>N/A</td><td>single_belief</td></tr>
+</tbody>
+</table>
 
 For **TaxiNet**, the envelope shield improves (+5 pp) under adversarial perception, consistent
 with its theoretical guarantee.  Single-belief is robust (−2 pp).  Observation is insensitive
@@ -416,12 +486,17 @@ maintains 100% safe regardless.
 
 Timing results (final run):
 
-| Case Study | States | Observations | Coarse time | RL time (envelope combos) | Practical? |
-|---|---|---|---|---|---|
-| TaxiNet  |  16 |  16 |  3 min | ~10 min (6 × 100 × 20 steps) | ✓ Yes |
-| Obstacle |  50 |   3 | 11 min | ~33 min (6 × 50 × 25 steps) | ✓ Yes |
-| CartPole |  82 |  82 | 12 min | ~53 min (6 × 25 × 15 steps) | ✓ Marginal |
-| Refuel   | 344 |  43 | 3h 45m | (excluded, ~144 s/step) | ✗ No |
+<table>
+<thead>
+<tr><th>Case Study</th><th>States</th><th>Observations</th><th>Coarse time</th><th>RL time (envelope combos)</th><th>Practical?</th></tr>
+</thead>
+<tbody>
+<tr><td>TaxiNet</td><td>16</td><td>16</td><td>3 min</td><td>~10 min (6 × 100 × 20 steps)</td><td>✓ Yes</td></tr>
+<tr><td>Obstacle</td><td>50</td><td>3</td><td>11 min</td><td>~33 min (6 × 50 × 25 steps)</td><td>✓ Yes</td></tr>
+<tr><td>CartPole</td><td>82</td><td>82</td><td>12 min</td><td>~53 min (6 × 25 × 15 steps)</td><td>✓ Marginal</td></tr>
+<tr><td>Refuel</td><td>344</td><td>43</td><td>3h 45m</td><td>(excluded, ~144 s/step)</td><td>✗ No</td></tr>
+</tbody>
+</table>
 
 Refuel's coarse experiment ran at the same scale as the preliminary (10 traj × 10 steps)
 because increasing the scale would dominate the 8-hour budget.
@@ -462,18 +537,23 @@ because increasing the scale would dominate the 8-hour budget.
 
 ## Appendix: Experimental Configuration
 
-| Parameter | TaxiNet | CartPole | Obstacle | Refuel |
-|---|---|---|---|---|
-| Final trials | 100 | 25 | 50 | 50 |
-| Trial length  | 20 | 15 | 25 | 30 |
-| Trial length (prelim) | 10 | 10 | 20 | 20 |
-| Coarse traj / length | 100 / 20 | 30 / 15 | 50 / 20 | 10 / 10 |
-| RL episodes (cache) | 100 | 100 | 100 | 100 |
-| Shield threshold | 0.8 | 0.8 | 0.8 | 0.8 |
-| obs_noise | N/A (data-driven) | N/A (data-driven) | 0.1 (uniform) | 0.05 (dist.-scaled) |
-| Envelope included | Yes | Yes | Yes | No (infeasible) |
-| Adversarial opt target | envelope | envelope | envelope | single_belief |
-| Seed | 42 | 42 | 42 | 42 |
+<table>
+<thead>
+<tr><th>Parameter</th><th>TaxiNet</th><th>CartPole</th><th>Obstacle</th><th>Refuel</th></tr>
+</thead>
+<tbody>
+<tr><td>Final trials</td><td>100</td><td>25</td><td>50</td><td>50</td></tr>
+<tr><td>Trial length</td><td>20</td><td>15</td><td>25</td><td>30</td></tr>
+<tr><td>Trial length (prelim)</td><td>10</td><td>10</td><td>20</td><td>20</td></tr>
+<tr><td>Coarse traj / length</td><td>100 / 20</td><td>30 / 15</td><td>50 / 20</td><td>10 / 10</td></tr>
+<tr><td>RL episodes (cache)</td><td>100</td><td>100</td><td>100</td><td>100</td></tr>
+<tr><td>Shield threshold</td><td>0.8</td><td>0.8</td><td>0.8</td><td>0.8</td></tr>
+<tr><td>obs_noise</td><td>N/A (data-driven)</td><td>N/A (data-driven)</td><td>0.1 (uniform)</td><td>0.05 (dist.-scaled)</td></tr>
+<tr><td>Envelope included</td><td>Yes</td><td>Yes</td><td>Yes</td><td>No (infeasible)</td></tr>
+<tr><td>Adversarial opt target</td><td>envelope</td><td>envelope</td><td>envelope</td><td>single_belief</td></tr>
+<tr><td>Seed</td><td>42</td><td>42</td><td>42</td><td>42</td></tr>
+</tbody>
+</table>
 
 Total wall-clock time: ~7 hours (coarse: 4h 12m; RL shield: ~1h 37m; summary charts: ~1h).
 

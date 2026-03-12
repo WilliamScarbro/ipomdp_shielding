@@ -10,6 +10,7 @@
 - **CartPole, Refuel v2** — Comparison tables using the *best* threshold per
   method (minimising fail rate, then stuck rate) alongside Carr and baselines.
 
+
 ---
 
 ## TaxiNet (16 states, 16 obs)
@@ -20,22 +21,17 @@
 
 ### Threshold sweep table (RL selector)
 
-<table>
-<thead>
-<tr><th>Threshold</th><th>sb fail% (unif)</th><th>sb stuck%</th><th>env fail% (unif)</th><th>env stuck%</th><th>sb fail% (adv)</th><th>env fail% (adv)</th></tr>
-</thead>
-<tbody>
-<tr><td>0.50</td><td>76%</td><td>0%</td><td>70%</td><td>2%</td><td>74%</td><td>66%</td></tr>
-<tr><td>0.60</td><td>78%</td><td>0%</td><td>65%</td><td>4%</td><td>70%</td><td>62%</td></tr>
-<tr><td>0.65</td><td>78%</td><td>0%</td><td>66%</td><td>10%</td><td>70%</td><td>68%</td></tr>
-<tr><td>0.70</td><td>72%</td><td>0%</td><td>64%</td><td>6%</td><td>70%</td><td>62%</td></tr>
-<tr><td>0.75</td><td>70%</td><td>0%</td><td>66%</td><td>4%</td><td>63%</td><td>56%</td></tr>
-<tr><td>0.80</td><td>64%</td><td>2%</td><td>56%</td><td>5%</td><td>66%</td><td>53%</td></tr>
-<tr><td>0.85</td><td>66%</td><td>2%</td><td>52%</td><td>10%</td><td>56%</td><td>50%</td></tr>
-<tr><td>0.90</td><td>52%</td><td>1%</td><td>45%</td><td>14%</td><td>55%</td><td>44%</td></tr>
-<tr><td>0.95</td><td>44%</td><td>11%</td><td>35%</td><td>34%</td><td>43%</td><td>34%</td></tr>
-</tbody>
-</table>
+| Threshold | sb fail% (unif) | sb stuck% | env fail% (unif) | env stuck% | sb fail% (adv) | env fail% (adv) |
+|---|---|---|---|---|---|---|
+| 0.50 | 76% | 0% | 70% | 2% | 74% | 66% |
+| 0.60 | 78% | 0% | 65% | 4% | 70% | 62% |
+| 0.65 | 78% | 0% | 66% | 10% | 70% | 68% |
+| 0.70 | 72% | 0% | 64% | 6% | 70% | 62% |
+| 0.75 | 70% | 0% | 66% | 4% | 63% | 56% |
+| 0.80 | 64% | 2% | 56% | 5% | 66% | 53% |
+| 0.85 | 66% | 2% | 52% | 10% | 56% | 50% |
+| 0.90 | 52% | 1% | 45% | 14% | 55% | 44% |
+| 0.95 | 44% | 11% | 35% | 34% | 43% | 34% |
 
 *Carr*: fail=8% / stuck=92% (uniform); fail=4% / stuck=96% (adversarial)
 *Baseline `none`*: fail=95% (uniform), fail=98% (adversarial)
@@ -51,6 +47,7 @@ With 200 trials the monotone trend is clearly visible. `envelope` dominates
 Both IPOMDP shields reduce fail from 95–98% (no-shield) to 34–44% at the
 best threshold. Carr's probability-free conservatism prevents it from competing.
 
+
 ---
 
 ## Obstacle (50 states, 3 obs)
@@ -61,22 +58,17 @@ best threshold. Carr's probability-free conservatism prevents it from competing.
 
 ### Threshold sweep table (RL selector)
 
-<table>
-<thead>
-<tr><th>Threshold</th><th>sb fail% (unif)</th><th>sb stuck%</th><th>env fail% (unif)</th><th>env stuck%</th><th>sb fail% (adv)</th><th>env fail% (adv)</th></tr>
-</thead>
-<tbody>
-<tr><td>0.50</td><td>50%</td><td>30%</td><td>24%</td><td>58%</td><td>54%</td><td>30%</td></tr>
-<tr><td>0.60</td><td>45%</td><td>35%</td><td>24%</td><td>54%</td><td>46%</td><td>27%</td></tr>
-<tr><td>0.65</td><td>46%</td><td>32%</td><td>32%</td><td>50%</td><td>48%</td><td>30%</td></tr>
-<tr><td>0.70</td><td>45%</td><td>26%</td><td>24%</td><td>52%</td><td>50%</td><td>26%</td></tr>
-<tr><td>0.75</td><td>46%</td><td>33%</td><td>17%</td><td>59%</td><td>43%</td><td>22%</td></tr>
-<tr><td>0.80</td><td>38%</td><td>35%</td><td>18%</td><td>68%</td><td>32%</td><td>16%</td></tr>
-<tr><td>0.85</td><td>31%</td><td>32%</td><td>22%</td><td>63%</td><td>28%</td><td>20%</td></tr>
-<tr><td>0.90</td><td>22%</td><td>35%</td><td>10%</td><td>76%</td><td>22%</td><td>12%</td></tr>
-<tr><td>0.95</td><td>14%</td><td>50%</td><td>3%</td><td>85%</td><td>12%</td><td>5%</td></tr>
-</tbody>
-</table>
+| Threshold | sb fail% (unif) | sb stuck% | env fail% (unif) | env stuck% | sb fail% (adv) | env fail% (adv) |
+|---|---|---|---|---|---|---|
+| 0.50 | 50% | 30% | 24% | 58% | 54% | 30% |
+| 0.60 | 45% | 35% | 24% | 54% | 46% | 27% |
+| 0.65 | 46% | 32% | 32% | 50% | 48% | 30% |
+| 0.70 | 45% | 26% | 24% | 52% | 50% | 26% |
+| 0.75 | 46% | 33% | 17% | 59% | 43% | 22% |
+| 0.80 | 38% | 35% | 18% | 68% | 32% | 16% |
+| 0.85 | 31% | 32% | 22% | 63% | 28% | 20% |
+| 0.90 | 22% | 35% | 10% | 76% | 22% | 12% |
+| 0.95 | 14% | 50% | 3% | 85% | 12% | 5% |
 
 *Carr*: fail=2% / stuck=98% (uniform); fail=2% / stuck=98% (adversarial)
 *Baseline `none`*: fail=82% (uniform), fail=80% (adversarial)
@@ -93,6 +85,7 @@ supports but the RL agent still ends up stuck on nearly every trial. Carr
 achieves the lowest fail rate of any method but at the highest stuck cost —
 it sits at the far right of the Pareto frontier and is dominated in practice.
 
+
 ---
 
 ## CartPole (82 states, 82 obs)
@@ -100,17 +93,13 @@ it sits at the far right of the Pareto frontier and is dominated in practice.
 **200 trials × 15 steps. Envelope excluded (dominated at every threshold).
 Results presented as a method comparison table (no Pareto structure).**
 
-<table>
-<thead>
-<tr><th>Method</th><th>Best threshold / note</th><th>fail% (unif)</th><th>stuck% (unif)</th><th>fail% (adv)</th><th>stuck% (adv)</th></tr>
-</thead>
-<tbody>
-<tr><td>single_belief</td><td>t=0.95</td><td>2%</td><td>4%</td><td>1%</td><td>5%</td></tr>
-<tr><td>carr</td><td>no threshold</td><td>2%</td><td>6%</td><td>0%</td><td>4%</td></tr>
-<tr><td>none</td><td>baseline (final run, t=0.8)</td><td>12%</td><td>0%</td><td>12%</td><td>0%</td></tr>
-<tr><td>observation</td><td>baseline (final run, t=0.8)</td><td>4%</td><td>56%</td><td>4%</td><td>36%</td></tr>
-</tbody>
-</table>
+
+| Method | Best threshold / note | fail% (unif) | stuck% (unif) | fail% (adv) | stuck% (adv) |
+|---|---|---|---|---|---|
+| single_belief | t=0.95 | 2% | 4% | 1% | 5% |
+| carr | no threshold | 2% | 6% | 0% | 4% |
+| none | baseline (final run, t=0.8) | 12% | 0% | 12% | 0% |
+| observation | baseline (final run, t=0.8) | 1% | 0% | 3% | 0% |
 
 *No-shield baseline*: fail=12% (uniform), fail=12% (adversarial)
 
@@ -127,6 +116,32 @@ collapses to near-singleton supports immediately. This makes Carr competitive
 with `single_belief` at its optimal threshold: both achieve ≤2% fail with
 low stuck overhead.
 
+
+---
+
+## CartPole — Low-Accuracy Perception (82 states, 82 obs)
+
+**200 trials × 15 steps. Envelope excluded. Perception model: 175 training episodes (vs 200 for standard CartPole), mean P_mid≈0.373 (vs 0.532), matching TaxiNet's difficulty level (P_mid≈0.354).**
+
+
+| Method | Best threshold / note | fail% (unif) | stuck% (unif) | fail% (adv) | stuck% (adv) |
+|---|---|---|---|---|---|
+| single_belief | t=0.85 (unif) / t=0.95 (adv) | 1% | 0% | 1% | 0% |
+| none | baseline (final run, t=0.8) | N/A | N/A | N/A | N/A |
+| observation | baseline (final run, t=0.8) | N/A | N/A | N/A | N/A |
+
+### Key findings
+
+Lower perception accuracy (P_mid=0.373 vs 0.532 for standard CartPole) raises
+the failure rate at low thresholds: at t=0.50, adversarial fail rises from ~4%
+to ~9%, showing the shield has to work harder under noisier observations.
+At higher thresholds (t=0.85–0.90) the shield recovers to ~1–2% fail / 0% stuck,
+comparable to the standard model. This confirms that `single_belief` effectively
+compensates for perception noise at the cost of a higher optimal threshold.
+Unlike TaxiNet (which still achieves 34–43% fail despite matched P_mid), CartPole's
+near-Markovian dynamics remain inherently more controllable under partial observability.
+
+
 ---
 
 ## Refuel v2 (344 states, 29 obs)
@@ -134,16 +149,12 @@ low stuck overhead.
 **200 trials × 30 steps. Envelope excluded (LP ≈ 144 s/step, infeasible).
 Results presented as a method comparison table (no Pareto structure).**
 
-<table>
-<thead>
-<tr><th>Method</th><th>Best threshold / note</th><th>fail% (unif)</th><th>stuck% (unif)</th><th>fail% (adv)</th><th>stuck% (adv)</th></tr>
-</thead>
-<tbody>
-<tr><td>single_belief</td><td>t=0.90 (unif) / t=0.85 (adv)</td><td>0%</td><td>79%</td><td>0%</td><td>80%</td></tr>
-<tr><td>none</td><td>baseline (final run, t=0.8)</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr><td>observation</td><td>baseline (final run, t=0.8)</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-</tbody>
-</table>
+
+| Method | Best threshold / note | fail% (unif) | stuck% (unif) | fail% (adv) | stuck% (adv) |
+|---|---|---|---|---|---|
+| single_belief | t=0.90 (unif) / t=0.85 (adv) | 0% | 79% | 0% | 80% |
+| none | baseline (final run, t=0.8) | N/A | N/A | N/A | N/A |
+| observation | baseline (final run, t=0.8) | N/A | N/A | N/A | N/A |
 
 *No-shield baseline*: fail≈10–15% (estimated from RL training metrics)
 
@@ -161,6 +172,7 @@ too large for support-MDP construction to be tractable. This parallels the
 envelope shield's infeasibility (LP ≈ 144 s/step) — Refuel v2 is a case where
 only the `single_belief` IPOMDP shield is computationally viable.
 
+
 ---
 
 ## Cross-Case-Study Summary
@@ -169,31 +181,21 @@ only the `single_belief` IPOMDP shield is computationally viable.
 
 ### Best operating points
 
-<table>
-<thead>
-<tr><th>Case study</th><th>Best IPOMDP shield</th><th>Best threshold</th><th>Min fail%</th><th>Stuck% at that point</th></tr>
-</thead>
-<tbody>
-<tr><td>TaxiNet (16 states, 16 obs)</td><td>envelope</td><td>0.95</td><td>34–35% (both regimes)</td><td>34–36%</td></tr>
-<tr><td>CartPole (82 states, 82 obs)</td><td>single_belief</td><td>0.65–0.75</td><td>2%</td><td>0%</td></tr>
-<tr><td>Obstacle (50 states, 3 obs)</td><td>envelope</td><td>0.95</td><td>3–5%</td><td>82–85%</td></tr>
-<tr><td>Refuel v2 (344 states, 29 obs)</td><td>single_belief</td><td>0.80</td><td>0%</td><td>73–74%</td></tr>
-</tbody>
-</table>
+| Case study | Best IPOMDP shield | Best threshold | Min fail% | Stuck% at that point |
+|---|---|---|---|---|
+| TaxiNet (16 states, 16 obs) | envelope | 0.95 | 34–35% (both regimes) | 34–36% |
+| CartPole (82 states, 82 obs) | single_belief | 0.65–0.75 | 2% | 0% |
+| Obstacle (50 states, 3 obs) | envelope | 0.95 | 3–5% | 82–85% |
+| Refuel v2 (344 states, 29 obs) | single_belief | 0.80 | 0% | 73–74% |
 
 ### Carr vs IPOMDP shields
 
-<table>
-<thead>
-<tr><th>Case study</th><th>Carr fail% (unif)</th><th>Carr stuck% (unif)</th><th>Carr fail% (adv)</th><th>Carr stuck% (adv)</th><th>Carr feasible?</th></tr>
-</thead>
-<tbody>
-<tr><td>TaxiNet (16 states, 16 obs)</td><td>8%</td><td>92%</td><td>4%</td><td>96%</td><td>yes</td></tr>
-<tr><td>CartPole (82 states, 82 obs)</td><td>2%</td><td>6%</td><td>0%</td><td>4%</td><td>yes</td></tr>
-<tr><td>Obstacle (50 states, 3 obs)</td><td>2%</td><td>98%</td><td>2%</td><td>98%</td><td>yes</td></tr>
-<tr><td>Refuel v2 (344 states, 29 obs)</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>infeasible</td></tr>
-</tbody>
-</table>
+| Case study | Carr fail% (unif) | Carr stuck% (unif) | Carr fail% (adv) | Carr stuck% (adv) | Carr feasible? |
+|---|---|---|---|---|---|
+| TaxiNet (16 states, 16 obs) | 8% | 92% | 4% | 96% | yes |
+| CartPole (82 states, 82 obs) | 2% | 6% | 0% | 4% | yes |
+| Obstacle (50 states, 3 obs) | 2% | 98% | 2% | 98% | yes |
+| Refuel v2 (344 states, 29 obs) | N/A | N/A | N/A | N/A | infeasible |
 
 ### Conclusions
 

@@ -33,10 +33,15 @@ Annotations show threshold value; arrows point in the direction of increasing th
 
 Both shields consistently and substantially reduce fail rate relative to the no-shield baseline:
 
-| Regime | No shield | single_belief range | envelope range |
-|---|---|---|---|
-| Uniform | 95% fail | 38–82% fail | 44–72% fail |
-| Adversarial | 98% fail | 40–76% fail | 50–74% fail |
+<table>
+<thead>
+<tr><th>Regime</th><th>No shield</th><th>single_belief range</th><th>envelope range</th></tr>
+</thead>
+<tbody>
+<tr><td>Uniform</td><td>95% fail</td><td>38–82% fail</td><td>44–72% fail</td></tr>
+<tr><td>Adversarial</td><td>98% fail</td><td>40–76% fail</td><td>50–74% fail</td></tr>
+</tbody>
+</table>
 
 The improvement is real and replicates the final-run finding (envelope 55% fail, single_belief 70%
 fail under adversarial vs. 98% for no-shield).
@@ -93,11 +98,16 @@ monotonically as threshold rises, with stuck increasing in compensation.
 
 ### Uniform perception
 
-| Threshold | sb fail% | sb stuck% | env fail% | env stuck% |
-|---|---|---|---|---|
-| 0.50 | 52% | 24% | 16% | 52% |
-| 0.80 | 36% | 32% | 24% | 68% |
-| 0.95 | 20% | 44% | **4%** | 92% |
+<table>
+<thead>
+<tr><th>Threshold</th><th>sb fail%</th><th>sb stuck%</th><th>env fail%</th><th>env stuck%</th></tr>
+</thead>
+<tbody>
+<tr><td>0.50</td><td>52%</td><td>24%</td><td>16%</td><td>52%</td></tr>
+<tr><td>0.80</td><td>36%</td><td>32%</td><td>24%</td><td>68%</td></tr>
+<tr><td>0.95</td><td>20%</td><td>44%</td><td>**4%**</td><td>92%</td></tr>
+</tbody>
+</table>
 
 `envelope` achieves near-zero fail (4%) at t = 0.95 under uniform — at the cost of 92% stuck.
 `single_belief` gives a better liveness trade-off (20% fail, 44% stuck at t = 0.95).
@@ -107,12 +117,17 @@ monotonically as threshold rises, with stuck increasing in compensation.
 `envelope` consistently outperforms `single_belief` under adversarial perception, replicating
 the final-run result:
 
-| Threshold | sb fail% | sb stuck% | env fail% | env stuck% |
-|---|---|---|---|---|
-| 0.50 | 36% | 40% | 32% | 40% |
-| 0.80 | 40% | 24% | 16% | 44% |
-| 0.90 | 12% | 32% | **8%** | 80% |
-| 0.95 | **0%** | 72% | 8% | 72% |
+<table>
+<thead>
+<tr><th>Threshold</th><th>sb fail%</th><th>sb stuck%</th><th>env fail%</th><th>env stuck%</th></tr>
+</thead>
+<tbody>
+<tr><td>0.50</td><td>36%</td><td>40%</td><td>32%</td><td>40%</td></tr>
+<tr><td>0.80</td><td>40%</td><td>24%</td><td>16%</td><td>44%</td></tr>
+<tr><td>0.90</td><td>12%</td><td>32%</td><td>**8%**</td><td>80%</td></tr>
+<tr><td>0.95</td><td>**0%**</td><td>72%</td><td>8%</td><td>72%</td></tr>
+</tbody>
+</table>
 
 At t = 0.95 (adversarial), `single_belief` achieves **0% fail** with 72% stuck — the only
 case study where zero-fail is reached without resorting to the observation shield.
@@ -128,11 +143,16 @@ case study where zero-fail is reached without resorting to the observation shiel
 The no-shield baseline is already 0% fail / 0% stuck — the optimal policy discovered by the
 RL agent happens to be safe everywhere. Every shield adds stuck overhead without reducing fail:
 
-| Threshold | sb fail% (uniform) | sb stuck% (uniform) |
-|---|---|---|
-| 0.50 | 0% | 7% |
-| 0.80 | 0% | 20% |
-| 0.95 | 0% | 50% |
+<table>
+<thead>
+<tr><th>Threshold</th><th>sb fail% (uniform)</th><th>sb stuck% (uniform)</th></tr>
+</thead>
+<tbody>
+<tr><td>0.50</td><td>0%</td><td>7%</td></tr>
+<tr><td>0.80</td><td>0%</td><td>20%</td></tr>
+<tr><td>0.95</td><td>0%</td><td>50%</td></tr>
+</tbody>
+</table>
 
 The Pareto frontier is a vertical line at fail = 0, with stuck growing monotonically. The
 correct operating point is threshold = 0 (i.e., no shield). Under adversarial perception,
@@ -143,12 +163,17 @@ over-conservative and blocks the safe action.
 
 ## Cross-case-study conclusions
 
-| Case study | Best shield | Best threshold | Min fail | Stuck cost |
-|---|---|---|---|---|
-| TaxiNet    | single_belief | 0.95 | 38% (uniform) | 14% |
-| CartPole   | single_belief | any ≤ 0.80 | 6.7% | 0% |
-| Obstacle   | single_belief | 0.95 (adv) | 0% | 72% |
-| Refuel     | none | — | 0% | 0% |
+<table>
+<thead>
+<tr><th>Case study</th><th>Best shield</th><th>Best threshold</th><th>Min fail</th><th>Stuck cost</th></tr>
+</thead>
+<tbody>
+<tr><td>TaxiNet</td><td>single_belief</td><td>0.95</td><td>38% (uniform)</td><td>14%</td></tr>
+<tr><td>CartPole</td><td>single_belief</td><td>any ≤ 0.80</td><td>6.7%</td><td>0%</td></tr>
+<tr><td>Obstacle</td><td>single_belief</td><td>0.95 (adv)</td><td>0%</td><td>72%</td></tr>
+<tr><td>Refuel</td><td>none</td><td>—</td><td>0%</td><td>0%</td></tr>
+</tbody>
+</table>
 
 1. **Both shields always beat no-shield** on fail rate for TaxiNet, CartPole, and Obstacle.
    The gains are large (20–60 pp), consistent across trials, and replicate the final run.

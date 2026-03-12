@@ -217,17 +217,11 @@
       "safe_rate_ci_high": 0.11283491110546275
     },
     "uniform/rl/observation": {
-      "fail_rate": 0.09,
-      "stuck_rate": 0.91,
-      "safe_rate": 0.0,
-      "mean_steps": 0.13,
-      "num_trials": 100,
-      "fail_rate_ci_low": 0.041983595628392247,
-      "fail_rate_ci_high": 0.1639822550296352,
-      "stuck_rate_ci_low": 0.8360177449703647,
-      "stuck_rate_ci_high": 0.9580164043716077,
-      "safe_rate_ci_low": 0.0,
-      "safe_rate_ci_high": 0.03621669264517641
+      "fail_rate": 0.81,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.19,
+      "mean_steps": 10.65,
+      "num_trials": 200
     },
     "uniform/rl/single_belief": {
       "fail_rate": 0.68,
@@ -373,17 +367,11 @@
       "safe_rate_ci_high": 0.07038393247107011
     },
     "adversarial_opt/rl/observation": {
-      "fail_rate": 0.05,
-      "stuck_rate": 0.95,
-      "safe_rate": 0.0,
-      "mean_steps": 0.05,
-      "num_trials": 100,
-      "fail_rate_ci_low": 0.016431879182052155,
-      "fail_rate_ci_high": 0.11283491110546275,
-      "stuck_rate_ci_low": 0.8871650888945373,
-      "stuck_rate_ci_high": 0.9835681208179479,
-      "safe_rate_ci_low": 0.0,
-      "safe_rate_ci_high": 0.03621669264517641
+      "fail_rate": 0.795,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.205,
+      "mean_steps": 10.12,
+      "num_trials": 200
     },
     "adversarial_opt/rl/single_belief": {
       "fail_rate": 0.7,
