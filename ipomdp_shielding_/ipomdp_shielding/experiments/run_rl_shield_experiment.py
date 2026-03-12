@@ -65,31 +65,51 @@ class NoShield:
 
 
 class ObservationShield:
-    """Baseline shield: safe actions are the intersection across all states
-    consistent with the current observation (P_lower[s][obs] > 0).
+    """Observation-based shield using a probability threshold.
 
-    Works for both fully-observable settings (where obs == state) and
-    partially-observable settings.  Previously this looked up pp_shield[obs]
-    directly, which only worked when states and observations were the same
-    objects (e.g. TaxiNet).
+    At each step computes a posterior P(s | obs) using the midpoint
+    observation model O_mid(obs|s) = (P_lower + P_upper) / 2 with a
+    uniform prior, then allows action a iff P(a safe | obs) >= threshold.
+
+    This is a memoryless shield: it uses only the current observation with
+    no belief propagation over history.  It is equivalent to SingleBeliefShield
+    reset to the uniform prior at every step.
     """
 
-    def __init__(self, pp_shield, obs_to_states, all_actions):
+    def __init__(self, ipomdp, pp_shield, threshold=0.8):
         self.pp_shield = pp_shield
-        self.obs_to_states = obs_to_states
-        self.all_actions = list(all_actions)
+        self.threshold = threshold
+        self.all_actions = list(ipomdp.actions)
         self.stuck_count = 0
         self.error_count = 0
 
+        # Precompute P(s | obs) for every observation (uniform prior,
+        # midpoint observation probabilities).
+        self._posterior = {}
+        for obs in ipomdp.observations:
+            weights = {}
+            for s in ipomdp.states:
+                p_mid = (ipomdp.P_lower[s].get(obs, 0.0)
+                         + ipomdp.P_upper[s].get(obs, 0.0)) / 2.0
+                if p_mid > 0:
+                    weights[s] = p_mid
+            total = sum(weights.values())
+            if total > 0:
+                self._posterior[obs] = {s: w / total for s, w in weights.items()}
+
+    def _p_safe(self, obs, action):
+        """P(action safe | obs) = sum_{s: action in pp_shield[s]} P(s | obs)."""
+        posterior = self._posterior.get(obs)
+        if posterior is None:
+            return 1.0  # unknown observation — allow all
+        return sum(
+            p for s, p in posterior.items()
+            if action in self.pp_shield.get(s, set())
+        )
+
     def next_actions(self, evidence):
         obs, _action = evidence
-        consistent = self.obs_to_states.get(obs, [])
-        if not consistent:
-            return list(self.all_actions)
-        allowed = [
-            a for a in self.all_actions
-            if all(a in self.pp_shield.get(s, set()) for s in consistent)
-        ]
+        allowed = [a for a in self.all_actions if self._p_safe(obs, a) >= self.threshold]
         if not allowed:
             self.stuck_count += 1
         return allowed
@@ -164,9 +184,9 @@ def create_no_shield_factory(all_actions):
     return factory
 
 
-def create_observation_shield_factory(pp_shield, obs_to_states, all_actions):
+def create_observation_shield_factory(ipomdp, pp_shield, threshold=0.8):
     def factory():
-        return ObservationShield(pp_shield, obs_to_states, all_actions)
+        return ObservationShield(ipomdp, pp_shield, threshold)
     return factory
 
 
@@ -351,13 +371,6 @@ def build_grid(ipomdp, pp_shield, rl_selector, optimized_perceptions, config):
     all_actions = list(ipomdp.actions)
     pomdp = ipomdp.to_pomdp()
 
-    # Build obs_to_states: obs -> states where P_lower[s][obs] > 0
-    obs_to_states = {}
-    for s in ipomdp.states:
-        for obs in ipomdp.observations:
-            if ipomdp.P_lower[s].get(obs, 0.0) > 0:
-                obs_to_states.setdefault(obs, []).append(s)
-
     # Factor 1: Perception models
     uniform_perception = UniformPerceptionModel()
 
@@ -386,7 +399,7 @@ def build_grid(ipomdp, pp_shield, rl_selector, optimized_perceptions, config):
     # Factor 3: Shield strategies (independent of selector)
     shields = {
         "none": create_no_shield_factory(all_actions),
-        "observation": create_observation_shield_factory(pp_shield, obs_to_states, all_actions),
+        "observation": create_observation_shield_factory(ipomdp, pp_shield, config.shield_threshold),
         "single_belief": create_single_belief_shield_factory(
             pomdp, pp_shield, config.shield_threshold),
         "envelope": create_envelope_shield_factory(
@@ -705,7 +718,7 @@ def save_results(results, config, setup_info=None):
     }
     extra_meta["shields"] = {
         "none": "NoShield (passthrough)",
-        "observation": "ObservationShield (pp_shield[obs])",
+        "observation": f"ObservationShield (midpoint posterior, threshold={config.shield_threshold})",
         "single_belief": f"SingleBeliefShield (POMDP belief, threshold={config.shield_threshold})",
         "envelope": f"RuntimeImpShield (LFP polytope, threshold={config.shield_threshold})",
     }

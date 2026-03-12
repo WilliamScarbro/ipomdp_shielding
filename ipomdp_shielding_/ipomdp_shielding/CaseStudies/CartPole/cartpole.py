@@ -266,6 +266,7 @@ def build_cartpole_ipomdp(
     num_bins: DiscretizationConfig = 7,
     smoothing: bool = True,
     seed: Optional[int] = None,
+    data_dir: Optional[Path] = None,
 ) -> Tuple[IPOMDP, Dict, Dict, None]:
     """Build complete CartPole IPOMDP with train/test split.
 
@@ -285,6 +286,8 @@ def build_cartpole_ipomdp(
             - List[int]: Per-dimension bins [n_x, n_xdot, n_theta, n_thetadot] (e.g., [5, 4, 5, 4])
         smoothing: Whether to apply coverage-only smoothing
         seed: Random seed for train/test split
+        data_dir: Optional path to data directory for perception artifacts.
+            If None, uses default artifacts/ subdirectory.
 
     Returns:
         Tuple of (ipomdp, pp_shield, test_data, None) where:
@@ -297,12 +300,12 @@ def build_cartpole_ipomdp(
         random.seed(seed)
 
     # Load bin edges
-    bin_edges = get_bin_edges()
+    bin_edges = get_bin_edges(data_dir)
 
     # Load and split perception data
     dim_names = ["x", "x_dot", "theta", "theta_dot"]
     confusion_data_full = {
-        dim: get_confusion_data(dim)
+        dim: get_confusion_data(dim, data_dir)
         for dim in dim_names
     }
 

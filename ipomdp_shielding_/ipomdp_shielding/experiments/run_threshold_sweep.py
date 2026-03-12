@@ -45,6 +45,10 @@ EXPANDED_PARAMS = {
     # config_name overrides the default rl_shield_{cs}_final lookup.
     "refuel_v2": {"num_trials": 200, "trial_length": 30, "exclude_envelope": True,
                   "config_name": "rl_shield_refuel_v2"},
+    # Low-accuracy CartPole: perception trained on 175 ep (P_mid≈0.373 ≈ TaxiNet).
+    # Envelope excluded (too slow for marginal benefit at this accuracy level).
+    "cartpole_lowacc": {"num_trials": 200, "trial_length": 15, "exclude_envelope": True,
+                        "config_name": "rl_shield_cartpole_lowacc"},
 }
 
 OUTPUT_DIR = "results/threshold_sweep"

@@ -27,9 +27,9 @@ from tqdm import trange
 # - List[int]: per-dimension bin counts [n_x, n_xdot, n_theta, n_thetadot]
 DiscretizationConfig = Union[int, List[int]]
 
-# Add cartpole directory to path to import existing modules
-CARTPOLE_DIR = Path(__file__).parent.parent.parent.parent / "cartpole"
-sys.path.insert(0, str(CARTPOLE_DIR))
+# Add training directory to path to import existing modules
+TRAINING_DIR = Path(__file__).parent / "training"
+sys.path.insert(0, str(TRAINING_DIR))
 
 from model import (
     collect_cartpole_data,
