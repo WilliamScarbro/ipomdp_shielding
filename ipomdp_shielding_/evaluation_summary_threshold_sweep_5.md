@@ -70,8 +70,19 @@ Pareto plots shown only where data varies meaningfully on both axes.
 - **Envelope** offers the best safety-liveness trade-off: 35% fail / 34% stuck (uniform) at t=0.95.
 - **Single-Belief** is the most liveness-friendly: 44% fail / 11% stuck — useful when being stuck matters more than the remaining fail rate.
 - **Observation** achieves lower fail (12.5%) only at t=0.95, carrying 87.5% stuck — a poor trade given Envelope's 35% fail / 34% stuck at the same threshold.
-- **Carr** reaches the lowest raw fail (7.5%) but blocks ≥92% of episodes from step 0. The midpoint POMDP has no winning support, so Carr is degenerate here.
-- History is essential for TaxiNet: unsafe and safe states share observations, so a single obs provides an uninformative posterior.
+- **Carr** reaches the lowest raw fail (7.5%) but blocks ≥92% of episodes from step 0. The midpoint POMDP has 0 winning supports, so Carr is degenerate here.
+
+### Structural interpretation
+
+TaxiNet's perception accuracy (P_mid ≈ 0.354 across 16 states) is barely above random. The 16-obs / 16-state structure looks bijective but the emission noise means any single observation is consistent with multiple conflicting true states. A single obs carries almost no reliable information about which lane the agent occupies.
+
+This is why **history is essential**: each observation individually is nearly uninformative, but a sequence of observations and actions progressively eliminates impossible states and concentrates the belief. Single-Belief and Envelope exploit this accumulation; the memoryless Observation shield cannot.
+
+**Carr's degeneracy** (0 winning supports) reveals a structural property: under the midpoint POMDP, there is no support set reachable from safe initial states from which safety can be guaranteed regardless of adversarial transitions. The IPOMDP probability-based shields relax the requirement from certainty to high-probability safety, which is what allows them to act at all.
+
+**Envelope outperforms Single-Belief** because midpoint transition probabilities systematically underestimate the risk of unsafe transitions in a noisy environment. The envelope's worst-case analysis corrects this optimism at the cost of slightly higher stuck.
+
+The irreducible ~34% fail at t=0.95 (Envelope) represents the fundamental difficulty ceiling for this perception regime: even with full belief history and robust worst-case shielding, near-random position sensing cannot prevent failure in all episodes.
 
 ---
 
@@ -95,9 +106,18 @@ Pareto plots shown only where data varies meaningfully on both axes.
 ### Key findings
 
 - **Envelope** Pareto-dominates Single-Belief at every threshold; 3% fail / 85% stuck at t=0.95 is the best achievable safety-liveness point for any threshold-based shield.
-- **Observation** and **Carr** converge to the same extreme corner: ~1.5% fail / 98.5% stuck — nearly indistinguishable. With only 3 distinct observations, the observation posterior is near-uniform and the observation shield behaves like a support-based (Carr-style) shield.
-- **Single-Belief** at t=0.95 (14% fail / 50% stuck) offers the best liveness of any safe-ish operating point.
-- The 3-observation structure makes all memoryless methods highly conservative; belief tracking (Envelope) is essential.
+- **Observation** and **Carr** converge to the same extreme corner: ~1.5% fail / 98.5% stuck — nearly indistinguishable.
+- **Single-Belief** at t=0.95 (14% fail / 50% stuck) offers the best liveness of any low-fail operating point.
+
+### Structural interpretation
+
+Three observations for 50 states (~17 states per observation) is the most extreme observation compression in this benchmark. Every observation group contains a heterogeneous mix of states — some near the obstacle, some not — with conflicting safety requirements. This creates **irreducible stuck even at t=0.50**: the shield cannot find an action safe for all states consistent with the current observation.
+
+**Why Observation ≡ Carr**: with 17 diverse states per observation, the probability-based posterior P(s|obs) is nearly uniform. The observation shield's calculation converges to Carr's worst-case support analysis — both ask 'is action a safe for all (or almost all) states consistent with this observation?' and with a heterogeneous group the answer is almost always no, leading to the same ~98.5% stuck at high thresholds.
+
+**Belief tracking breaks the deadlock**: after several steps, the trajectory of observations and actions constrains which of the ~17 states are actually reachable — distinguishing, for example, states that were reached by moving east from those reached by moving west. The belief effectively narrows the support far below 17, allowing confident action recommendations. This is why Single-Belief and Envelope substantially outperform memoryless methods at mid-range thresholds.
+
+**Envelope's dominance at every threshold** (not just high thresholds as in TaxiNet) reflects the width of the Obstacle IPOMDP intervals: with 3 observations for 50 states, per-state transition probabilities are poorly determined and the intervals [P_lower, P_upper] are wide. The midpoint POMDP used by Single-Belief consistently underestimates risk, while the Envelope's worst-case analysis remains accurate.
 
 ---
 
@@ -118,8 +138,22 @@ Pareto plots shown only where data varies meaningfully on both axes.
 - All three feasible shields achieve **0% stuck** at their best threshold — CartPole lowacc is the only case with zero liveness cost.
 - **Single-Belief** is marginally best: 1% fail / 0% stuck at t=0.85.
 - **Observation** matches Single-Belief's liveness (0% stuck) at 2.5% fail. The near-bijective 82-obs/82-state structure means a single observation is nearly as informative as the full belief.
-- **Carr** is competitive (1.5% fail / 0% stuck uniform); with 82 near-unique observations the lowacc support-MDP has only 2 reachable supports (1 winning), so Carr adds essentially no conservatism.
+- **Carr** is competitive (1.5% fail / 0% stuck uniform); the lowacc support-MDP has only 2 reachable supports (1 winning), so Carr adds essentially no conservatism.
 - Envelope not available (LP infeasible at ~1.9 s/step for 200-trial sweep).
+
+### Structural interpretation
+
+CartPole is the easiest shielding problem in this suite due to three compounding structural properties:
+
+1. **Near-bijective observations (82 obs / 82 states)**: each observation   is associated with one canonical state, so even with 37% per-state   accuracy the posterior concentrates strongly on the correct state.   History adds almost nothing — the first observation is already highly   informative. This is why Observation shield matches Single-Belief.
+
+2. **Only 2 actions**: stuck requires the shield to block *left* AND   *right* simultaneously. This can only happen if the posterior places   significant probability on the FAIL state, which rarely occurs during   normal RL trajectories that stay well within the safe region.
+
+3. **Gradual, controllable dynamics**: from any non-FAIL state, at least   one action reduces the pole angle. The physics create no dead-end   belief states where every action leads to failure.
+
+**The counterintuitive stuck comparison**: CartPole standard (P_mid=0.532) shows 68% stuck at t=0.95 for the Observation shield, while lowacc (P_mid=0.373) shows 0% stuck at the same threshold. Higher accuracy concentrates the posterior more strongly on individual states. If that concentration falls on a near-FAIL state, P(FAIL|obs) can exceed 5% and trigger blocking at t=0.95. Noisier observations spread the posterior more diffusely, keeping P(FAIL|obs) below the threshold — lower perception accuracy accidentally prevents over-conservatism.
+
+**Carr's trivial support structure** (2 supports, 1 winning) confirms the near-bijective property: once the agent takes one step from the safe initial support, the support collapses to a near-singleton immediately. Carr is essentially operating on the true state.
 
 ---
 
@@ -136,10 +170,18 @@ Pareto plots shown only where data varies meaningfully on both axes.
 
 ### Key findings
 
-- **Single-Belief** achieves 0% fail at t=0.90 (79% stuck uniform; 85% stuck adversarial) — the lowest stuck rate among 0%-fail operating points.
-- **Observation** also achieves 0% fail but with 99% stuck at t=0.90.
-  Its unique advantage: at t=0.65, it gives **3–4.5% fail / 0% stuck** — the only 0%-stuck operating point available for Refuel v2. Single-Belief has ≥38% stuck at every threshold.
+- **Single-Belief** achieves 0% fail at t=0.90 (79% stuck uniform; 80% stuck adversarial) — the lowest stuck rate among 0%-fail operating points.
+- **Observation** also achieves 0% fail but with 99% stuck at t=0.90.  Its unique advantage: at t=0.65, it gives **3–4.5% fail / 0% stuck** — the only 0%-stuck operating point for Refuel v2. Single-Belief has ≥38% stuck at every threshold.
 - Carr and Envelope are both infeasible (support-MDP BFS and LP exceed memory / time budgets at 344 states × 29 obs).
-- Refuel v2 confirms that IPOMDP shielding is essential when safety predicates are hidden from the observation.
+
+### Structural interpretation
+
+Refuel v2 is the only benchmark where safety predicates are genuinely **hidden from the observation**: fuel level and obstacle proximity are not encoded in any observation bit. The agent must infer danger entirely from indirect signals (relative position, time elapsed), testing whether IPOMDP shielding provides real value under genuine partial observability.
+
+**Single-Belief's liveness trap** arises because accurate belief tracking works against liveness. As the episode progresses, the belief correctly concentrates on states where fuel is critically low or the obstacle is adjacent. At t≥0.70, the shield rightly identifies that all actions have significant probability of leading to failure — but the agent is now paralysed in a belief corner with no safe exit. This is a true safety-liveness tension: accurate danger awareness leads to paralysis.
+
+**The Observation shield's 0%-stuck advantage at low t** is a consequence of its memorylessness. Without accumulating history, the posterior over 344 states via 29 observations (~12 states per obs) is too uncertain to classify all actions as dangerous simultaneously. The shield 'doesn't know enough to be paralysed.' The cost is 3–4.5% fail, but this is the only operating point with zero liveness cost in the entire benchmark.
+
+**Scalability boundary**: Carr (support-MDP BFS over 344 states × 29 obs) and Envelope (LP at ~144 s/step) both exceed practical limits, leaving only Single-Belief as the scalable option. This mirrors real-world large-scale POMDP shielding where support-based and LP methods are infeasible and probabilistic belief tracking is the only viable approach.
 
 ---
