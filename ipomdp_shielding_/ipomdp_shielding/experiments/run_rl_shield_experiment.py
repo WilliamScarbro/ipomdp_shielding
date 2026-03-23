@@ -20,7 +20,7 @@ import random as random_module
 from .experiment_io import build_metadata, add_rate_cis, save_experiment_results
 
 from ..Evaluation.runtime_shield import RuntimeImpShield
-from ..Propagators import LFPPropagator, BeliefPolytope, TemplateFactory
+from ..Propagators import LFPPropagator, BeliefPolytope, TemplateFactory, ForwardSampledBelief
 from ..Propagators.lfp_propagator import default_solver
 from ..Models.pomdp import POMDP_Belief
 from ..MonteCarlo import (
@@ -203,6 +203,20 @@ def create_envelope_shield_factory(ipomdp, pp_shield, threshold=0.8):
         polytope = BeliefPolytope.uniform_prior(n)
         propagator = LFPPropagator(ipomdp, template, default_solver(), polytope)
         return RuntimeImpShield(pp_shield, propagator, action_shield=threshold)
+    return factory
+
+
+def create_forward_sampling_shield_factory(ipomdp, pp_shield, threshold=0.8,
+                                           budget=500, K_samples=100):
+    """Forward-sampled belief envelope shield.
+
+    Uses ForwardSampledBelief to maintain N concrete belief points as an
+    inner approximation of the reachable belief set.  Action filtering uses
+    the same probability threshold as the envelope shield but without LP solves.
+    """
+    def factory():
+        fsb = ForwardSampledBelief(ipomdp=ipomdp, budget=budget, K_samples=K_samples)
+        return RuntimeImpShield(pp_shield, fsb, action_shield=threshold)
     return factory
 
 
@@ -403,6 +417,8 @@ def build_grid(ipomdp, pp_shield, rl_selector, optimized_perceptions, config):
         "single_belief": create_single_belief_shield_factory(
             pomdp, pp_shield, config.shield_threshold),
         "envelope": create_envelope_shield_factory(
+            ipomdp, pp_shield, config.shield_threshold),
+        "forward_sampling": create_forward_sampling_shield_factory(
             ipomdp, pp_shield, config.shield_threshold),
     }
 
