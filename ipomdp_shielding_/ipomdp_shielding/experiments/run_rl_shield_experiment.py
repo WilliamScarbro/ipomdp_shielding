@@ -343,7 +343,7 @@ def setup(ipomdp, pp_shield, config):
             ipomdp=ipomdp,
             pp_shield=pp_shield,
             rt_shield_factory=rt_shield_factory,
-            action_selector=RandomActionSelector(),
+            action_selector=ShieldCompliantSelector(rl_selector, list(ipomdp.actions)),
             initial_generator=RandomInitialState(),
             num_candidates=config.opt_candidates,
             num_trials_per_candidate=config.opt_trials_per_candidate,
