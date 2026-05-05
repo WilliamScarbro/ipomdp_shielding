@@ -1,4 +1,4 @@
-"""TaxiNetV2: TaxiNet dynamics with Scarbro conformal-set observations."""
+"""TaxiNetV2: TaxiNet dynamics with vendored conformal-set observations."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ from .data_loader import (
 
 BENCHMARK_SPEC = (
     "TaxiNetV2 keeps the current TaxiNet dynamics, actions, and safety objective, "
-    "but replaces the aggregate perception artifact with Scarbro-derived conformal "
+    "but replaces the aggregate perception artifact with vendored conformal "
     "prediction-set observations on the same signed TaxiNet state space."
 )
 
@@ -69,7 +69,7 @@ def taxinet_v2_perception(
     observation_data: List[Tuple[SignedTaxiState, ConformalObservation]],
     smoothing: bool = True,
 ) -> Tuple[IMDP, List[ConformalObservation]]:
-    """Build an IMDP over Scarbro conformal-set observations."""
+    """Build an IMDP over TaxiNetV2 conformal-set observations."""
     states = taxinet_states(with_fail=True)
     observations = sorted({obs for _state, obs in observation_data})
     perceive_action = "PERC"
@@ -102,7 +102,7 @@ def build_taxinet_v2_ipomdp(
     smoothing: bool = True,
     seed: Optional[int] = None,
 ) -> Tuple[IPOMDP, Dict[Hashable, set], Dict[int, List[int]], Dict[int, List[int]]]:
-    """Build TaxiNetV2 from Scarbro conformal-set observation samples.
+    """Build TaxiNetV2 from vendored conformal-set observation samples.
 
     The returned test models are projected concrete observations for compatibility
     with older helper code. The IPOMDP itself uses conformal-set observations.

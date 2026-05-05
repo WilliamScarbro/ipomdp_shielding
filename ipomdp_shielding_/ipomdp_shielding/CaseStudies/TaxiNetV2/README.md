@@ -10,15 +10,15 @@ perception source.
   - same action space: `{-1,0,1}`
   - same stochastic taxiing dynamics and same perfect-perception dynamic shield
   - same safety objective and rollout-style evaluation contract
-- Replaced by Scarbro-derived artifacts:
-  - observation data comes from Scarbro conformal prediction outputs
-  - train/cal/test split metadata comes from Scarbro `train/models/*.pt`
+- Replaced by vendored conformal artifacts:
+  - observation data comes from vendored conformal prediction outputs
+  - train/cal/test split metadata comes from vendored `train/models/*.pt`
   - the observation alphabet is the set of conformal prediction-set pairs that
-    appear in Scarbro's exported TaxiNet artifact
+    appear in the vendored TaxiNetV2 artifact
 
 ## Data products
 
-The loader consumes the following Scarbro files directly:
+The loader consumes the following vendored files directly:
 
 - `compiler/lib/acc90/real_cte_pred_acc90_conf{95,99,995}.csv`
 - `compiler/lib/acc90/real_he_pred_acc90_conf{95,99,995}.csv`
@@ -33,7 +33,7 @@ The resulting normalized products inside this module are:
 
 ## Current limitation
 
-The repository does not yet vendor Scarbro point-estimate classifier outputs.
-`TaxiNetV2` therefore uses Scarbro conformal-set observations as the primary
+The repository does not yet vendor point-estimate classifier outputs.
+`TaxiNetV2` therefore uses conformal-set observations as the primary
 observation model, and only derives projected concrete test samples as a
 compatibility adapter for older helper code.

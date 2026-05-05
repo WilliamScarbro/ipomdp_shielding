@@ -1,4 +1,4 @@
-"""TaxiNetV2 case study backed by the Scarbro et al. perception artifact."""
+"""TaxiNetV2 case study backed by vendored perception artifacts."""
 
 from .data_loader import (
     DEFAULT_ALPHA_LEVEL,

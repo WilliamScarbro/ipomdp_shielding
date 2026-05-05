@@ -1,4 +1,4 @@
-"""Data loading utilities for the Scarbro-backed TaxiNetV2 case study."""
+"""Data loading utilities for the vendored TaxiNetV2 artifact."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ SignedTaxiState = Tuple[int, int]
 class TaxiNetV2Metadata:
     """Resolved artifact paths and descriptive metadata."""
 
-    scarbro_root: str
+    artifact_root: str
     compiler_artifact_dir: str
     train_artifact_dir: str
     confidence_level: str
@@ -40,23 +40,19 @@ class TaxiNetV2Metadata:
     he_csv: str
 
 
-def _paper_root() -> Path:
-    return Path(__file__).resolve().parents[5]
-
-
-def _scarbro_root() -> Path:
-    root = _paper_root() / "scarbro_et_al" / "cp-control"
+def _artifact_root() -> Path:
+    root = Path(__file__).resolve().parent / "artifacts"
     if not root.exists():
-        raise FileNotFoundError(f"Scarbro artifact not found at {root}")
+        raise FileNotFoundError(f"TaxiNetV2 artifact not found at {root}")
     return root
 
 
 def _compiler_artifact_dir() -> Path:
-    return _scarbro_root() / "compiler" / "lib" / "acc90"
+    return _artifact_root() / "compiler" / "lib" / "acc90"
 
 
 def _train_artifact_dir() -> Path:
-    return _scarbro_root() / "train" / "models"
+    return _artifact_root() / "train" / "models"
 
 
 def _alpha_suffix(confidence_level: str) -> str:
@@ -75,7 +71,7 @@ def _csv_paths(confidence_level: str) -> Tuple[Path, Path]:
     he_path = root / f"real_he_pred_acc90_conf{suffix}.csv"
     if not cte_path.exists() or not he_path.exists():
         raise FileNotFoundError(
-            f"Missing Scarbro conformal CSVs for confidence_level={confidence_level!r}: "
+            f"Missing TaxiNetV2 conformal CSVs for confidence_level={confidence_level!r}: "
             f"{cte_path}, {he_path}"
         )
     return cte_path, he_path
@@ -85,7 +81,7 @@ def get_taxinet_v2_metadata(confidence_level: str = DEFAULT_ALPHA_LEVEL) -> Taxi
     """Return resolved artifact metadata for TaxiNetV2."""
     cte_path, he_path = _csv_paths(confidence_level)
     return TaxiNetV2Metadata(
-        scarbro_root=str(_scarbro_root()),
+        artifact_root=str(_artifact_root()),
         compiler_artifact_dir=str(_compiler_artifact_dir()),
         train_artifact_dir=str(_train_artifact_dir()),
         confidence_level=confidence_level,
@@ -127,7 +123,7 @@ def _load_observation_rows(confidence_level: str) -> List[Tuple[SignedTaxiState,
 
     if len(cte_rows) != len(he_rows):
         raise ValueError(
-            f"Scarbro CSV row mismatch for confidence_level={confidence_level!r}: "
+            f"TaxiNetV2 CSV row mismatch for confidence_level={confidence_level!r}: "
             f"{len(cte_rows)} CTE rows vs {len(he_rows)} HE rows"
         )
 
@@ -143,7 +139,7 @@ def _load_observation_rows(confidence_level: str) -> List[Tuple[SignedTaxiState,
 def get_taxinet_v2_observation_data(
     confidence_level: str = DEFAULT_ALPHA_LEVEL,
 ) -> List[Tuple[SignedTaxiState, ConformalObservation]]:
-    """Return empirical Scarbro observation samples for interval learning."""
+    """Return empirical TaxiNetV2 observation samples for interval learning."""
     return list(_load_observation_rows(confidence_level))
 
 
@@ -166,16 +162,16 @@ def get_taxinet_v2_projected_test_models(
 
 
 def get_scarbro_split_indices(split: str) -> List[int]:
-    """Load Scarbro train/cal/val/test split indices from the artifact."""
+    """Load vendored train/cal/val/test split indices for TaxiNetV2."""
     path = _train_artifact_dir() / f"{split}_indices.pt"
     if not path.exists():
-        raise FileNotFoundError(f"Missing Scarbro split file: {path}")
+        raise FileNotFoundError(f"Missing TaxiNetV2 split file: {path}")
 
     try:
         import torch
     except ImportError as exc:
         raise ImportError(
-            "Loading Scarbro split indices requires torch to be installed."
+            "Loading TaxiNetV2 split indices requires torch to be installed."
         ) from exc
 
     indices = torch.load(path, map_location="cpu")

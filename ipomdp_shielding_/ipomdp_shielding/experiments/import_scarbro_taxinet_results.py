@@ -1,9 +1,9 @@
-"""Import precomputed Scarbro TaxiNet PRISM outputs into our results tree.
+"""Import vendored TaxiNet baseline PRISM outputs into our results tree.
 
-This is a reproducible ingestion wrapper around the Scarbro artifact's
-`case_studies/taxinet/results/prism_output/*.txt` files. It does not rerun
-PRISM; it normalizes the exported result tables into JSON for downstream
-comparison scripts and plots.
+This is a reproducible ingestion wrapper around the vendored
+`results/taxinet_v2/prism_output/*.txt` files. It does not rerun PRISM; it
+normalizes the exported result tables into JSON for downstream comparison
+scripts and plots.
 """
 
 from __future__ import annotations
@@ -30,12 +30,8 @@ def _project_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
-def _paper_root() -> Path:
-    return _project_root().parents[1]
-
-
-def _scarbro_results_dir() -> Path:
-    return _paper_root() / "scarbro_et_al" / "cp-control" / "case_studies" / "taxinet" / "results" / "prism_output"
+def _raw_results_dir() -> Path:
+    return _project_root() / "results" / "taxinet_v2" / "prism_output"
 
 
 def _output_path() -> Path:
@@ -110,7 +106,7 @@ def _final_value(rows: List[Tuple[int, object]]):
 
 
 def import_results() -> Dict[str, object]:
-    source_dir = _scarbro_results_dir()
+    source_dir = _raw_results_dir()
     variants = []
 
     paths = sorted(source_dir.glob("conf*_results.txt"))
@@ -141,12 +137,12 @@ def import_results() -> Dict[str, object]:
 
     out = {
         "metadata": {
-            "source_dir": str(source_dir),
-            "num_variants": len(variants),
-            "note": (
-                "This file imports precomputed Scarbro PRISM outputs. "
-                "It does not regenerate the baseline."
-            ),
+                "source_dir": str(source_dir),
+                "num_variants": len(variants),
+                "note": (
+                    "This file imports vendored precomputed PRISM outputs. "
+                    "It does not regenerate the baseline."
+                ),
         },
         "variants": variants,
     }

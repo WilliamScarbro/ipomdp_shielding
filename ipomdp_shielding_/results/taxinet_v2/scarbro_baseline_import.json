@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "source_dir": "/home/dev/IPOMDP_shielding_paper/scarbro_et_al/cp-control/case_studies/taxinet/results/prism_output",
+    "source_dir": "/home/dev/IPOMDP_shielding_paper/ipomdp_shielding/ipomdp_shielding_/results/taxinet_v2/prism_output",
     "num_variants": 24,
-    "note": "This file imports precomputed Scarbro PRISM outputs. It does not regenerate the baseline."
+    "note": "This file imports vendored precomputed PRISM outputs. It does not regenerate the baseline."
   },
   "variants": [
     {
