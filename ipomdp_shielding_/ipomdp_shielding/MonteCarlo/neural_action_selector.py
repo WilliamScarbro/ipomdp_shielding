@@ -112,7 +112,8 @@ class ObservationActionEncoder:
         if isinstance(sample, tuple):
             if all(not isinstance(elem, tuple) for elem in sample):
                 return "tuple"
-            # Nested tuple — fall through to discrete / scalar logic below.
+            # Nested tuple — always use discrete token encoding regardless of count.
+            return "discrete"
 
         # Check if discrete (small number of unique values)
         unique_items = set(items)

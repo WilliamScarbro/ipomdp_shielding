@@ -385,11 +385,19 @@ def run(config, skip_run: bool = False):
 
 
 def main():
+    import importlib
     skip_run = "--plot-only" in sys.argv
 
-    import importlib
+    # Allow overriding the config module via --config <name>.
+    # Default: rl_shield_taxinet_v2_comparison (conf=0.95)
+    config_name = "rl_shield_taxinet_v2_comparison"
+    args = sys.argv[1:]
+    if "--config" in args:
+        idx = args.index("--config")
+        config_name = args[idx + 1]
+
     config_module = importlib.import_module(
-        ".configs.rl_shield_taxinet_v2_comparison",
+        f".configs.{config_name}",
         package="ipomdp_shielding.experiments",
     )
     config = config_module.config
