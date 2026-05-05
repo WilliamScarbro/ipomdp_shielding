@@ -105,13 +105,18 @@ class ObservationActionEncoder:
 
         sample = items[0]
 
-        # Check if tuple
+        # Check if tuple.  Only use "tuple" mode for *flat* tuples (all scalar
+        # elements), e.g. (cte, he) point estimates.  Nested tuples such as
+        # conformal prediction sets ((cte_set,), (he_set,)) must be treated as
+        # discrete tokens to avoid ragged-array encoding errors.
         if isinstance(sample, tuple):
-            return "tuple"
+            if all(not isinstance(elem, tuple) for elem in sample):
+                return "tuple"
+            # Nested tuple — fall through to discrete / scalar logic below.
 
         # Check if discrete (small number of unique values)
         unique_items = set(items)
-        if len(unique_items) <= 20:  # Treat as discrete if <= 20 unique values
+        if len(unique_items) <= 60:  # Treat as discrete if <= 60 unique values
             return "discrete"
 
         # Otherwise treat as scalar
@@ -131,7 +136,8 @@ class ObservationActionEncoder:
     def _build_vocab(self, items: List[Any], mode: str) -> Dict[Any, int]:
         """Build vocabulary for discrete items."""
         if mode == "discrete":
-            return {item: idx for idx, item in enumerate(sorted(set(items)))}
+            # Use repr() as sort key to handle mixed types (e.g. str + tuple).
+            return {item: idx for idx, item in enumerate(sorted(set(items), key=repr))}
         return {}
 
     def _get_dim(self, sample: Any, mode: str, vocab: Dict[Any, int]) -> int:

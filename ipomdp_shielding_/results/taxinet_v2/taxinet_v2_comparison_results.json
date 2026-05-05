@@ -1,0 +1,512 @@
+{
+  "metadata": {
+    "timestamp": "2026-05-05T19:13:34.027496+00:00",
+    "git_sha": "c8fa42d9fffba2ca5dc66868be355b81776fa7fa",
+    "machine": {
+      "platform": "Linux-6.11.0-21-generic-x86_64-with-glibc2.36",
+      "python_version": "3.11.2",
+      "machine": "x86_64",
+      "node": "8d33cb841dca"
+    },
+    "config": {
+      "case_study_name": "taxinet_v2_comparison",
+      "build_ipomdp_fn": "<function build_taxinet_v2_ipomdp at 0x7c3a62737e20>",
+      "seed": 42,
+      "num_trials": 100,
+      "trial_length": 20,
+      "rl_episodes": 500,
+      "rl_episode_length": 20,
+      "opt_candidates": 10,
+      "opt_trials_per_candidate": 5,
+      "opt_iterations": 10,
+      "shield_threshold": 0.8,
+      "rl_cache_path": "results/cache/rl_shield_taxinet_v2_agent.pt",
+      "opt_cache_path": "results/cache/rl_shield_taxinet_v2_opt_realization.json",
+      "results_path": "results/taxinet_v2/taxinet_v2_comparison_results.json",
+      "figures_dir": "results/taxinet_v2/taxinet_v2_comparison_figures",
+      "adversarial_opt_targets": [
+        "envelope"
+      ],
+      "ipomdp_kwargs": {
+        "confidence_method": "Clopper_Pearson",
+        "alpha": 0.05,
+        "confidence_level": "0.95",
+        "error": 0.1,
+        "smoothing": true
+      }
+    },
+    "rl_agent_cached": true,
+    "rl_cache_path": "results/cache/rl_shield_taxinet_v2_agent.pt",
+    "adversarial_opt_targets": [
+      "envelope"
+    ],
+    "opt_realization_cached_by_target": {
+      "envelope": false
+    },
+    "opt_cache_paths_by_target": {
+      "envelope": "results/cache/rl_shield_taxinet_v2_opt_realization.json"
+    },
+    "total_time_s": 101.4735472202301,
+    "intervention_stats": {
+      "uniform/rl/none": {
+        "primary_count": 684,
+        "fallback_count": 0,
+        "intervention_rate": 0.0
+      },
+      "uniform/rl/observation": {
+        "primary_count": 575,
+        "fallback_count": 277,
+        "intervention_rate": 0.32511737089201875
+      },
+      "uniform/rl/single_belief": {
+        "primary_count": 957,
+        "fallback_count": 138,
+        "intervention_rate": 0.12602739726027398
+      },
+      "uniform/rl/envelope": {
+        "primary_count": 79,
+        "fallback_count": 24,
+        "intervention_rate": 0.23300970873786409
+      },
+      "uniform/rl/conformal_prediction": {
+        "primary_count": 809,
+        "fallback_count": 165,
+        "intervention_rate": 0.16940451745379878
+      },
+      "adversarial_opt/rl/none": {
+        "primary_count": 809,
+        "fallback_count": 0,
+        "intervention_rate": 0.0
+      },
+      "adversarial_opt/rl/observation": {
+        "primary_count": 750,
+        "fallback_count": 309,
+        "intervention_rate": 0.29178470254957506
+      },
+      "adversarial_opt/rl/single_belief": {
+        "primary_count": 986,
+        "fallback_count": 139,
+        "intervention_rate": 0.12355555555555556
+      },
+      "adversarial_opt/rl/envelope": {
+        "primary_count": 49,
+        "fallback_count": 11,
+        "intervention_rate": 0.18333333333333332
+      },
+      "adversarial_opt/rl/conformal_prediction": {
+        "primary_count": 779,
+        "fallback_count": 163,
+        "intervention_rate": 0.173036093418259
+      }
+    },
+    "note": "Augmented grid: adds ConformalPredictionShield to the standard 4-shield set for direct comparison with Scarbro PRISM baseline.",
+    "perception_regimes": {
+      "uniform": "UniformPerceptionModel",
+      "adversarial_opt": "FixedRealizationPerceptionModel (trained via train_optimal_realization; if multiple adversarial_opt_targets are provided, the adversarial_opt realization is selected per shield when available)"
+    },
+    "selectors": {
+      "random": "RandomActionSelector",
+      "best": "BeliefSelector(mode='best')",
+      "rl": "NeuralActionSelector wrapped by ShieldCompliantSelector"
+    },
+    "shields": {
+      "none": "NoShield (passthrough)",
+      "observation": "ObservationShield (midpoint posterior, threshold=0.8)",
+      "single_belief": "SingleBeliefShield (POMDP belief, threshold=0.8)",
+      "envelope": "RuntimeImpShield (LFP polytope, threshold=0.8)",
+      "conformal_prediction": "ConformalPredictionShield (memoryless; allows action iff safe for all states in the conformal set; TaxiNetV2 only)"
+    }
+  },
+  "results": {
+    "uniform/random/none": {
+      "fail_rate": 1.0,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.0,
+      "mean_steps": 3.34,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.9637833073548235,
+      "fail_rate_ci_high": 1.0,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.0,
+      "safe_rate_ci_high": 0.03621669264517641
+    },
+    "uniform/random/observation": {
+      "fail_rate": 0.67,
+      "stuck_rate": 0.17,
+      "safe_rate": 0.16,
+      "mean_steps": 8.7,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.5688272492224368,
+      "fail_rate_ci_high": 0.7608014653773982,
+      "stuck_rate_ci_low": 0.10226491003552825,
+      "stuck_rate_ci_high": 0.25817541063215865,
+      "safe_rate_ci_low": 0.09431028997394623,
+      "safe_rate_ci_high": 0.24678759741086234
+    },
+    "uniform/random/single_belief": {
+      "fail_rate": 0.65,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.35,
+      "mean_steps": 11.09,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.5481506381760306,
+      "fail_rate_ci_high": 0.7427062214685488,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.25729377853145113,
+      "safe_rate_ci_high": 0.4518493618239694
+    },
+    "uniform/random/envelope": {
+      "fail_rate": 0.03,
+      "stuck_rate": 0.96,
+      "safe_rate": 0.01,
+      "mean_steps": 0.81,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.006229971538306395,
+      "fail_rate_ci_high": 0.08517605297428002,
+      "stuck_rate_ci_low": 0.9007428432873401,
+      "stuck_rate_ci_high": 0.9889955060138118,
+      "safe_rate_ci_low": 0.00025314603297742064,
+      "safe_rate_ci_high": 0.054459385392080645
+    },
+    "uniform/random/conformal_prediction": {
+      "fail_rate": 0.91,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.09,
+      "mean_steps": 7.29,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.8360177449703647,
+      "fail_rate_ci_high": 0.9580164043716077,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.041983595628392247,
+      "safe_rate_ci_high": 0.1639822550296352
+    },
+    "uniform/best/none": {
+      "fail_rate": 1.0,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.0,
+      "mean_steps": 3.29,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.9637833073548235,
+      "fail_rate_ci_high": 1.0,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.0,
+      "safe_rate_ci_high": 0.03621669264517641
+    },
+    "uniform/best/observation": {
+      "fail_rate": 0.71,
+      "stuck_rate": 0.15,
+      "safe_rate": 0.14,
+      "mean_steps": 7.98,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.6107340410925517,
+      "fail_rate_ci_high": 0.7964258107492681,
+      "stuck_rate_ci_low": 0.08645438564164859,
+      "stuck_rate_ci_high": 0.23530750014895488,
+      "safe_rate_ci_low": 0.07870540492696577,
+      "safe_rate_ci_high": 0.22372798137056774
+    },
+    "uniform/best/single_belief": {
+      "fail_rate": 0.63,
+      "stuck_rate": 0.03,
+      "safe_rate": 0.34,
+      "mean_steps": 11.2,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.527648359448317,
+      "fail_rate_ci_high": 0.7244334203854486,
+      "stuck_rate_ci_low": 0.006229971538306395,
+      "stuck_rate_ci_high": 0.08517605297428002,
+      "safe_rate_ci_low": 0.24822350154484418,
+      "safe_rate_ci_high": 0.4415332677509589
+    },
+    "uniform/best/envelope": {
+      "fail_rate": 0.1,
+      "stuck_rate": 0.9,
+      "safe_rate": 0.0,
+      "mean_steps": 0.53,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.04900468922148595,
+      "fail_rate_ci_high": 0.17622259774002266,
+      "stuck_rate_ci_low": 0.8237774022599773,
+      "stuck_rate_ci_high": 0.9509953107785141,
+      "safe_rate_ci_low": 0.0,
+      "safe_rate_ci_high": 0.03621669264517641
+    },
+    "uniform/best/conformal_prediction": {
+      "fail_rate": 0.95,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.05,
+      "mean_steps": 7.75,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.8871650888945373,
+      "fail_rate_ci_high": 0.9835681208179479,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.016431879182052155,
+      "safe_rate_ci_high": 0.11283491110546275
+    },
+    "uniform/rl/none": {
+      "fail_rate": 0.94,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.06,
+      "mean_steps": 6.84,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.8739700654191771,
+      "fail_rate_ci_high": 0.9776651139286836,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.022334886071316368,
+      "safe_rate_ci_high": 0.12602993458082296
+    },
+    "uniform/rl/observation": {
+      "fail_rate": 0.65,
+      "stuck_rate": 0.16,
+      "safe_rate": 0.19,
+      "mean_steps": 8.52,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.5481506381760306,
+      "fail_rate_ci_high": 0.7427062214685488,
+      "stuck_rate_ci_low": 0.09431028997394623,
+      "stuck_rate_ci_high": 0.24678759741086234,
+      "safe_rate_ci_low": 0.1184431961325436,
+      "safe_rate_ci_high": 0.28069795797361247
+    },
+    "uniform/rl/single_belief": {
+      "fail_rate": 0.6,
+      "stuck_rate": 0.01,
+      "safe_rate": 0.39,
+      "mean_steps": 10.95,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.4972091504223347,
+      "fail_rate_ci_high": 0.6967052312971226,
+      "stuck_rate_ci_low": 0.00025314603297742064,
+      "stuck_rate_ci_high": 0.054459385392080645,
+      "safe_rate_ci_low": 0.294010414853417,
+      "safe_rate_ci_high": 0.49268552036763646
+    },
+    "uniform/rl/envelope": {
+      "fail_rate": 0.08,
+      "stuck_rate": 0.9,
+      "safe_rate": 0.02,
+      "mean_steps": 1.03,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.0351715625181628,
+      "fail_rate_ci_high": 0.15155763586442095,
+      "stuck_rate_ci_low": 0.8237774022599773,
+      "stuck_rate_ci_high": 0.9509953107785141,
+      "safe_rate_ci_low": 0.0024313368239425423,
+      "safe_rate_ci_high": 0.07038393247107011
+    },
+    "uniform/rl/conformal_prediction": {
+      "fail_rate": 0.84,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.16,
+      "mean_steps": 9.74,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.7532124025891377,
+      "fail_rate_ci_high": 0.9056897100260538,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.09431028997394623,
+      "safe_rate_ci_high": 0.24678759741086234
+    },
+    "adversarial_opt/random/none": {
+      "fail_rate": 1.0,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.0,
+      "mean_steps": 2.97,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.9637833073548235,
+      "fail_rate_ci_high": 1.0,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.0,
+      "safe_rate_ci_high": 0.03621669264517641
+    },
+    "adversarial_opt/random/observation": {
+      "fail_rate": 0.65,
+      "stuck_rate": 0.11,
+      "safe_rate": 0.24,
+      "mean_steps": 10.12,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.5481506381760306,
+      "fail_rate_ci_high": 0.7427062214685488,
+      "stuck_rate_ci_low": 0.05620702028548746,
+      "stuck_rate_ci_high": 0.18830113219644257,
+      "safe_rate_ci_low": 0.16022461317144718,
+      "safe_rate_ci_high": 0.3357354892709986
+    },
+    "adversarial_opt/random/single_belief": {
+      "fail_rate": 0.61,
+      "stuck_rate": 0.01,
+      "safe_rate": 0.38,
+      "mean_steps": 10.76,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.5073144796323634,
+      "fail_rate_ci_high": 0.7059895851465829,
+      "stuck_rate_ci_low": 0.00025314603297742064,
+      "stuck_rate_ci_high": 0.054459385392080645,
+      "safe_rate_ci_low": 0.28476747614147957,
+      "safe_rate_ci_high": 0.4825393057508065
+    },
+    "adversarial_opt/random/envelope": {
+      "fail_rate": 0.11,
+      "stuck_rate": 0.88,
+      "safe_rate": 0.01,
+      "mean_steps": 1.08,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.05620702028548746,
+      "fail_rate_ci_high": 0.18830113219644257,
+      "stuck_rate_ci_low": 0.7997643163800312,
+      "stuck_rate_ci_high": 0.9364310974388407,
+      "safe_rate_ci_low": 0.00025314603297742064,
+      "safe_rate_ci_high": 0.054459385392080645
+    },
+    "adversarial_opt/random/conformal_prediction": {
+      "fail_rate": 0.85,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.15,
+      "mean_steps": 8.18,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.7646924998510451,
+      "fail_rate_ci_high": 0.9135456143583515,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.08645438564164859,
+      "safe_rate_ci_high": 0.23530750014895488
+    },
+    "adversarial_opt/best/none": {
+      "fail_rate": 1.0,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.0,
+      "mean_steps": 2.98,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.9637833073548235,
+      "fail_rate_ci_high": 1.0,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.0,
+      "safe_rate_ci_high": 0.03621669264517641
+    },
+    "adversarial_opt/best/observation": {
+      "fail_rate": 0.69,
+      "stuck_rate": 0.11,
+      "safe_rate": 0.2,
+      "mean_steps": 9.69,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.5896854458398009,
+      "fail_rate_ci_high": 0.778711207869329,
+      "stuck_rate_ci_low": 0.05620702028548746,
+      "stuck_rate_ci_high": 0.18830113219644257,
+      "safe_rate_ci_low": 0.12665555210195584,
+      "safe_rate_ci_high": 0.2918426890886281
+    },
+    "adversarial_opt/best/single_belief": {
+      "fail_rate": 0.63,
+      "stuck_rate": 0.03,
+      "safe_rate": 0.34,
+      "mean_steps": 10.33,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.527648359448317,
+      "fail_rate_ci_high": 0.7244334203854486,
+      "stuck_rate_ci_low": 0.006229971538306395,
+      "stuck_rate_ci_high": 0.08517605297428002,
+      "safe_rate_ci_low": 0.24822350154484418,
+      "safe_rate_ci_high": 0.4415332677509589
+    },
+    "adversarial_opt/best/envelope": {
+      "fail_rate": 0.07,
+      "stuck_rate": 0.93,
+      "safe_rate": 0.0,
+      "mean_steps": 0.69,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.028605288907438704,
+      "fail_rate_ci_high": 0.13891972845585732,
+      "stuck_rate_ci_low": 0.8610802715441427,
+      "stuck_rate_ci_high": 0.9713947110925613,
+      "safe_rate_ci_low": 0.0,
+      "safe_rate_ci_high": 0.03621669264517641
+    },
+    "adversarial_opt/best/conformal_prediction": {
+      "fail_rate": 0.88,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.12,
+      "mean_steps": 7.69,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.7997643163800312,
+      "fail_rate_ci_high": 0.9364310974388407,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.06356890256115931,
+      "safe_rate_ci_high": 0.20023568361996882
+    },
+    "adversarial_opt/rl/none": {
+      "fail_rate": 0.94,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.06,
+      "mean_steps": 8.09,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.8739700654191771,
+      "fail_rate_ci_high": 0.9776651139286836,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.022334886071316368,
+      "safe_rate_ci_high": 0.12602993458082296
+    },
+    "adversarial_opt/rl/observation": {
+      "fail_rate": 0.59,
+      "stuck_rate": 0.15,
+      "safe_rate": 0.26,
+      "mean_steps": 10.59,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.48714420376677076,
+      "fail_rate_ci_high": 0.6873800234324292,
+      "stuck_rate_ci_low": 0.08645438564164859,
+      "stuck_rate_ci_high": 0.23530750014895488,
+      "safe_rate_ci_low": 0.17739443786765247,
+      "safe_rate_ci_high": 0.3573120631001036
+    },
+    "adversarial_opt/rl/single_belief": {
+      "fail_rate": 0.59,
+      "stuck_rate": 0.05,
+      "safe_rate": 0.36,
+      "mean_steps": 11.25,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.48714420376677076,
+      "fail_rate_ci_high": 0.6873800234324292,
+      "stuck_rate_ci_low": 0.016431879182052155,
+      "stuck_rate_ci_high": 0.11283491110546275,
+      "safe_rate_ci_low": 0.2664084227332345,
+      "safe_rate_ci_high": 0.46212189332742326
+    },
+    "adversarial_opt/rl/envelope": {
+      "fail_rate": 0.07,
+      "stuck_rate": 0.93,
+      "safe_rate": 0.0,
+      "mean_steps": 0.6,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.028605288907438704,
+      "fail_rate_ci_high": 0.13891972845585732,
+      "stuck_rate_ci_low": 0.8610802715441427,
+      "stuck_rate_ci_high": 0.9713947110925613,
+      "safe_rate_ci_low": 0.0,
+      "safe_rate_ci_high": 0.03621669264517641
+    },
+    "adversarial_opt/rl/conformal_prediction": {
+      "fail_rate": 0.8,
+      "stuck_rate": 0.0,
+      "safe_rate": 0.2,
+      "mean_steps": 9.42,
+      "num_trials": 100,
+      "fail_rate_ci_low": 0.7081573109113719,
+      "fail_rate_ci_high": 0.8733444478980441,
+      "stuck_rate_ci_low": 0.0,
+      "stuck_rate_ci_high": 0.03621669264517641,
+      "safe_rate_ci_low": 0.12665555210195584,
+      "safe_rate_ci_high": 0.2918426890886281
+    }
+  }
+}
