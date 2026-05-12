@@ -30,7 +30,7 @@ OBS      = BASE / "observation_shield_sweep"
 FS       = BASE / "forward_sampling_sweep"
 TIMING   = BASE / "timing_benchmark" / "shield_timing.json"
 OUTDIR   = BASE / f"sweep_{VERSION}"
-MD_PATH  = Path(f"evaluation_summary_threshold_sweep_5.md")
+MD_PATH  = OUTDIR / "evaluation_summary.md"
 
 THRESHOLDS = [0.50, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
 LABEL_T    = {0.90, 0.95}          # thresholds annotated on scatter plots
@@ -841,7 +841,13 @@ def main() -> None:
     figures["summary"] = make_summary_figure()
     print(f"\n  Summary → {figures['summary']}")
 
-    md = generate_markdown(figures)
+    rel = lambda p: Path(p).relative_to(OUTDIR)
+    rel_figures = {
+        "pareto": {k: rel(v) for k, v in figures["pareto"].items()},
+        "bar": {k: rel(v) for k, v in figures["bar"].items()},
+        "summary": rel(figures["summary"]),
+    }
+    md = generate_markdown(rel_figures)
     MD_PATH.write_text(md)
     print(f"\n  Markdown → {MD_PATH}")
 

@@ -81,7 +81,7 @@ shield).  af6/af7 are nearly identical — likely using the same permissive thre
 | 0.995 | uniform     | **26%** | 74% | 9.4%  | 98.9% |
 | 0.995 | adversarial | **36%** | 63% | 9.4%  | 98.9% |
 
-![Grounding: CP MC vs. PRISM bounds across confidence levels](results/taxinet_v2/cross_conf_figures/cross_conf_grounding.png)
+![Grounding: CP MC vs. PRISM bounds across confidence levels](cross_conf_figures/cross_conf_grounding.png)
 
 ### Grounding Analysis
 
@@ -185,17 +185,17 @@ its specific action-filter semantics; our RL agent was trained for a different o
 | 0.995 | Single-Belief | 72% | 2%  | — |
 | 0.995 | Envelope | 10% | 89% | — |
 
-![Cross-confidence bar chart — uniform](results/taxinet_v2/cross_conf_figures/cross_conf_bars_uniform.png)
+![Cross-confidence bar chart — uniform](cross_conf_figures/cross_conf_bars_uniform.png)
 
-![Cross-confidence bar chart — adversarial](results/taxinet_v2/cross_conf_figures/cross_conf_bars_adversarial_opt.png)
+![Cross-confidence bar chart — adversarial](cross_conf_figures/cross_conf_bars_adversarial_opt.png)
 
-![Cross-confidence Pareto scatter](results/taxinet_v2/cross_conf_figures/cross_conf_pareto.png)
+![Cross-confidence Pareto scatter](cross_conf_figures/cross_conf_pareto.png)
 
 ### conf=0.95 detail figures
 
-![Pareto scatter — uniform perception](results/taxinet_v2/taxinet_v2_comparison_figures/comparison_uniform.png)
+![Pareto scatter — uniform perception](taxinet_v2_comparison_figures/comparison_uniform.png)
 
-![Pareto scatter — adversarial perception](results/taxinet_v2/taxinet_v2_comparison_figures/comparison_adversarial_opt.png)
+![Pareto scatter — adversarial perception](taxinet_v2_comparison_figures/comparison_adversarial_opt.png)
 
 ---
 

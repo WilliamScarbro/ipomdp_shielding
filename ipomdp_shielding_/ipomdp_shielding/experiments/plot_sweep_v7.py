@@ -21,7 +21,7 @@ _V7_CARR = _V7_BASE / "carr"
 
 _v5.VERSION = "v7"
 _v5.OUTDIR  = _V7_BASE
-_v5.MD_PATH = Path("evaluation_summary_threshold_sweep_7.md")
+_v5.MD_PATH = _v5.OUTDIR / "evaluation_summary.md"
 _v5.DATA    = _V7_DATA
 _v5.OBS     = _V7_OBS
 _v5.FS      = _V7_FS

@@ -8,6 +8,8 @@ This repository has two result trees:
 ## Rule
 
 For any result bundle worth keeping, publish it under a versioned run directory instead of leaving the only copy at an experiment root.
+The summary markdown for that run must live in the same directory as the copied
+results it describes.
 
 Use this layout:
 

@@ -12,7 +12,7 @@ Reads:
 Writes:
   results/threshold_sweep_expanded/pareto_v3_{cs}.png   (TaxiNet, Obstacle only)
   results/threshold_sweep_expanded/summary_v3.png        (2-panel summary for Pareto cases)
-  evaluation_summary_threshold_sweep_3.md
+  results/threshold_sweep_expanded/evaluation_summary_v3.md
 
 Usage:
     python -m ipomdp_shielding.experiments.plot_sweep_v3
@@ -24,7 +24,7 @@ import sys
 
 SWEEP_DIR = "results/threshold_sweep_expanded"
 FINAL_DIR = "results/final"
-MD_OUT = "evaluation_summary_threshold_sweep_3.md"
+MD_OUT = os.path.join(SWEEP_DIR, "evaluation_summary_v3.md")
 
 THRESHOLDS = [0.50, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
 
@@ -394,12 +394,12 @@ def _build_comparison_rows(cs_name, sweep_data, final_results, carr_results,
 # ============================================================
 
 def generate_markdown(all_data, carr_availability, out_path=MD_OUT):
-    """Write evaluation_summary_threshold_sweep_3.md."""
+    """Write results/threshold_sweep_expanded/evaluation_summary_v3.md."""
     lines = []
 
     lines.append("# Threshold Sweep Evaluation Summary — v3\n")
     lines.append(
-        "**Source data**: 200-trial expanded sweep (`results/threshold_sweep_expanded/`).\n"
+        "**Source data**: 200-trial expanded sweep (this directory).\n"
         "**Carr shield**: support-based (Carr et al.) — no threshold parameter;\n"
         "  built from `SupportMDPBuilder` using midpoint-realization POMDP from each IPOMDP.\n"
         "\n"
@@ -414,7 +414,7 @@ def generate_markdown(all_data, carr_availability, out_path=MD_OUT):
     lines.append("\n---\n\n## TaxiNet (16 states, 16 obs)\n")
     lines.append("**200 trials × 20 steps.**\n")
     lines.append(
-        f"![TaxiNet Pareto v3]({SWEEP_DIR}/pareto_v3_taxinet.png)\n"
+        "![TaxiNet Pareto v3](pareto_v3_taxinet.png)\n"
     )
     cs = "taxinet"
     sd = all_data[cs]["sweep"]
@@ -495,7 +495,7 @@ def generate_markdown(all_data, carr_availability, out_path=MD_OUT):
     lines.append("\n---\n\n## Obstacle (50 states, 3 obs)\n")
     lines.append("**200 trials × 25 steps.**\n")
     lines.append(
-        f"![Obstacle Pareto v3]({SWEEP_DIR}/pareto_v3_obstacle.png)\n"
+        "![Obstacle Pareto v3](pareto_v3_obstacle.png)\n"
     )
     cs = "obstacle"
     sd = all_data[cs]["sweep"]
@@ -696,7 +696,7 @@ def generate_markdown(all_data, carr_availability, out_path=MD_OUT):
     # ── Cross-case-study summary ───────────────────────────────────────────────
     lines.append("\n---\n\n## Cross-Case-Study Summary\n")
     lines.append(
-        f"![Pareto summary v3]({SWEEP_DIR}/summary_v3.png)\n"
+        "![Pareto summary v3](summary_v3.png)\n"
         "\n"
         "### Best operating points\n"
     )

@@ -12,6 +12,9 @@ results/taxinet_v2/conformal_rl_sweep/runs/<version>/
 
 The root directory may contain ad hoc generated files from scripts. Those are not the canonical published location unless they have also been copied into `runs/<version>/`.
 
+The summary markdown belongs inside the published run directory next to the
+JSON/CSV outputs and `figures/`.
+
 ## Required Publish Step
 
 After generating a run that should be kept:

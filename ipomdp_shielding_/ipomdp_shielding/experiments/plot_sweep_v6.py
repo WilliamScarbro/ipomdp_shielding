@@ -13,7 +13,7 @@ import ipomdp_shielding.experiments.plot_sweep_v5 as _v5
 # Override version — OUTDIR and figure filenames derive from this
 _v5.VERSION = "v6"
 _v5.OUTDIR  = Path("results/sweep_v6")
-_v5.MD_PATH = Path("evaluation_summary_threshold_sweep_6.md")
+_v5.MD_PATH = _v5.OUTDIR / "evaluation_summary.md"
 
 _original_generate_markdown = _v5.generate_markdown
 

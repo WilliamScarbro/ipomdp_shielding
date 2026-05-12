@@ -103,7 +103,7 @@ in the support of 6–15 states (not bijective).  TaxiNet is partially observabl
 
 Timing: TaxiNet 3 min, CartPole 12 min, Obstacle 11 min, Refuel 3 h 45 min.
 
-Figures: [`results/final/coarse_*_results.png`](results/final/)
+Figures: [`coarse_*_results.png`]()
 
 **Key finding.** The qualitative conclusions from the preliminary remain intact and are now
 supported by larger samples:
@@ -143,7 +143,7 @@ Three **action selectors**: random, best (greedy belief), RL (trained neural pol
 
 ### 4.1 TaxiNet (16 states, partially obs., tight LFP bounds, n=100)
 
-Figures: [`results/final/rl_shield_taxinet_figures/`](results/final/rl_shield_taxinet_figures/)
+Figures: [`rl_shield_taxinet_figures/`](rl_shield_taxinet_figures/)
 
 TaxiNet is the smallest case study and has the tightest LFP bound.  The **corrected
 observation shield reveals that TaxiNet is partially observable**: each observation is
@@ -220,7 +220,7 @@ RL-selector trials.
 
 ### 4.2 CartPole (82 states, fully observable, very loose LFP bounds, n=25)
 
-Figures: [`results/final/rl_shield_cartpole_figures/`](results/final/rl_shield_cartpole_figures/)
+Figures: [`rl_shield_cartpole_figures/`](rl_shield_cartpole_figures/)
 
 CartPole is fully observable with 82 states (3-bin discretisation).  The LFP bound is very
 loose (mean max-gap ≈ 1.0).  Since each observation maps bijectively to one state, the
@@ -263,7 +263,7 @@ observation shield is equivalent to the perfect-perception shield.
 
 ### 4.3 Obstacle (50 states, partial obs., 3 observations, loose LFP bounds, n=50)
 
-Figures: [`results/final/rl_shield_obstacle_figures/`](results/final/rl_shield_obstacle_figures/)
+Figures: [`rl_shield_obstacle_figures/`](rl_shield_obstacle_figures/)
 
 Obstacle is partially observable with only 3 distinct observations (~17 states per
 observation) and a moderate-to-loose LFP bound.
@@ -344,7 +344,7 @@ observation) and a moderate-to-loose LFP bound.
 
 ### 4.4 Refuel (344 states, partial obs., 43 observations, no envelope, n=50)
 
-Figures: [`results/final/rl_shield_refuel_figures/`](results/final/rl_shield_refuel_figures/)
+Figures: [`rl_shield_refuel_figures/`](rl_shield_refuel_figures/)
 
 Refuel is the largest case study.  The envelope shield is excluded (LP solve ~144 s/step).
 Adversarial perception was optimized against the single-belief shield.
@@ -557,5 +557,5 @@ because increasing the scale would dominate the 8-hour budget.
 
 Total wall-clock time: ~7 hours (coarse: 4h 12m; RL shield: ~1h 37m; summary charts: ~1h).
 
-Results directory: `results/final/`
-Summary charts: `results/final/summary/`
+Results directory: ``
+Summary charts: `summary/`

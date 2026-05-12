@@ -12,7 +12,7 @@ single_belief or envelope, not specifically against the observation shield).
 Single_belief results are shown alongside as a reference.
 
 
-![Pareto frontiers](results/observation_shield_sweep/pareto_obs_all.png)
+![Pareto frontiers](pareto_obs_all.png)
 
 
 ---

@@ -6,7 +6,7 @@ results/final/ (for threshold-independent none/observation baselines).
 Produces:
   results/threshold_sweep/pareto_{cs}.png      (per-case-study, 1×2 panels)
   results/threshold_sweep/pareto_summary.png   (2×4 summary grid)
-  evaluation_summary_threshold_sweep.md
+  results/threshold_sweep/evaluation_summary.md
 
 Usage:
     python -m ipomdp_shielding.experiments.plot_pareto_frontiers             # original
@@ -381,8 +381,8 @@ def generate_summary_markdown(all_sweep, all_final, out_path=None,
     # Figures
     lines.append("\n## Figures\n")
     for cs_name in list(all_sweep.keys()):
-        lines.append(f"![{CS_LABELS.get(cs_name, cs_name)}]({out_dir}/pareto_{cs_name}.png)\n")
-    lines.append(f"![Summary]({out_dir}/pareto_summary.png)\n")
+        lines.append(f"![{CS_LABELS.get(cs_name, cs_name)}](pareto_{cs_name}.png)\n")
+    lines.append("![Summary](pareto_summary.png)\n")
 
     # Cross-case-study summary
     lines.append("\n## Cross-Case-Study Summary\n")
@@ -414,7 +414,7 @@ def generate_summary_markdown(all_sweep, all_final, out_path=None,
     )
 
     md = "\n".join(lines)
-    path = out_path or "evaluation_summary_threshold_sweep.md"
+    path = out_path or os.path.join(SWEEP_DIR, "evaluation_summary.md")
     with open(path, "w") as f:
         f.write(md)
     print(f"  Saved {path}")
@@ -429,7 +429,11 @@ def main():
     expanded = "--expanded" in sys.argv
     sweep_dir = EXPANDED_SWEEP_DIR if expanded else SWEEP_DIR
     case_studies = EXPANDED_CASE_STUDIES if expanded else CASE_STUDIES
-    md_out = "evaluation_summary_threshold_sweep_2.md" if expanded else "evaluation_summary_threshold_sweep.md"
+    md_out = (
+        os.path.join(EXPANDED_SWEEP_DIR, "evaluation_summary_v2.md")
+        if expanded
+        else os.path.join(SWEEP_DIR, "evaluation_summary.md")
+    )
 
     print("=" * 70)
     print("PARETO FRONTIER PLOTTER" + (" (expanded)" if expanded else ""))

@@ -13,7 +13,7 @@ Baselines (`none`, `observation`) carried over from the final run at threshold =
 
 ## Summary (all case studies)
 
-![Pareto frontier summary — 2 rows × 4 columns](results/threshold_sweep/pareto_summary.png)
+![Pareto frontier summary — 2 rows × 4 columns](pareto_summary.png)
 
 *Rows: uniform-random (top) and adversarial-optimised (bottom) perception.
 Columns: TaxiNet, CartPole, Obstacle, Refuel.
@@ -27,7 +27,7 @@ Annotations show threshold value; arrows point in the direction of increasing th
 
 **50 trials × 20 steps.**
 
-![TaxiNet Pareto frontier](results/threshold_sweep/pareto_taxinet.png)
+![TaxiNet Pareto frontier](pareto_taxinet.png)
 
 ### What the data show
 
@@ -71,7 +71,7 @@ between that extreme and the no-shield point.
 
 **15 trials × 15 steps.**
 
-![CartPole Pareto frontier](results/threshold_sweep/pareto_cartpole.png)
+![CartPole Pareto frontier](pareto_cartpole.png)
 
 Both shields quickly plateau at ≈ 6.7% fail — the irreducible failure rate over 15 steps
 for the trained RL agent in this discretisation. The threshold level has negligible effect
@@ -91,7 +91,7 @@ final-run finding that envelope adds 16–20% stuck with no fail benefit for Car
 
 **25 trials × 25 steps.**
 
-![Obstacle Pareto frontier](results/threshold_sweep/pareto_obstacle.png)
+![Obstacle Pareto frontier](pareto_obstacle.png)
 
 Obstacle shows the clearest Pareto trade-off of any case study. Both shields reduce fail
 monotonically as threshold rises, with stuck increasing in compensation.
@@ -138,7 +138,7 @@ case study where zero-fail is reached without resorting to the observation shiel
 
 **30 trials × 30 steps. Envelope excluded (LP solve ≈ 144 s/step).**
 
-![Refuel Pareto frontier](results/threshold_sweep/pareto_refuel.png)
+![Refuel Pareto frontier](pareto_refuel.png)
 
 The no-shield baseline is already 0% fail / 0% stuck — the optimal policy discovered by the
 RL agent happens to be safe everywhere. Every shield adds stuck overhead without reducing fail:

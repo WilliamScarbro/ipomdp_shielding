@@ -27,7 +27,7 @@ evaluations. This may under-estimate the worst case for `single_belief` and
 
 ## Summary
 
-![TaxiNet Pareto frontier — alpha sweep at beta = 0.8](results/alpha_sweep/pareto_taxinet.png)
+![TaxiNet Pareto frontier — alpha sweep at beta = 0.8](pareto_taxinet.png)
 
 *Left: uniform-random perception. Right: adversarial-optimized perception.
 Blue = `single_belief`, green = `envelope`, orange = `forward_sampling`.
@@ -116,5 +116,5 @@ python3 -m ipomdp_shielding.experiments.sweeps.rl_alpha_sweep
 # outputs: data/sweep/rl_alpha_taxinet/{results_tidy.csv, sweep_summary.json, figures/pareto_alpha.png}
 ```
 
-Tidy CSV: `results/alpha_sweep/results_tidy.csv`
-JSON summary (full metadata + per-alpha aggregates): `results/alpha_sweep/sweep_summary.json`
+Tidy CSV: `results_tidy.csv`
+JSON summary (full metadata + per-alpha aggregates): `sweep_summary.json`

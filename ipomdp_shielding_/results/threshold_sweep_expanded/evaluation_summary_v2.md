@@ -19,7 +19,7 @@ threshold = 0.8). They may not be worst-case at other thresholds.
 
 ## Summary figure
 
-![Pareto frontier summary](results/threshold_sweep_expanded/pareto_summary.png)
+![Pareto frontier summary](pareto_summary.png)
 
 ---
 
@@ -27,7 +27,7 @@ threshold = 0.8). They may not be worst-case at other thresholds.
 
 **200 trials × 20 steps.**
 
-![TaxiNet Pareto frontier](results/threshold_sweep_expanded/pareto_taxinet.png)
+![TaxiNet Pareto frontier](pareto_taxinet.png)
 
 <table>
 <thead>
@@ -70,7 +70,7 @@ single_belief 29% safe / 70% fail) and is now clearly visible across the full th
 
 **200 trials × 15 steps. Envelope excluded (dominated at every threshold).**
 
-![CartPole Pareto frontier](results/threshold_sweep_expanded/pareto_cartpole.png)
+![CartPole Pareto frontier](pareto_cartpole.png)
 
 <table>
 <thead>
@@ -108,7 +108,7 @@ obscured by noise in the v1 experiments.
 
 **200 trials × 25 steps.**
 
-![Obstacle Pareto frontier](results/threshold_sweep_expanded/pareto_obstacle.png)
+![Obstacle Pareto frontier](pareto_obstacle.png)
 
 <table>
 <thead>
@@ -154,7 +154,7 @@ envelope shield is essential for safety under adversarial observation selection.
 Fresh RL agent trained (500 episodes). Observation space redesigned: hascrash and
 fuel > 0 bits removed; obs_noise = 0.3.**
 
-![Refuel v2 Pareto frontier](results/threshold_sweep_expanded/pareto_refuel_v2.png)
+![Refuel v2 Pareto frontier](pareto_refuel_v2.png)
 
 <table>
 <thead>

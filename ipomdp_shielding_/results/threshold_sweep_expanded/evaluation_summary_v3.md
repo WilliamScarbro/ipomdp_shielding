@@ -1,6 +1,6 @@
 # Threshold Sweep Evaluation Summary — v3
 
-**Source data**: 200-trial expanded sweep (`results/threshold_sweep_expanded/`).
+**Source data**: 200-trial expanded sweep (``).
 **Carr shield**: support-based (Carr et al.) — no threshold parameter;
   built from `SupportMDPBuilder` using midpoint-realization POMDP from each IPOMDP.
 
@@ -17,7 +17,7 @@
 
 **200 trials × 20 steps.**
 
-![TaxiNet Pareto v3](results/threshold_sweep_expanded/pareto_v3_taxinet.png)
+![TaxiNet Pareto v3](pareto_v3_taxinet.png)
 
 ### Threshold sweep table (RL selector)
 
@@ -54,7 +54,7 @@ best threshold. Carr's probability-free conservatism prevents it from competing.
 
 **200 trials × 25 steps.**
 
-![Obstacle Pareto v3](results/threshold_sweep_expanded/pareto_v3_obstacle.png)
+![Obstacle Pareto v3](pareto_v3_obstacle.png)
 
 ### Threshold sweep table (RL selector)
 
@@ -177,7 +177,7 @@ only the `single_belief` IPOMDP shield is computationally viable.
 
 ## Cross-Case-Study Summary
 
-![Pareto summary v3](results/threshold_sweep_expanded/summary_v3.png)
+![Pareto summary v3](summary_v3.png)
 
 ### Best operating points
 

@@ -1,4 +1,4 @@
-"""Generate evaluation_summary_threshold_sweep_4.md from observation shield sweep.
+"""Generate results/observation_shield_sweep/evaluation_summary.md from observation shield sweep.
 
 Produces Pareto-frontier plots (fail rate vs stuck rate) and a cross-case
 comparison table for the ObservationShield across all case studies.
@@ -20,7 +20,7 @@ import numpy as np
 
 OBS_SWEEP_DIR  = "results/observation_shield_sweep"
 SB_SWEEP_DIR   = "results/threshold_sweep_expanded"
-MD_OUT         = "evaluation_summary_threshold_sweep_4.md"
+MD_OUT         = os.path.join(OBS_SWEEP_DIR, "evaluation_summary.md")
 
 THRESHOLDS = [0.50, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
 
@@ -188,7 +188,7 @@ def generate_markdown(all_data, pareto_path, out_path=MD_OUT):
         "Single_belief results are shown alongside as a reference.\n"
     )
 
-    lines.append(f"\n![Pareto frontiers]({pareto_path})\n")
+    lines.append(f"\n![Pareto frontiers]({os.path.basename(pareto_path)})\n")
 
     # Per-case-study tables
     for cs in ALL_CASES:

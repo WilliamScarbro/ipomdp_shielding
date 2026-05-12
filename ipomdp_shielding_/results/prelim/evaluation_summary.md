@@ -61,10 +61,10 @@ Larger values indicate LFP is looser (more conservative) than needed.
 </tbody>
 </table>
 
-Figures: [`results/prelim/coarse_taxinet_results.png`](results/prelim/coarse_taxinet_results.png),
-[`coarse_cartpole_results.png`](results/prelim/coarse_cartpole_results.png),
-[`coarse_obstacle_results.png`](results/prelim/coarse_obstacle_results.png),
-[`coarse_refuel_results.png`](results/prelim/coarse_refuel_results.png)
+Figures: [`coarse_taxinet_results.png`](coarse_taxinet_results.png),
+[`coarse_cartpole_results.png`](coarse_cartpole_results.png),
+[`coarse_obstacle_results.png`](coarse_obstacle_results.png),
+[`coarse_refuel_results.png`](coarse_refuel_results.png)
 
 **Key finding.** Coarseness degrades with both state-space size and trajectory
 length.  TaxiNet achieves tight bounds throughout (mean avg-gap = 0.057); the
@@ -103,7 +103,7 @@ Three **action selectors**: random, best (greedy belief), RL (trained neural pol
 
 ### 4.1 TaxiNet (16 states, fully observable, tight LFP bounds)
 
-Figures: [`results/prelim/rl_shield_taxinet_figures/`](results/prelim/rl_shield_taxinet_figures/)
+Figures: [`rl_shield_taxinet_figures/`](rl_shield_taxinet_figures/)
 
 TaxiNet is the smallest case study and has the tightest LFP bound (mean avg-gap =
 0.057).  Because the LFP bound nearly matches the forward-sampled estimate, the
@@ -145,7 +145,7 @@ envelope shield is not excessively conservative.
 
 ### 4.2 CartPole (82 states, fully observable, very loose LFP bounds)
 
-Figures: [`results/prelim/rl_shield_cartpole_figures/`](results/prelim/rl_shield_cartpole_figures/)
+Figures: [`rl_shield_cartpole_figures/`](rl_shield_cartpole_figures/)
 
 CartPole is fully observable with 82 states (3-bin discretisation, matching the
 coarseness experiment).  The LFP bound is very loose (max-gap ≈ 1.0 nearly always),
@@ -231,7 +231,7 @@ which means the envelope shield is expected to be highly conservative.
 
 ### 4.3 Obstacle (50 states, partial obs., 3 observations, moderate LFP bounds)
 
-Figures: [`results/prelim/rl_shield_obstacle_figures/`](results/prelim/rl_shield_obstacle_figures/)
+Figures: [`rl_shield_obstacle_figures/`](rl_shield_obstacle_figures/)
 
 Obstacle is partially observable with only 3 distinct observations — a very coarse
 sensor.  The LFP bound is moderate (mean avg-gap = 0.403), meaning the envelope
@@ -312,7 +312,7 @@ shield is conservative but not maximally so.
 
 ### 4.4 Refuel (344 states, partial obs., 43 observations)
 
-Figures: [`results/prelim/rl_shield_refuel_figures/`](results/prelim/rl_shield_refuel_figures/)
+Figures: [`rl_shield_refuel_figures/`](rl_shield_refuel_figures/)
 
 > **Note on model corrections:**
 > Results use the corrected model (obs_noise = 0.05, distance-scaled noise,
@@ -471,7 +471,7 @@ Timing results (5 trials × 10 steps, uniform perception, random selector):
 </tbody>
 </table>
 
-*Source: [`results/prelim/envelope_timing.json`](results/prelim/envelope_timing.json)
+*Source: [`envelope_timing.json`](envelope_timing.json)
 (5 trials × 10 steps each, uniform perception, random selector.)*
 
 The timing follows a super-linear relationship with state-space size.  A key
@@ -586,5 +586,5 @@ has limited impact regardless of shield type.
 </tbody>
 </table>
 
-Results directory: `results/prelim/`
-Summary charts: `results/summary/`
+Results directory: ``
+Summary charts: `../summary/`

@@ -1,4 +1,4 @@
-# Evaluation Summary — v5
+# Evaluation Summary — v6
 
 **Shields compared**: Envelope, Single-Belief, Observation, Carr, Fwd-Sampling  
 *(where feasible — see per-case notes)*
@@ -21,7 +21,7 @@ n≤249 states (TaxiNet, Obstacle, CartPole) and 100/690 extremals for Refuel.
 
 ## Cross-Case Summary
 
-![Overview bar charts](results/sweep_v5/summary_v5_bars.png)
+![Overview bar charts](summary_v6_bars.png)
 
 ### Best operating points
 
@@ -63,11 +63,11 @@ n≤249 states (TaxiNet, Obstacle, CartPole) and 100/690 extremals for Refuel.
 
 ## TaxiNet (16 states, 16 obs)
 
-![Pareto scatter](results/sweep_v5/pareto_v5_taxinet.png)
+![Pareto scatter](pareto_v6_taxinet.png)
 
 > *Each point is one threshold setting. Only t=0.90 and t=0.95 are labelled. No lines connect points.*
 
-![Bar chart — best threshold per shield](results/sweep_v5/barchart_v5_taxinet.png)
+![Bar chart — best threshold per shield](barchart_v6_taxinet.png)
 
 ### Best operating points
 
@@ -105,11 +105,11 @@ The irreducible ~34% fail at t=0.95 (Envelope) represents the fundamental diffic
 
 ## Obstacle (50 states, 3 obs)
 
-![Pareto scatter](results/sweep_v5/pareto_v5_obstacle.png)
+![Pareto scatter](pareto_v6_obstacle.png)
 
 > *Each point is one threshold setting. Only t=0.90 and t=0.95 are labelled. No lines connect points.*
 
-![Bar chart — best threshold per shield](results/sweep_v5/barchart_v5_obstacle.png)
+![Bar chart — best threshold per shield](barchart_v6_obstacle.png)
 
 ### Best operating points
 
@@ -144,7 +144,7 @@ Three observations for 50 states (~17 states per observation) is the most extrem
 
 ## CartPole low-acc (82 states, P_mid=0.373)
 
-![Bar chart — best threshold per shield](results/sweep_v5/barchart_v5_cartpole_lowacc.png)
+![Bar chart — best threshold per shield](barchart_v6_cartpole_lowacc.png)
 
 ### Best operating points
 
@@ -184,7 +184,7 @@ CartPole is the easiest shielding problem in this suite due to three compounding
 
 ## Refuel v2 (344 states, 29 obs)
 
-![Bar chart — best threshold per shield](results/sweep_v5/barchart_v5_refuel_v2.png)
+![Bar chart — best threshold per shield](barchart_v6_refuel_v2.png)
 
 ### Best operating points
 
