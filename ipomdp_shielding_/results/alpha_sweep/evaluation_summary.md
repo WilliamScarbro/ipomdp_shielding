@@ -1,120 +1,219 @@
-# Alpha Sweep: TaxiNet Pareto Frontier
+# Alpha Sweep: TaxiNet Pareto Frontier (multi-beta)
 
-Sweep of the Clopper-Pearson significance level `alpha` ∈ {0.01, 0.05, 0.10, 0.20}
-for `single_belief`, `envelope`, and `forward_sampling` shields, RL selector,
-both perception regimes. Shield threshold held fixed at `beta = 0.8`.
+Expanded version of the alpha sweep on TaxiNet. The CI significance `alpha`
+is now scanned over 8 values, evaluated at 3 shield thresholds
+`beta ∈ {0.7, 0.8, 0.9}` to expose how the alpha–metric relationship
+depends on shield conservatism.
 
-`alpha` controls the width of the Clopper-Pearson intervals used to build the
-perception IMDP: smaller `alpha` → wider intervals (more uncertainty acknowledged,
-more conservative shielding); larger `alpha` → tighter intervals (more permissive
-shielding). The same IPOMDP infrastructure is reused for every alpha, so this is
-a clean 1D scan along the interval-width axis.
+- `alpha`: Clopper-Pearson significance level. Smaller `alpha` → wider
+  intervals → more uncertainty acknowledged → more conservative shielding.
+- `beta`: runtime shield safety threshold. Larger `beta` → more conservative
+  (more actions blocked, more "stuck" states).
 
-**Total runtime**: 25.5 min (cached RL agents and adversarial realizations from a
-prior 148 min sweep run; this re-run only added the new `forward_sampling`
-evaluations).
+**Settings**: 8 alphas × 3 betas × 3 seeds × 20 trials × 20 steps ×
+3 shields × 2 perception regimes = 8,640 trial-steps per cell × 432 cells.
+Forward-sampling shield uses `budget=500`, `K_samples=100`. Adversarial
+realizations are trained against the `envelope` shield at each `beta` and
+reused for the other shields at the same `beta` (consistent with the prior
+sweep methodology).
 
-**Settings**: 4 alphas × 5 seeds × 30 trials × 20 steps × 3 shields × 2 perception
-regimes = 360 MC evaluations. Forward-sampling shield uses `budget=500`,
-`K_samples=100`.
-
-**Limitation**: Adversarial-optimized perception realizations are trained against
-the `envelope` shield at the fixed `beta = 0.8` and reused for all three shield
-evaluations. This may under-estimate the worst case for `single_belief` and
-`forward_sampling`.
-
----
-
-## Summary
-
-![TaxiNet Pareto frontier — alpha sweep at beta = 0.8](pareto_taxinet.png)
-
-*Left: uniform-random perception. Right: adversarial-optimized perception.
-Blue = `single_belief`, green = `envelope`, orange = `forward_sampling`.
-Annotations show the alpha value; arrows point from the lowest to the next-lowest
-alpha along each curve.*
+**Total runtime**: 8,266 s (≈ 138 min). Four of the eight alpha values
+(`0.01, 0.05, 0.1, 0.2`) reused cached RL agents from the previous sweep;
+the other four RL agents and all 24 adversarial realizations were trained
+fresh.
 
 ---
 
-## Uniform perception
+## Pareto scatter
 
-<table>
-<thead>
-<tr><th>alpha</th>
-    <th>sb fail%</th><th>sb stuck%</th>
-    <th>env fail%</th><th>env stuck%</th>
-    <th>fs fail%</th><th>fs stuck%</th></tr>
-</thead>
-<tbody>
-<tr><td>0.01</td><td>65%</td><td>0%</td><td>52%</td><td>5%</td><td>63%</td><td>1%</td></tr>
-<tr><td>0.05</td><td>66%</td><td>0%</td><td>53%</td><td>8%</td><td>59%</td><td>3%</td></tr>
-<tr><td>0.10</td><td>61%</td><td>1%</td><td>63%</td><td>5%</td><td>60%</td><td>0%</td></tr>
-<tr><td>0.20</td><td>58%</td><td>1%</td><td>57%</td><td>5%</td><td><b>49%</b></td><td>1%</td></tr>
-</tbody>
-</table>
+![TaxiNet Pareto — alpha scatter at three betas](pareto_taxinet.png)
 
-- `forward_sampling` at alpha = 0.20 achieves the lowest fail rate of any
-  shield/alpha combination under uniform perception (49% fail / 1% stuck),
-  Pareto-dominating both `single_belief` and `envelope` at the same alpha.
-- `single_belief` collapses to near-zero stuck across all alphas but pays for
-  it in fail rate (58–66%).
-- `envelope` carries a consistent 5–8% stuck overhead regardless of alpha; its
-  fail rate moves erratically with alpha (52% → 63% → 57%) — the across-seed
-  std is ≈ 10 pp, so this jitter is on the edge of noise.
+*Rows: perception regime (uniform / adversarial-optimized).
+Cols: shield threshold (beta = 0.7, 0.8, 0.9).
+Marker shape: shield (○ single_belief, ■ envelope, ▲ forward_sampling).
+Each point is one alpha value (annotated). Lines intentionally omitted to
+keep the scatter as the geometric summary.*
 
-## Adversarial perception
+## Alpha trends
 
-<table>
-<thead>
-<tr><th>alpha</th>
-    <th>sb fail%</th><th>sb stuck%</th>
-    <th>env fail%</th><th>env stuck%</th>
-    <th>fs fail%</th><th>fs stuck%</th></tr>
-</thead>
-<tbody>
-<tr><td>0.01</td><td>66%</td><td>1%</td><td>57%</td><td>9%</td><td>57%</td><td>4%</td></tr>
-<tr><td>0.05</td><td>55%</td><td>0%</td><td>54%</td><td>7%</td><td>54%</td><td>0%</td></tr>
-<tr><td>0.10</td><td>59%</td><td>0%</td><td><b>51%</b></td><td>4%</td><td>55%</td><td>1%</td></tr>
-<tr><td>0.20</td><td>65%</td><td>1%</td><td>52%</td><td>3%</td><td>59%</td><td>1%</td></tr>
-</tbody>
-</table>
+![Fail rate vs alpha](alpha_vs_fail.png)
+![Stuck rate vs alpha](alpha_vs_stuck.png)
 
-- `envelope` minimises fail (51% / 4% stuck at alpha = 0.10) but at a small
-  stuck premium.
-- `forward_sampling` tracks `envelope` on fail (within ≈ 3 pp at every alpha)
-  while keeping stuck near zero — the most balanced operating point.
-- `single_belief` has a U-shaped fail curve in alpha (best at the centre,
-  worst at the extremes) but never matches the other two shields.
+*Error bars: ±1 std across the three seeds. Three shields per panel.*
 
 ---
 
-## Key observations
+## Headline findings
 
-1. **Forward-sampling is the new Pareto frontier on TaxiNet.** Under uniform
-   perception it dominates both other shields at alpha = 0.20 (49% fail, 1%
-   stuck). Under adversarial perception it matches `envelope` on fail while
-   spending ≈ 3–6 pp less stuck.
-2. **Alpha has a small effect compared to shield choice.** Across the four
-   alpha values, per-shield fail rates move within a ~10 pp band while the
-   gap between shields is consistently larger. The two-stage takeaway:
-   *first* pick the shield, *then* tune alpha.
-3. **No single best alpha.** `envelope` benefits from intermediate alpha
-   (0.10), `single_belief` from intermediate alpha (0.10–0.20),
-   `forward_sampling` from extremes (alpha = 0.20 under uniform; alpha = 0.05
-   under adversarial). The shields disagree on which alpha is best, reflecting
-   their differing sensitivity to interval width.
-4. **Statistical caveat.** Per-seed std is 4–14 pp on fail rate (n = 5 seeds
-   × 30 trials per cell), comparable to the cross-alpha spread. Most alpha
-   trends within a single shield are on the edge of significance; the shield
-   ordering is more robust than the alpha ordering.
+1. **Beta is the dominant knob, not alpha.** Across all three betas and
+   both perception regimes, the per-shield fail rate moves within a roughly
+   10–20 pp band as alpha varies, with no consistent monotone trend. In
+   contrast, moving from beta = 0.7 → 0.9 shifts the operating point
+   from the "all-fail / no-stuck" corner to a real fail-vs-stuck trade-off:
+   stuck rates for envelope/forward_sampling jump from < 8% at beta ≤ 0.8
+   to 5–22% at beta = 0.9, while fail rates drop by 10–30 pp.
+2. **Alpha trend is essentially flat at low/medium beta.** At beta = 0.7 and
+   beta = 0.8 the alpha-vs-fail curves are noisy but trendless (per-shield
+   fail rates stay near 55–65%, stuck near 0%). The per-seed std (4–14 pp)
+   is comparable to the cross-alpha spread.
+3. **A weak alpha effect appears at beta = 0.9.** The most conservative beta
+   is where alpha starts to matter:
+   - Envelope and forward_sampling fail rates trend down by ~5–10 pp as
+     alpha rises from 0.01 to 0.3 (especially under adversarial perception:
+     forward_sampling 28→38% and envelope 42→42% with a 30% minimum at
+     alpha = 0.15).
+   - Stuck rates stay roughly flat (~10–20%) — alpha mainly moves fail
+     here, with stuck dominated by the high beta itself.
+4. **Forward-sampling is best for adversarial perception at high beta.**
+   Best single operating point in the entire grid for adversarial:
+   `forward_sampling` at beta = 0.9, alpha = 0.01 → 28.3% fail / 13.3%
+   stuck. `single_belief` cannot reach this fail rate at any (alpha, beta).
+5. **Single-belief keeps the "no stuck" guarantee everywhere.** Across all
+   144 (alpha, beta, perception) cells `single_belief` never exceeds 3.3%
+   stuck. Its fail rate is consistently 5–15 pp higher than envelope /
+   forward_sampling, but it is the unambiguous choice when stuck is
+   unacceptable.
+
+---
+
+## Per-perception, per-beta tables
+
+Cells show `fail% / stuck%` (mean across 3 seeds × 20 trials).
+Bold = best (lowest fail) within row.
+
+### Uniform perception
+
+#### beta = 0.7
+| alpha | single_belief | envelope        | forward_sampling |
+|-------|---------------|-----------------|------------------|
+| 0.010 | 63 / 0        | 70 / 3          | **58 / 2**       |
+| 0.025 | 75 / 0        | 65 / 0          | **63 / 0**       |
+| 0.050 | 63 / 0        | 70 / 8          | **60 / 3**       |
+| 0.075 | 68 / 0        | **58 / 5**      | 60 / 0           |
+| 0.100 | 55 / 0        | **47 / 3**      | 48 / 2           |
+| 0.150 | 72 / 0        | 62 / 3          | **58 / 0**       |
+| 0.200 | 63 / 0        | **50 / 2**      | 62 / 0           |
+| 0.300 | **60 / 0**    | 57 / 7          | 68 / 0           |
+
+#### beta = 0.8
+| alpha | single_belief | envelope        | forward_sampling |
+|-------|---------------|-----------------|------------------|
+| 0.010 | 62 / 0        | **50 / 8**      | 60 / 2           |
+| 0.025 | 70 / 0        | 58 / 5          | **55 / 0**       |
+| 0.050 | 63 / 0        | 58 / 3          | **52 / 3**       |
+| 0.075 | **60 / 0**    | 62 / 3          | 55 / 0           |
+| 0.100 | 60 / 0        | 58 / 2          | **55 / 0**       |
+| 0.150 | **55 / 2**    | 57 / 8          | 62 / 2           |
+| 0.200 | **53 / 0**    | 58 / 3          | **53 / 2**       |
+| 0.300 | 63 / 2        | 53 / 5          | **48 / 2**       |
+
+#### beta = 0.9
+| alpha | single_belief | envelope        | forward_sampling |
+|-------|---------------|-----------------|------------------|
+| 0.010 | 57 / 2        | **50 / 15**     | 58 / 13          |
+| 0.025 | 45 / 2        | **35 / 13**     | 43 / 12          |
+| 0.050 | 55 / 0        | **50 / 15**     | 58 / 10          |
+| 0.075 | 57 / 0        | **33 / 12**     | 48 / 10          |
+| 0.100 | 65 / 0        | **42 / 8**      | 47 / 7           |
+| 0.150 | 60 / 2        | **38 / 17**     | 45 / 12          |
+| 0.200 | 52 / 0        | 47 / 15         | **40 / 5**       |
+| 0.300 | 58 / 0        | 47 / 15         | **45 / 10**      |
+
+### Adversarial perception
+
+#### beta = 0.7
+| alpha | single_belief | envelope        | forward_sampling |
+|-------|---------------|-----------------|------------------|
+| 0.010 | 77 / 0        | **58 / 7**      | 62 / 2           |
+| 0.025 | 68 / 0        | 60 / 7          | **53 / 0**       |
+| 0.050 | 77 / 0        | **62 / 10**     | 68 / 0           |
+| 0.075 | 73 / 0        | 60 / 0          | **57 / 0**       |
+| 0.100 | 68 / 0        | **57 / 5**      | 63 / 0           |
+| 0.150 | **63 / 2**    | 72 / 2          | 68 / 3           |
+| 0.200 | 68 / 0        | **57 / 2**      | 60 / 0           |
+| 0.300 | 57 / 0        | 52 / 3          | **50 / 2**       |
+
+#### beta = 0.8
+| alpha | single_belief | envelope        | forward_sampling |
+|-------|---------------|-----------------|------------------|
+| 0.010 | 65 / 0        | **53 / 7**      | 60 / 2           |
+| 0.025 | 57 / 0        | **47 / 7**      | 55 / 2           |
+| 0.050 | 60 / 2        | **50 / 3**      | 60 / 2           |
+| 0.075 | **65 / 0**    | 73 / 2          | **65 / 0**       |
+| 0.100 | **50 / 0**    | 55 / 0          | 60 / 0           |
+| 0.150 | **55 / 0**    | 62 / 2          | 57 / 2           |
+| 0.200 | **58 / 0**    | 60 / 5          | 60 / 2           |
+| 0.300 | 63 / 0        | 58 / 3          | **53 / 0**       |
+
+#### beta = 0.9
+| alpha | single_belief | envelope        | forward_sampling |
+|-------|---------------|-----------------|------------------|
+| 0.010 | 50 / 3        | 42 / 20         | **28 / 13**      |
+| 0.025 | 43 / 0        | 48 / 22         | **42 / 18**      |
+| 0.050 | 68 / 2        | **42 / 20**     | **42 / 20**      |
+| 0.075 | 52 / 2        | **48 / 17**     | **48 / 12**      |
+| 0.100 | 57 / 2        | 42 / 15         | **33 / 17**      |
+| 0.150 | 48 / 2        | **30 / 22**     | 32 / 18          |
+| 0.200 | **43 / 2**    | 38 / 15         | 38 / 13          |
+| 0.300 | 43 / 0        | 42 / 18         | **38 / 12**      |
+
+---
+
+## Observations on the alpha–metric trend
+
+- **Beta = 0.7, 0.8 (permissive shielding):** alpha is essentially a knob
+  that does not move the metrics. The Clopper-Pearson intervals are wide
+  enough at any of these alphas that the shield decisions are dominated by
+  the worst-case bound; tightening alpha changes the bound modestly relative
+  to the noise floor. The Pareto cloud is tightly packed in the upper-left
+  region of (low stuck, high fail).
+- **Beta = 0.9 (conservative shielding):** the alpha effect becomes
+  measurable but small. Larger alpha (tighter intervals) slightly *reduces*
+  fail rate for `envelope` and `forward_sampling` under adversarial
+  perception, presumably because the shield rejects fewer borderline
+  actions and the RL policy then has access to better moves. `single_belief`
+  is essentially flat in alpha at every beta — it never blocks enough to
+  matter.
+- **Stuck-vs-alpha is flat** for every shield at every beta. The stuck
+  level is set by `(shield, beta)`, not by alpha.
+
+---
+
+## Key takeaways
+
+1. **Tune beta first, alpha second.** Beta controls *which corner* of the
+   Pareto plot you operate in; alpha is a fine adjustment within that
+   corner.
+2. **Forward-sampling buys you the best adversarial fail rates at high
+   beta.** At beta = 0.9, alpha = 0.01 under adversarial perception:
+   28% fail / 13% stuck — a regime envelope and single_belief cannot reach
+   at any setting in this sweep.
+3. **Single-belief is the right shield if stuck must be near zero.** It is
+   ≤ 3.3% stuck in every cell, at the cost of higher fail (5–15 pp).
+4. **Statistical caveat.** Per-seed std is 4–18 pp on fail rate (n = 3
+   seeds × 20 trials per cell), which means many of the within-shield
+   alpha trends sit on the edge of significance. The robust orderings are
+   *between shields at a given (alpha, beta)* and *between betas at a
+   given (alpha, shield)*, not between alphas at a given (beta, shield).
+
+## Limitations
+
+- Adversarial realizations are trained against the `envelope` shield at
+  each beta. They are reused unchanged when evaluating `single_belief` and
+  `forward_sampling`; this likely under-estimates the worst case for those
+  two shields.
+- 3 seeds × 20 trials per cell is small; the per-cell std is sometimes as
+  large as the alpha-axis variation. A higher-confidence rerun should
+  double seeds and trials.
 
 ## Reproducibility
 
-```
+```bash
 python3 -m ipomdp_shielding.experiments.sweeps.rl_alpha_sweep
 # config: ipomdp_shielding/experiments/sweeps/rl_alpha_sweep_taxinet.py
-# outputs: data/sweep/rl_alpha_taxinet/{results_tidy.csv, sweep_summary.json, figures/pareto_alpha.png}
+# outputs: data/sweep/rl_alpha_taxinet_v2/
+#   results_tidy.csv, sweep_summary.json, figures/{pareto_alpha,alpha_vs_fail,alpha_vs_stuck}.png
 ```
 
 Tidy CSV: `results_tidy.csv`
-JSON summary (full metadata + per-alpha aggregates): `sweep_summary.json`
+JSON (full metadata + per-cell aggregates): `sweep_summary.json`

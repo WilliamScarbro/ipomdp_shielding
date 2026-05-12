@@ -1,4 +1,4 @@
-"""Tiny alpha sweep smoke-test config for TaxiNet (fast pipeline check)."""
+"""Tiny alpha-beta sweep smoke-test config for TaxiNet (fast pipeline check)."""
 
 from .rl_alpha_sweep import AlphaSweepConfig
 from ...CaseStudies.Taxinet import build_taxinet_ipomdp
@@ -6,9 +6,9 @@ from ...CaseStudies.Taxinet import build_taxinet_ipomdp
 config = AlphaSweepConfig(
     case_study_name="taxinet",
     build_ipomdp_fn=build_taxinet_ipomdp,
-    alphas=[0.05, 0.2],
-    beta=0.8,
-    seeds=[42, 123],
+    alphas=[0.05, 0.1, 0.2],
+    betas=[0.7, 0.8, 0.9],
+    seeds=[42],
     num_trials=5,
     trial_length=10,
     rl_episodes=50,
@@ -18,7 +18,7 @@ config = AlphaSweepConfig(
     opt_iterations=2,
     shields=["single_belief", "envelope", "forward_sampling"],
     perceptions=["uniform", "adversarial_opt"],
-    results_dir="./data/sweep/rl_alpha_taxinet_smoke",
+    results_dir="./data/sweep/rl_alpha_taxinet_smoke_v2",
     ipomdp_base_kwargs={
         "confidence_method": "Clopper_Pearson",
         "train_fraction": 0.8,

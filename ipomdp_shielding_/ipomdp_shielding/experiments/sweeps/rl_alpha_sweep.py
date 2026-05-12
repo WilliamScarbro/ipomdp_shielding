@@ -1,9 +1,10 @@
-"""Alpha sweep for RL shielding at fixed shield threshold beta.
+"""Alpha sweep for RL shielding at multiple shield thresholds beta.
 
-A 1D analog of `rl_alpha_beta_sweep.py`: sweeps over the CI significance
-`alpha` (which controls Clopper-Pearson interval width) while holding the
-shield threshold `beta` fixed. Produces a tidy CSV and a Pareto scatter
-(fail vs stuck) with one curve per shield, points labelled by alpha.
+Sweeps over the CI significance `alpha` (which controls Clopper-Pearson
+interval width) across a small set of fixed shield thresholds `beta`.
+Produces a tidy CSV, Pareto scatter (fail vs stuck) per (perception, beta)
+panel without connecting lines, and alpha-trend line plots for fail and
+stuck rates.
 
 Usage:
     python -m ipomdp_shielding.experiments.sweeps.rl_alpha_sweep [--config CONFIG_MODULE]
@@ -42,21 +43,21 @@ from ...MonteCarlo import (
 
 @dataclass
 class AlphaSweepConfig:
-    """Configuration for alpha sweep experiment at fixed beta."""
+    """Configuration for alpha sweep experiment across a few betas."""
 
     case_study_name: str = "taxinet"
     build_ipomdp_fn: Callable = None
 
     # Sweep
     alphas: List[float] = field(default_factory=lambda: [0.01, 0.05, 0.1, 0.2])
-    beta: float = 0.8
+    betas: List[float] = field(default_factory=lambda: [0.8])
 
     # Per-grid-point evaluation
     seeds: List[int] = field(default_factory=lambda: [42, 123, 456, 789, 1024])
     num_trials: int = 30
     trial_length: int = 20
 
-    # RL training (done once per alpha)
+    # RL training (done once per alpha; beta-independent)
     rl_episodes: int = 500
     rl_episode_length: int = 20
     opt_candidates: int = 20
@@ -85,23 +86,26 @@ class AlphaSweepConfig:
 
 
 def run_alpha_sweep(config: AlphaSweepConfig):
-    """Run the alpha sweep at fixed beta.
+    """Run the alpha sweep across the configured betas.
 
-    For each alpha: build IPOMDP, train RL agent and adversarial realization
-    once, then evaluate across all seeds / perceptions / shields at the single
-    fixed beta.
+    Outer loop: alpha (rebuild IPOMDP, train RL agent once per alpha because
+    RL training is beta-independent).
+    Inner loop: beta (train adversarial realization per (alpha,beta), then
+    evaluate across seeds / perceptions / shields).
     """
     os.makedirs(config.results_dir, exist_ok=True)
     tidy_rows = []
     summary = {"config": config.__dict__.copy(), "grid_results": {}}
     summary["config"]["build_ipomdp_fn"] = str(config.build_ipomdp_fn)
 
-    total_points = len(config.alphas) * len(config.seeds)
+    total_cells = (len(config.alphas) * len(config.betas) * len(config.seeds)
+                   * len(config.shields) * len(config.perceptions))
     print("=" * 70)
-    print(f"ALPHA SWEEP - {config.case_study_name.upper()}  (beta = {config.beta})")
+    print(f"ALPHA SWEEP - {config.case_study_name.upper()}")
     print(f"Alphas: {config.alphas}")
+    print(f"Betas:  {config.betas}")
     print(f"Seeds:  {config.seeds}")
-    print(f"Total grid points: {total_points}")
+    print(f"Total MC cells: {total_cells}")
     print("=" * 70)
 
     t0 = time.time()
@@ -116,9 +120,8 @@ def run_alpha_sweep(config: AlphaSweepConfig):
 
         cache_prefix = os.path.join(config.results_dir, f"cache_alpha{alpha}")
         rl_cache = f"{cache_prefix}_rl_agent.pt"
-        opt_cache = f"{cache_prefix}_opt_realization.json"
 
-        # RL agent
+        # RL agent (beta-independent; cached per alpha)
         if os.path.exists(rl_cache):
             print(f"  Loading cached RL agent for alpha={alpha}")
             rl_selector = NeuralActionSelector.load(rl_cache, ipomdp)
@@ -138,116 +141,125 @@ def run_alpha_sweep(config: AlphaSweepConfig):
             )
             rl_selector.save(rl_cache)
         rl_selector.exploration_rate = 0.0
-
-        # Adversarial realizations (optionally per shield target)
-        targets = list(dict.fromkeys(config.adversarial_opt_targets))
-        opt_perceptions: Dict[str, FixedRealizationPerceptionModel] = {}
-        for target in targets:
-            target_cache = (
-                opt_cache if target == "envelope"
-                else opt_cache.replace(".json", f"_{target}.json")
-            )
-            if os.path.exists(target_cache):
-                print(f"  Loading cached adversarial realization ({target}) for alpha={alpha}")
-                opt_perceptions[target] = FixedRealizationPerceptionModel.load(target_cache)
-                continue
-
-            print(f"  Training adversarial realization ({target}) for alpha={alpha}...")
-            if target == "envelope":
-                rt_factory = create_envelope_shield_factory(ipomdp, pp_shield, config.beta)
-            elif target == "single_belief":
-                rt_factory = create_single_belief_shield_factory(pomdp, pp_shield, config.beta)
-            else:
-                raise ValueError(
-                    f"Unknown adversarial_opt_target={target!r}. "
-                    "Supported: 'envelope', 'single_belief'."
-                )
-            opt_perceptions[target] = train_optimal_realization(
-                ipomdp=ipomdp,
-                pp_shield=pp_shield,
-                rt_shield_factory=rt_factory,
-                action_selector=RandomActionSelector(),
-                initial_generator=RandomInitialState(),
-                num_candidates=config.opt_candidates,
-                num_trials_per_candidate=config.opt_trials_per_candidate,
-                max_iterations=config.opt_iterations,
-                trial_length=config.trial_length,
-                save_path=target_cache,
-                verbose=False,
-            )
-
-        perceptions: Dict[str, Any] = {}
-        if "uniform" in config.perceptions:
-            perceptions["uniform"] = UniformPerceptionModel()
-        if "adversarial_opt" in config.perceptions:
-            perceptions["adversarial_opt"] = opt_perceptions
-
-        # Build shield factories at the fixed beta
-        shield_factories = {}
-        if "single_belief" in config.shields:
-            shield_factories["single_belief"] = create_single_belief_shield_factory(
-                pomdp, pp_shield, config.beta
-            )
-        if "envelope" in config.shields:
-            shield_factories["envelope"] = create_envelope_shield_factory(
-                ipomdp, pp_shield, config.beta
-            )
-        if "forward_sampling" in config.shields:
-            shield_factories["forward_sampling"] = create_forward_sampling_shield_factory(
-                ipomdp, pp_shield, config.beta,
-                budget=config.fs_budget, K_samples=config.fs_K_samples,
-            )
-
         rl_wrapped = ShieldCompliantSelector(rl_selector, all_actions)
 
-        for seed in config.seeds:
-            for p_name, perception in perceptions.items():
-                for sh_name, sh_factory in shield_factories.items():
-                    adv_target = ""
-                    perception_model = perception
-                    if p_name == "adversarial_opt" and isinstance(perception, dict):
-                        if sh_name in perception:
-                            perception_model = perception[sh_name]
-                            adv_target = sh_name
-                        elif "envelope" in perception:
-                            perception_model = perception["envelope"]
-                            adv_target = "envelope"
-                        else:
-                            perception_model = next(iter(perception.values()))
-                            adv_target = "unknown"
-                    trial_results = run_monte_carlo_trials(
-                        ipomdp=ipomdp,
-                        pp_shield=pp_shield,
-                        perception=perception_model,
-                        rt_shield_factory=sh_factory,
-                        action_selector=rl_wrapped,
-                        initial_generator=RandomInitialState(),
-                        num_trials=config.num_trials,
-                        trial_length=config.trial_length,
-                        seed=seed,
+        for beta in config.betas:
+            print(f"\n  --- beta = {beta} ---")
+
+            beta_prefix = os.path.join(
+                config.results_dir, f"cache_alpha{alpha}_beta{beta}"
+            )
+            opt_cache = f"{beta_prefix}_opt_realization.json"
+
+            # Adversarial realizations per (alpha, beta) per target
+            targets = list(dict.fromkeys(config.adversarial_opt_targets))
+            opt_perceptions: Dict[str, FixedRealizationPerceptionModel] = {}
+            for target in targets:
+                target_cache = (
+                    opt_cache if target == "envelope"
+                    else opt_cache.replace(".json", f"_{target}.json")
+                )
+                if os.path.exists(target_cache):
+                    print(f"    Loading cached adversarial realization ({target})"
+                          f" for alpha={alpha}, beta={beta}")
+                    opt_perceptions[target] = FixedRealizationPerceptionModel.load(target_cache)
+                    continue
+
+                print(f"    Training adversarial realization ({target}) for"
+                      f" alpha={alpha}, beta={beta}...")
+                if target == "envelope":
+                    rt_factory = create_envelope_shield_factory(ipomdp, pp_shield, beta)
+                elif target == "single_belief":
+                    rt_factory = create_single_belief_shield_factory(pomdp, pp_shield, beta)
+                else:
+                    raise ValueError(
+                        f"Unknown adversarial_opt_target={target!r}. "
+                        "Supported: 'envelope', 'single_belief'."
                     )
-                    metrics = compute_safety_metrics(trial_results)
+                opt_perceptions[target] = train_optimal_realization(
+                    ipomdp=ipomdp,
+                    pp_shield=pp_shield,
+                    rt_shield_factory=rt_factory,
+                    action_selector=RandomActionSelector(),
+                    initial_generator=RandomInitialState(),
+                    num_candidates=config.opt_candidates,
+                    num_trials_per_candidate=config.opt_trials_per_candidate,
+                    max_iterations=config.opt_iterations,
+                    trial_length=config.trial_length,
+                    save_path=target_cache,
+                    verbose=False,
+                )
 
-                    row = {
-                        "alpha": alpha,
-                        "beta": config.beta,
-                        "seed": seed,
-                        "perception": p_name,
-                        "adversarial_opt_target": adv_target,
-                        "shield": sh_name,
-                        "selector": "rl",
-                        "fail_rate": metrics.fail_rate,
-                        "stuck_rate": metrics.stuck_rate,
-                        "safe_rate": metrics.safe_rate,
-                        "mean_steps": metrics.mean_steps,
-                        "num_trials": metrics.num_trials,
-                    }
-                    add_rate_cis(row, metrics.num_trials)
-                    tidy_rows.append(row)
+            perceptions: Dict[str, Any] = {}
+            if "uniform" in config.perceptions:
+                perceptions["uniform"] = UniformPerceptionModel()
+            if "adversarial_opt" in config.perceptions:
+                perceptions["adversarial_opt"] = opt_perceptions
 
-                    print(f"    {p_name}/{sh_name}/seed={seed}: "
-                          f"fail={metrics.fail_rate:.1%} stuck={metrics.stuck_rate:.1%} "
-                          f"safe={metrics.safe_rate:.1%}")
+            # Shield factories at this beta
+            shield_factories = {}
+            if "single_belief" in config.shields:
+                shield_factories["single_belief"] = create_single_belief_shield_factory(
+                    pomdp, pp_shield, beta
+                )
+            if "envelope" in config.shields:
+                shield_factories["envelope"] = create_envelope_shield_factory(
+                    ipomdp, pp_shield, beta
+                )
+            if "forward_sampling" in config.shields:
+                shield_factories["forward_sampling"] = create_forward_sampling_shield_factory(
+                    ipomdp, pp_shield, beta,
+                    budget=config.fs_budget, K_samples=config.fs_K_samples,
+                )
+
+            for seed in config.seeds:
+                for p_name, perception in perceptions.items():
+                    for sh_name, sh_factory in shield_factories.items():
+                        adv_target = ""
+                        perception_model = perception
+                        if p_name == "adversarial_opt" and isinstance(perception, dict):
+                            if sh_name in perception:
+                                perception_model = perception[sh_name]
+                                adv_target = sh_name
+                            elif "envelope" in perception:
+                                perception_model = perception["envelope"]
+                                adv_target = "envelope"
+                            else:
+                                perception_model = next(iter(perception.values()))
+                                adv_target = "unknown"
+                        trial_results = run_monte_carlo_trials(
+                            ipomdp=ipomdp,
+                            pp_shield=pp_shield,
+                            perception=perception_model,
+                            rt_shield_factory=sh_factory,
+                            action_selector=rl_wrapped,
+                            initial_generator=RandomInitialState(),
+                            num_trials=config.num_trials,
+                            trial_length=config.trial_length,
+                            seed=seed,
+                        )
+                        metrics = compute_safety_metrics(trial_results)
+
+                        row = {
+                            "alpha": alpha,
+                            "beta": beta,
+                            "seed": seed,
+                            "perception": p_name,
+                            "adversarial_opt_target": adv_target,
+                            "shield": sh_name,
+                            "selector": "rl",
+                            "fail_rate": metrics.fail_rate,
+                            "stuck_rate": metrics.stuck_rate,
+                            "safe_rate": metrics.safe_rate,
+                            "mean_steps": metrics.mean_steps,
+                            "num_trials": metrics.num_trials,
+                        }
+                        add_rate_cis(row, metrics.num_trials)
+                        tidy_rows.append(row)
+
+                        print(f"      {p_name}/{sh_name}/seed={seed}: "
+                              f"fail={metrics.fail_rate:.1%} stuck={metrics.stuck_rate:.1%} "
+                              f"safe={metrics.safe_rate:.1%}")
 
     total_time = time.time() - t0
     print(f"\nTotal sweep time: {total_time:.1f}s")
@@ -270,27 +282,29 @@ def run_alpha_sweep(config: AlphaSweepConfig):
     save_experiment_results(json_path, summary, metadata)
     print(f"Summary saved to {json_path}")
 
-    _plot_sweep(agg, config)
+    _plot_pareto(agg, config)
+    _plot_alpha_trends(agg, config)
 
     return tidy_rows, summary
 
 
 def _aggregate_sweep(tidy_rows):
-    """Aggregate per-seed results into mean +/- std per (alpha, perception, shield)."""
+    """Aggregate per-seed results into mean +/- std per (alpha,beta,perception,shield)."""
     from collections import defaultdict
     groups = defaultdict(list)
     for row in tidy_rows:
-        key = (row["alpha"], row["perception"], row["shield"])
+        key = (row["alpha"], row["beta"], row["perception"], row["shield"])
         groups[key].append(row)
 
     agg = []
-    for (alpha, perc, shield), rows in sorted(groups.items()):
+    for (alpha, beta, perc, shield), rows in sorted(groups.items()):
         fail_rates = [r["fail_rate"] for r in rows]
         stuck_rates = [r["stuck_rate"] for r in rows]
         safe_rates = [r["safe_rate"] for r in rows]
         mean_steps = [r["mean_steps"] for r in rows]
         agg.append({
             "alpha": alpha,
+            "beta": beta,
             "perception": perc,
             "shield": shield,
             "fail_rate_mean": float(np.mean(fail_rates)),
@@ -312,84 +326,84 @@ PERCEPTION_LABELS = {
 }
 
 SHIELD_STYLES = {
-    "single_belief":    {"color": "steelblue", "marker": "o", "label": "single_belief"},
-    "envelope":         {"color": "seagreen",  "marker": "o", "label": "envelope"},
-    "forward_sampling": {"color": "darkorange", "marker": "o", "label": "forward_sampling"},
+    "single_belief":    {"color": "steelblue",  "marker": "o", "label": "single_belief"},
+    "envelope":         {"color": "seagreen",   "marker": "s", "label": "envelope"},
+    "forward_sampling": {"color": "darkorange", "marker": "^", "label": "forward_sampling"},
 }
 
 
-def _plot_sweep(agg, config):
-    """Pareto scatter: fail_rate vs stuck_rate, one curve per shield, points = alphas.
+def _setup_mpl():
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    return plt
 
-    Mirrors `plot_pareto_frontiers.py` style:
-    one panel per perception, x = stuck rate, y = fail rate, alpha annotated.
-    """
+
+def _filter(agg, perc, shield, beta):
+    return [r for r in agg
+            if r["perception"] == perc
+            and r["shield"] == shield
+            and abs(r["beta"] - beta) < 1e-9]
+
+
+def _plot_pareto(agg, config):
+    """Pareto SCATTER (no connecting lines), one panel per (perception, beta)."""
     try:
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
+        plt = _setup_mpl()
     except ImportError:
-        print("matplotlib not available, skipping sweep plots")
+        print("matplotlib not available, skipping Pareto plot")
         return
 
     figures_dir = os.path.join(config.results_dir, "figures")
     os.makedirs(figures_dir, exist_ok=True)
 
-    alphas = sorted(config.alphas)
-
+    betas = sorted(config.betas)
     perceptions_present = [p for p in config.perceptions
                            if any(r["perception"] == p for r in agg)]
     if not perceptions_present:
         print("  No aggregated rows to plot")
         return
 
-    n = len(perceptions_present)
-    fig, axes = plt.subplots(1, n, figsize=(6 * n, 5), squeeze=False)
+    nr = len(perceptions_present)
+    nc = len(betas)
+    fig, axes = plt.subplots(nr, nc, figsize=(5 * nc, 4.3 * nr), squeeze=False)
 
-    for col, perc in enumerate(perceptions_present):
-        ax = axes[0, col]
+    for r, perc in enumerate(perceptions_present):
+        for c, beta in enumerate(betas):
+            ax = axes[r, c]
+            for shield in config.shields:
+                subset = _filter(agg, perc, shield, beta)
+                if not subset:
+                    continue
+                subset.sort(key=lambda x: x["alpha"])
+                xs = [x["stuck_rate_mean"] for x in subset]
+                ys = [x["fail_rate_mean"] for x in subset]
+                ts = [x["alpha"] for x in subset]
+                style = SHIELD_STYLES.get(shield, {"color": None, "marker": "o", "label": shield})
+                ax.scatter(xs, ys, c=style["color"], marker=style["marker"],
+                           s=45, label=style["label"], zorder=3,
+                           edgecolors="white", linewidths=0.5)
+                # Annotate every alpha point (small font)
+                for x, y, t in zip(xs, ys, ts):
+                    ax.annotate(f"{t:g}", (x, y),
+                                textcoords="offset points", xytext=(5, 3),
+                                fontsize=6.5, color=style["color"])
+            ax.set_xlim(-0.05, 1.05)
+            ax.set_ylim(-0.05, 1.05)
+            if r == nr - 1:
+                ax.set_xlabel("Stuck rate", fontsize=9)
+            if c == 0:
+                ax.set_ylabel(f"{PERCEPTION_LABELS.get(perc, perc)}\nFail rate", fontsize=9)
+            if r == 0:
+                ax.set_title(f"beta = {beta:g}", fontsize=10)
+            ax.grid(True, alpha=0.3)
+            if r == 0 and c == 0:
+                ax.legend(loc="upper right", fontsize=8)
 
-        for shield in config.shields:
-            subset = [r for r in agg
-                      if r["perception"] == perc and r["shield"] == shield]
-            if not subset:
-                continue
-            subset.sort(key=lambda r: r["alpha"])
-            xs = [r["stuck_rate_mean"] for r in subset]
-            ys = [r["fail_rate_mean"] for r in subset]
-            ts = [r["alpha"] for r in subset]
-            style = SHIELD_STYLES.get(shield, {"color": None, "marker": "o", "label": shield})
-            color = style["color"]
-            ax.plot(xs, ys, linestyle="-", marker=style["marker"], color=color,
-                    linewidth=1.5, markersize=5, label=style["label"], zorder=3)
-            # Annotate every other alpha + endpoints to reduce clutter
-            for i, (x, y, t) in enumerate(zip(xs, ys, ts)):
-                if i % 2 == 0 or i == len(ts) - 1:
-                    ax.annotate(f"{t:.2f}", (x, y),
-                                textcoords="offset points", xytext=(4, 3),
-                                fontsize=7, color=color)
-            # Arrow: low->high alpha
-            if len(xs) >= 2:
-                ax.annotate(
-                    "",
-                    xy=(xs[0] + 0.25 * (xs[1] - xs[0]),
-                        ys[0] + 0.25 * (ys[1] - ys[0])),
-                    xytext=(xs[0], ys[0]),
-                    arrowprops=dict(arrowstyle="->", color=color, lw=1.0),
-                )
-
-        ax.set_xlim(-0.05, 1.05)
-        ax.set_ylim(-0.05, 1.05)
-        ax.set_xlabel("Stuck rate", fontsize=9)
-        if col == 0:
-            ax.set_ylabel("Fail rate", fontsize=9)
-            ax.legend(loc="upper right", fontsize=8)
-        ax.set_title(PERCEPTION_LABELS.get(perc, perc), fontsize=10)
-        ax.grid(True, alpha=0.3)
-
+    alphas = sorted(config.alphas)
     fig.suptitle(
-        f"Pareto Frontier — {config.case_study_name.upper()} "
-        f"(RL selector, beta = {config.beta}, alpha ∈ {alphas[0]}–{alphas[-1]})",
+        f"Pareto scatter — {config.case_study_name.upper()} "
+        f"(RL selector, alpha ∈ [{alphas[0]:g}, {alphas[-1]:g}], n={len(alphas)} points)",
         fontsize=11,
     )
     plt.tight_layout()
@@ -397,6 +411,71 @@ def _plot_sweep(agg, config):
     fig.savefig(os.path.join(figures_dir, fname), dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"  Saved {fname}")
+
+
+def _plot_alpha_trends(agg, config):
+    """Line plots of fail rate vs alpha and stuck rate vs alpha per (perception, beta)."""
+    try:
+        plt = _setup_mpl()
+    except ImportError:
+        print("matplotlib not available, skipping trend plots")
+        return
+
+    figures_dir = os.path.join(config.results_dir, "figures")
+    os.makedirs(figures_dir, exist_ok=True)
+
+    betas = sorted(config.betas)
+    perceptions_present = [p for p in config.perceptions
+                           if any(r["perception"] == p for r in agg)]
+    if not perceptions_present:
+        return
+
+    for metric_key, metric_label, suffix in [
+        ("fail_rate_mean", "Fail rate", "fail"),
+        ("stuck_rate_mean", "Stuck rate", "stuck"),
+    ]:
+        nr = len(perceptions_present)
+        nc = len(betas)
+        fig, axes = plt.subplots(nr, nc, figsize=(5 * nc, 4.0 * nr), squeeze=False)
+
+        for r, perc in enumerate(perceptions_present):
+            for c, beta in enumerate(betas):
+                ax = axes[r, c]
+                for shield in config.shields:
+                    subset = _filter(agg, perc, shield, beta)
+                    if not subset:
+                        continue
+                    subset.sort(key=lambda x: x["alpha"])
+                    xs = [x["alpha"] for x in subset]
+                    ys = [x[metric_key] for x in subset]
+                    std_key = metric_key.replace("_mean", "_std")
+                    yerr = [x[std_key] for x in subset]
+                    style = SHIELD_STYLES.get(shield, {"color": None, "marker": "o", "label": shield})
+                    ax.errorbar(xs, ys, yerr=yerr, marker=style["marker"],
+                                color=style["color"], label=style["label"],
+                                linewidth=1.4, markersize=5,
+                                capsize=2, elinewidth=0.8, alpha=0.9)
+                ax.set_ylim(-0.05, 1.05)
+                if r == nr - 1:
+                    ax.set_xlabel("alpha", fontsize=9)
+                if c == 0:
+                    ax.set_ylabel(f"{PERCEPTION_LABELS.get(perc, perc)}\n{metric_label}", fontsize=9)
+                if r == 0:
+                    ax.set_title(f"beta = {beta:g}", fontsize=10)
+                ax.grid(True, alpha=0.3)
+                if r == 0 and c == 0:
+                    ax.legend(loc="best", fontsize=8)
+
+        fig.suptitle(
+            f"{metric_label} vs alpha — {config.case_study_name.upper()} "
+            f"(RL selector, betas {betas})",
+            fontsize=11,
+        )
+        plt.tight_layout()
+        fname = f"alpha_vs_{suffix}.png"
+        fig.savefig(os.path.join(figures_dir, fname), dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"  Saved {fname}")
     print(f"All sweep figures saved to {figures_dir}")
 
 
