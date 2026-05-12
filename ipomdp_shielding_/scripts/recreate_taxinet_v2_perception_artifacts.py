@@ -44,6 +44,16 @@ class AxisOutputs:
     targets: np.ndarray
 
 
+def axis_accuracy_metrics(cte: AxisOutputs, he: AxisOutputs) -> dict[str, float]:
+    cte_match = cte.preds == cte.targets
+    he_match = he.preds == he.targets
+    return {
+        "cte_accuracy": float(np.mean(cte_match)),
+        "he_accuracy": float(np.mean(he_match)),
+        "joint_accuracy": float(np.mean(cte_match & he_match)),
+    }
+
+
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as handle:
@@ -366,7 +376,7 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument("--batch-size", type=int, default=128)
-    parser.add_argument("--num-workers", type=int, default=4)
+    parser.add_argument("--num-workers", type=int, default=0)
     parser.add_argument("--device", choices=["cpu", "cuda"], default="cpu")
     return parser.parse_args()
 
@@ -399,6 +409,7 @@ def main() -> None:
     cal_cte, cal_he = run_inference(model, cal_loader, device)
     print("Running test inference...")
     test_cte, test_he = run_inference(model, test_loader, device)
+    test_metrics = axis_accuracy_metrics(test_cte, test_he)
 
     compiler_dir = args.output_root / "compiler" / "lib" / "acc90"
     perception_dir = args.output_root / "perception"
@@ -500,6 +511,7 @@ def main() -> None:
             "cal": len(cal_indices),
             "test": len(test_indices),
         },
+        "test_metrics": test_metrics,
         "qhat": qhats,
         "conformal_artifact_source": "locally_regenerated_from_calibration_split_with_top1_nonempty_repair",
         "paired_axis_validation": paired_axis_validation,

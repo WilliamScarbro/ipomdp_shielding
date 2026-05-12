@@ -54,7 +54,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--rl-cache-path",
         type=Path,
-        default=Path("results/cache/rl_taxinet_v2_point_modular_uniform_h30_lowacc87_93_agent.pt"),
+        default=Path("results/cache/rl_taxinet_v2_point_modular_uniform_h30_paper_model_agent.pt"),
+    )
+    parser.add_argument(
+        "--base-checkpoint",
+        type=Path,
+        default=Path("/home/dev/cp-control/train/models/best_model.pth"),
+    )
+    parser.add_argument("--measured-cte-accuracy", type=float, default=None)
+    parser.add_argument("--measured-he-accuracy", type=float, default=None)
+    parser.add_argument("--measured-joint-accuracy", type=float, default=None)
+    parser.add_argument(
+        "--conformal-mode",
+        default="shared-event/axis-paired",
     )
     parser.add_argument(
         "--initial",
@@ -64,12 +76,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("results/taxinet_v2/conformal_rl_sweep/beta_sweep_lowacc87_93.json"),
+        default=Path("results/taxinet_v2/conformal_rl_sweep/beta_sweep_paper_model.json"),
     )
     parser.add_argument(
         "--csv-output",
         type=Path,
-        default=Path("results/taxinet_v2/conformal_rl_sweep/beta_sweep_lowacc87_93.csv"),
+        default=Path("results/taxinet_v2/conformal_rl_sweep/beta_sweep_paper_model.csv"),
     )
     args = parser.parse_args()
     if args.rl_episode_length is None:
@@ -142,6 +154,11 @@ def _single_run_args(args: argparse.Namespace, beta: float, action_filter: float
         rl_episodes=args.rl_episodes,
         rl_episode_length=args.rl_episode_length,
         rl_cache_path=args.rl_cache_path,
+        base_checkpoint=args.base_checkpoint,
+        measured_cte_accuracy=args.measured_cte_accuracy,
+        measured_he_accuracy=args.measured_he_accuracy,
+        measured_joint_accuracy=args.measured_joint_accuracy,
+        conformal_mode=args.conformal_mode,
         store_trajectories=False,
         initial=args.initial,
         output=Path("__unused__.json"),
@@ -207,6 +224,11 @@ def run_beta_sweep(args: argparse.Namespace) -> dict:
                     "rl_episodes": args.rl_episodes,
                     "rl_episode_length": args.rl_episode_length,
                     "rl_cache_path": str(args.rl_cache_path),
+                    "base_checkpoint": str(args.base_checkpoint),
+                    "measured_cte_accuracy": args.measured_cte_accuracy,
+                    "measured_he_accuracy": args.measured_he_accuracy,
+                    "measured_joint_accuracy": args.measured_joint_accuracy,
+                    "conformal_mode": args.conformal_mode,
                     "initial": args.initial,
                     "output": str(args.output),
                     "csv_output": str(args.csv_output),
@@ -239,6 +261,11 @@ def run_beta_sweep(args: argparse.Namespace) -> dict:
                 "rl_episodes": args.rl_episodes,
                 "rl_episode_length": args.rl_episode_length,
                 "rl_cache_path": str(args.rl_cache_path),
+                "base_checkpoint": str(args.base_checkpoint),
+                "measured_cte_accuracy": args.measured_cte_accuracy,
+                "measured_he_accuracy": args.measured_he_accuracy,
+                "measured_joint_accuracy": args.measured_joint_accuracy,
+                "conformal_mode": args.conformal_mode,
                 "initial": args.initial,
                 "output": str(args.output),
                 "csv_output": str(args.csv_output),

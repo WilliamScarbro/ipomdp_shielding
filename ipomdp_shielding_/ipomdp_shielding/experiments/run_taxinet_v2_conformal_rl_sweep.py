@@ -69,6 +69,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--rl-episodes", type=int, default=500)
     parser.add_argument("--rl-episode-length", type=int, default=None)
     parser.add_argument("--rl-cache-path", type=Path, default=None)
+    parser.add_argument(
+        "--base-checkpoint",
+        type=Path,
+        default=Path("/home/dev/cp-control/train/models/best_model.pth"),
+    )
+    parser.add_argument("--measured-cte-accuracy", type=float, default=None)
+    parser.add_argument("--measured-he-accuracy", type=float, default=None)
+    parser.add_argument("--measured-joint-accuracy", type=float, default=None)
+    parser.add_argument(
+        "--conformal-mode",
+        default="shared-event/axis-paired",
+        help="Short provenance label for the conformal artifact construction mode.",
+    )
     parser.add_argument("--store-trajectories", action="store_true")
     parser.add_argument(
         "--initial",
@@ -107,7 +120,7 @@ def _initial_generator(name: str):
 
 def _json_safe_args(args: argparse.Namespace) -> dict:
     safe = vars(args).copy()
-    for key in ("output", "csv_output", "rl_cache_path"):
+    for key in ("output", "csv_output", "rl_cache_path", "base_checkpoint"):
         safe[key] = str(safe[key])
     return safe
 
@@ -518,7 +531,13 @@ def run_sweep(args: argparse.Namespace) -> dict:
     metadata = {
         "case_study": "taxinet_v2_conformal_rl_sweep",
         "trial_length": args.trial_length,
-        "base_perception_model": "cp-control train/models/best_model.pth",
+        "base_perception_model": str(args.base_checkpoint),
+        "measured_test_accuracy": {
+            "cte_accuracy": args.measured_cte_accuracy,
+            "he_accuracy": args.measured_he_accuracy,
+            "joint_accuracy": args.measured_joint_accuracy,
+        },
+        "conformal_mode": args.conformal_mode,
         "dynamics": "cp-control stochastic action perturbation",
         "rl_observations": "point estimates for every method",
         "point_methods_use": (

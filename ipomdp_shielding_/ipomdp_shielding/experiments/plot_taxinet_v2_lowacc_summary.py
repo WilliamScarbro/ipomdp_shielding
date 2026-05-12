@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -14,11 +15,11 @@ import numpy as np
 
 
 RESULTS_DIR = Path("results/taxinet_v2/conformal_rl_sweep")
-HEADLINE_JSON = RESULTS_DIR / "headline_1000_lowacc87_93.json"
-BETA_SWEEP_JSON = RESULTS_DIR / "beta_sweep_lowacc87_93.json"
-OUT_DIR = RESULTS_DIR / "figures_lowacc87_93"
-SUMMARY_MD = RESULTS_DIR / "evaluation_summary_lowacc87_93.md"
-LOWACC_METRICS_JSON = Path("results/cache/taxinet_v2_lowacc_axis_noise_047_053/metrics.json")
+HEADLINE_JSON = RESULTS_DIR / "headline_1000_paper_model.json"
+BETA_SWEEP_JSON = RESULTS_DIR / "beta_sweep_paper_model.json"
+OUT_DIR = RESULTS_DIR / "figures_paper_model"
+SUMMARY_MD = RESULTS_DIR / "evaluation_summary_paper_model.md"
+LOWACC_METRICS_JSON = RESULTS_DIR / "paper_model_preflight.json"
 SCARBRO_JSON = Path("ipomdp_shielding_/results/taxinet_v2/scarbro_baseline_import.json")
 
 COLORS = {
@@ -34,6 +35,18 @@ def _load_json(path: Path) -> dict:
         return json.load(handle)
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--headline-json", type=Path, default=HEADLINE_JSON)
+    parser.add_argument("--beta-sweep-json", type=Path, default=BETA_SWEEP_JSON)
+    parser.add_argument("--metrics-json", type=Path, default=LOWACC_METRICS_JSON)
+    parser.add_argument("--scarbro-json", type=Path, default=SCARBRO_JSON)
+    parser.add_argument("--out-dir", type=Path, default=OUT_DIR)
+    parser.add_argument("--summary-md", type=Path, default=SUMMARY_MD)
+    parser.add_argument("--title-prefix", default="TaxiNetV2 Paper-Model")
+    return parser.parse_args()
+
+
 def _ordered_headline_rows(headline: dict) -> List[Tuple[str, dict]]:
     rows = [
         ("single_belief", headline["point_baselines"]["single_belief"]),
@@ -45,7 +58,7 @@ def _ordered_headline_rows(headline: dict) -> List[Tuple[str, dict]]:
     return rows
 
 
-def make_headline_bars(headline: dict) -> Path:
+def make_headline_bars(headline: dict, out_dir: Path, title_prefix: str) -> Path:
     rows = _ordered_headline_rows(headline)
     labels = [name for name, _ in rows]
     fail = np.array([metrics["fail_rate"] * 100 for _, metrics in rows])
@@ -59,7 +72,7 @@ def make_headline_bars(headline: dict) -> Path:
     ax.bar(x, stuck, bottom=fail, color=colors, alpha=0.35, hatch="///", edgecolor="white", label="Stuck")
     ax.bar(x, safe, bottom=fail + stuck, color=colors, alpha=0.12, label="Safe")
     ax.set_ylabel("Rate (%)")
-    ax.set_title("TaxiNetV2 Low-Accuracy Headline Results")
+    ax.set_title(f"{title_prefix} Headline Results")
     ax.set_xticks(x)
     ax.set_xticklabels(labels, rotation=20, ha="right")
     ax.set_ylim(0, 105)
@@ -67,13 +80,13 @@ def make_headline_bars(headline: dict) -> Path:
     ax.legend(loc="upper right")
     fig.tight_layout()
 
-    out = OUT_DIR / "headline_rates.png"
+    out = out_dir / "headline_rates.png"
     fig.savefig(out, dpi=160, bbox_inches="tight")
     plt.close(fig)
     return out
 
 
-def make_conformal_size_plot(headline: dict) -> Path:
+def make_conformal_size_plot(headline: dict, out_dir: Path, title_prefix: str) -> Path:
     confidences = ["0.95", "0.99", "0.995"]
     sizes = [
         headline["conformal_results"][confidence]["cp_control_conformal"]["mean_conformal_cartesian_size"]
@@ -83,11 +96,11 @@ def make_conformal_size_plot(headline: dict) -> Path:
     ax.bar(confidences, sizes, color=COLORS["cp_control_conformal"])
     ax.set_ylabel("Mean Cartesian conformal set size")
     ax.set_xlabel("Confidence level")
-    ax.set_title("Conformal Set Growth at Lower Base Accuracy")
+    ax.set_title(f"{title_prefix} Conformal Set Sizes")
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout()
 
-    out = OUT_DIR / "conformal_set_sizes.png"
+    out = out_dir / "conformal_set_sizes.png"
     fig.savefig(out, dpi=160, bbox_inches="tight")
     plt.close(fig)
     return out
@@ -105,7 +118,7 @@ def _curve_from_beta_sweep(beta_sweep: dict, method: str, confidence_level: str 
     return points
 
 
-def make_beta_pareto(beta_sweep: dict) -> Path:
+def make_beta_pareto(beta_sweep: dict, out_dir: Path, title_prefix: str) -> Path:
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.5), sharex=True, sharey=True)
     panels = [
         ("Point shields", [("single_belief", ""), ("envelope", ""), ("forward_sampling", "")]),
@@ -129,10 +142,10 @@ def make_beta_pareto(beta_sweep: dict) -> Path:
         ax.set_ylim(-2, 102)
         ax.grid(alpha=0.3)
         ax.legend(fontsize=8, loc="best")
-    fig.suptitle("TaxiNetV2 Sweep: beta for point shields, action_filter for conformal")
+    fig.suptitle(f"{title_prefix} Sweep: beta for point shields, action_filter for conformal")
     fig.tight_layout()
 
-    out = OUT_DIR / "beta_actionfilter_pareto.png"
+    out = out_dir / "beta_actionfilter_pareto.png"
     fig.savefig(out, dpi=160, bbox_inches="tight")
     plt.close(fig)
     return out
@@ -164,7 +177,7 @@ def _scarbro_rows(scarbro: dict) -> List[Tuple[str, float, float]]:
     return rows
 
 
-def make_scarbro_compare(headline: dict, scarbro: dict) -> Path:
+def make_scarbro_compare(headline: dict, scarbro: dict, out_dir: Path, title_prefix: str) -> Path:
     confidences = ["0.95", "0.99", "0.995"]
     ours_fail = [
         headline["conformal_results"][confidence]["cp_control_conformal"]["fail_rate"] * 100
@@ -189,12 +202,12 @@ def make_scarbro_compare(headline: dict, scarbro: dict) -> Path:
     ax.set_xticklabels(confidences)
     ax.set_xlabel("Confidence level")
     ax.set_ylabel("Rate (%)")
-    ax.set_title("Conformal Low-Accuracy Run vs Scarbro Import (af7)")
+    ax.set_title(f"{title_prefix} vs Scarbro Import (af7)")
     ax.grid(axis="y", alpha=0.3)
     ax.legend(fontsize=8)
     fig.tight_layout()
 
-    out = OUT_DIR / "scarbro_comparison.png"
+    out = out_dir / "scarbro_comparison.png"
     fig.savefig(out, dpi=160, bbox_inches="tight")
     plt.close(fig)
     return out
@@ -206,23 +219,33 @@ def write_summary(
     lowacc_metrics: dict,
     scarbro: dict,
     figures: Dict[str, Path],
+    results_dir: Path,
+    summary_md: Path,
+    title_prefix: str,
 ) -> None:
-    accuracy = lowacc_metrics["test_metrics"]
+    accuracy = lowacc_metrics
     rows = _ordered_headline_rows(headline)
     beta_080 = beta_sweep["grid_results"]["0.80"]
     beta_095 = beta_sweep["grid_results"]["0.95"]
     scarbro_rows = _scarbro_rows(scarbro)
+    metadata = headline.get("metadata", {})
+    measured = metadata.get("measured_test_accuracy", {})
+    conformal_mode = metadata.get("conformal_mode", "unknown")
+    base_checkpoint = metadata.get("base_perception_model", "unknown")
+    sweep_grid = beta_sweep["metadata"]["args"]["threshold_values"]
 
     lines: List[str] = []
-    lines.append("# TaxiNetV2 Low-Accuracy Evaluation Summary\n")
+    lines.append(f"# {title_prefix} Evaluation Summary\n")
     lines.append("## Setup\n")
-    point_realization = headline.get("metadata", {}).get("point_realization", "unknown")
+    point_realization = metadata.get("point_realization", "unknown")
     lines.append(
-        f"- Base checkpoint: `results/cache/taxinet_v2_lowacc_axis_noise_047_053/best_in_band_model.pth`\n"
+        f"- Base checkpoint: `{base_checkpoint}`\n"
         f"- Test accuracy: CTE `{accuracy['cte_accuracy']:.2%}`, HE `{accuracy['he_accuracy']:.2%}`, joint `{accuracy['joint_accuracy']:.2%}`\n"
+        f"- Metadata accuracy echo: CTE `{measured['cte_accuracy']:.2%}`, HE `{measured['he_accuracy']:.2%}`, joint `{measured['joint_accuracy']:.2%}`\n"
+        f"- Conformal mode: `{conformal_mode}`\n"
         f"- Point estimate realization: `{point_realization}` modular realization over the TaxiNetV2 point-estimate IPOMDP\n"
         f"- Headline run: `1000` trials, horizon `30`, initial state `safe`, point-shield beta `0.8`, conformal `action_filter=0.7`\n"
-        f"- Beta sweep: `{beta_sweep['metadata']['args']['num_trials']}` trials per operating point, beta/action-filter grid `{beta_sweep['metadata']['args']['threshold_values']}`\n"
+        f"- Beta sweep: `{beta_sweep['metadata']['args']['num_trials']}` trials per operating point, beta/action-filter grid `{sweep_grid}`\n"
     )
 
     lines.append("## Headline Results\n")
@@ -236,7 +259,7 @@ def write_summary(
 
     lines.append("\n## Observations\n")
     lines.append(
-        f"- Lowering the base model accuracy to roughly `87/93` per axis moves conformal behavior into the intended regime: mean Cartesian set size rises from `{headline['conformal_results']['0.95']['cp_control_conformal']['mean_conformal_cartesian_size']:.2f}` at `0.95` to `{headline['conformal_results']['0.995']['cp_control_conformal']['mean_conformal_cartesian_size']:.2f}` at `0.995`."
+        f"- Mean Cartesian conformal set size rises from `{headline['conformal_results']['0.95']['cp_control_conformal']['mean_conformal_cartesian_size']:.2f}` at `0.95` to `{headline['conformal_results']['0.995']['cp_control_conformal']['mean_conformal_cartesian_size']:.2f}` at `0.995`."
     )
     lines.append(
         f"- At the headline operating point, `0.99` and `0.995` conformal control are extremely conservative: fail falls to `{headline['conformal_results']['0.99']['cp_control_conformal']['fail_rate']:.1%}` and `{headline['conformal_results']['0.995']['cp_control_conformal']['fail_rate']:.1%}`, but stuck rises to `{headline['conformal_results']['0.99']['cp_control_conformal']['stuck_rate']:.1%}` and `{headline['conformal_results']['0.995']['cp_control_conformal']['stuck_rate']:.1%}`."
@@ -262,26 +285,36 @@ def write_summary(
 
     lines.append("\n## Figures\n")
     for label, path in figures.items():
-        lines.append(f"- {label}: ![]({path.relative_to(RESULTS_DIR)})")
+        lines.append(f"- {label}: ![]({path.relative_to(results_dir)})")
 
-    SUMMARY_MD.write_text("\n".join(lines))
+    summary_md.write_text("\n".join(lines))
 
 
 def main() -> None:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    headline = _load_json(HEADLINE_JSON)
-    beta_sweep = _load_json(BETA_SWEEP_JSON)
-    lowacc_metrics = _load_json(LOWACC_METRICS_JSON)
-    scarbro = _load_json(SCARBRO_JSON)
+    args = parse_args()
+    args.out_dir.mkdir(parents=True, exist_ok=True)
+    headline = _load_json(args.headline_json)
+    beta_sweep = _load_json(args.beta_sweep_json)
+    lowacc_metrics = _load_json(args.metrics_json)
+    scarbro = _load_json(args.scarbro_json)
 
     figures = {
-        "Headline bars": make_headline_bars(headline),
-        "Conformal set sizes": make_conformal_size_plot(headline),
-        "Beta/action-filter Pareto": make_beta_pareto(beta_sweep),
-        "Scarbro comparison": make_scarbro_compare(headline, scarbro),
+        "Headline bars": make_headline_bars(headline, args.out_dir, args.title_prefix),
+        "Conformal set sizes": make_conformal_size_plot(headline, args.out_dir, args.title_prefix),
+        "Beta/action-filter Pareto": make_beta_pareto(beta_sweep, args.out_dir, args.title_prefix),
+        "Scarbro comparison": make_scarbro_compare(headline, scarbro, args.out_dir, args.title_prefix),
     }
-    write_summary(headline, beta_sweep, lowacc_metrics, scarbro, figures)
-    print(f"Wrote summary markdown to {SUMMARY_MD}")
+    write_summary(
+        headline,
+        beta_sweep,
+        lowacc_metrics,
+        scarbro,
+        figures,
+        results_dir=args.summary_md.parent,
+        summary_md=args.summary_md,
+        title_prefix=args.title_prefix,
+    )
+    print(f"Wrote summary markdown to {args.summary_md}")
     for label, path in figures.items():
         print(f"{label}: {path}")
 

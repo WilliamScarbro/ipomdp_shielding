@@ -1,8 +1,9 @@
 """Train a lower-accuracy TaxiNetV2 checkpoint on the fixed committed split.
 
-This keeps the train/val/cal/test partition aligned with the perception
-artifacts used by the experiments and stops once both axis accuracies are in a
-requested band on the fixed test set.
+This keeps the cp-control model/dataset code and the committed train/val/test
+partition aligned with the perception artifacts used by the experiments, and
+reduces accuracy by stopping training early once both test axes reach a
+requested band.
 """
 
 from __future__ import annotations
@@ -43,18 +44,15 @@ def parse_args() -> argparse.Namespace:
         default=Path("results/cache/taxinet_v2_lowacc"),
     )
     parser.add_argument("--epochs", type=int, default=12)
-    parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--eval-every-batches", type=int, default=0)
     parser.add_argument("--lr", type=float, default=1e-3)
-    parser.add_argument("--train-subset-size", type=int, default=600)
+    parser.add_argument("--train-subset-size", type=int, default=None)
     parser.add_argument("--target-low", type=float, default=0.88)
     parser.add_argument("--target-high", type=float, default=0.92)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--num-threads", type=int, default=4)
     parser.add_argument("--init-model-path", type=Path, default=None)
-    parser.add_argument("--label-noise", type=float, default=0.0)
-    parser.add_argument("--cte-label-noise", type=float, default=None)
-    parser.add_argument("--he-label-noise", type=float, default=None)
     parser.add_argument("--pretrained", action="store_true", default=True)
     parser.add_argument("--no-pretrained", dest="pretrained", action="store_false")
     parser.add_argument("--freeze-backbone", action="store_true")
@@ -119,8 +117,6 @@ def main() -> None:
     set_seed(args.seed)
     torch.set_num_threads(args.num_threads)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    cte_label_noise = args.label_noise if args.cte_label_noise is None else args.cte_label_noise
-    he_label_noise = args.label_noise if args.he_label_noise is None else args.he_label_noise
 
     dataset = RobotNavigationDataset(str(args.data_dir), transform=None)
     train_idx = load_indices(args.indices_dir, "train_indices.pt")
@@ -150,6 +146,12 @@ def main() -> None:
     model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode="min",
+        factor=0.1,
+        patience=5,
+    )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     best_path = args.output_dir / "best_in_band_model.pth"
@@ -158,41 +160,57 @@ def main() -> None:
 
     best_distance = float("inf")
     best_payload: dict[str, object] | None = None
+    best_val_loss = float("inf")
 
     def record_candidate(epoch: int, batch_step: int | None = None) -> bool:
-        nonlocal best_distance, best_payload
+        nonlocal best_distance, best_payload, best_val_loss
         val_metrics = evaluate(model, val_loader, device)
         test_metrics = evaluate(model, test_loader, device)
         distance = accuracy_distance(test_metrics)
+        val_loss = 0.0
+        val_count = 0
+        model.eval()
+        with torch.no_grad():
+            for images, cte_t, he_t in val_loader:
+                images = images.to(device)
+                cte_t = cte_t.to(device)
+                he_t = he_t.to(device)
+                cte_o, he_o = model(images)
+                loss = criterion(cte_o, cte_t) + criterion(he_o, he_t)
+                val_loss += float(loss.item()) * len(images)
+                val_count += len(images)
+        val_loss /= max(val_count, 1)
+        scheduler.step(val_loss)
         payload = {
             "epoch": epoch,
             "batch_step": batch_step,
             "train_subset_size": len(used_train_idx),
             "train_indices_sample": used_train_idx[:20],
+            "val_loss": val_loss,
             "val_metrics": val_metrics,
             "test_metrics": test_metrics,
             "device": str(device),
             "pretrained": args.pretrained,
             "freeze_backbone": args.freeze_backbone,
             "init_model_path": str(args.init_model_path) if args.init_model_path else None,
-            "label_noise": args.label_noise,
-            "cte_label_noise": cte_label_noise,
-            "he_label_noise": he_label_noise,
         }
         location = f"epoch={epoch}"
         if batch_step is not None:
             location += f" batch={batch_step}"
         print(
-            f"{location} val_cte={val_metrics['cte_accuracy']:.4f} val_he={val_metrics['he_accuracy']:.4f} "
+            f"{location} val_loss={val_loss:.4f} "
+            f"val_cte={val_metrics['cte_accuracy']:.4f} val_he={val_metrics['he_accuracy']:.4f} "
             f"test_cte={test_metrics['cte_accuracy']:.4f} test_he={test_metrics['he_accuracy']:.4f} "
             f"test_joint={test_metrics['joint_accuracy']:.4f}",
             flush=True,
         )
         torch.save(model.state_dict(), latest_path)
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            torch.save(model.state_dict(), best_path)
         if distance < best_distance:
             best_distance = distance
             best_payload = payload
-            torch.save(model.state_dict(), best_path)
         return (
             args.target_low <= test_metrics["cte_accuracy"] <= args.target_high
             and args.target_low <= test_metrics["he_accuracy"] <= args.target_high
@@ -206,15 +224,6 @@ def main() -> None:
             images = images.to(device)
             cte_t = cte_t.to(device)
             he_t = he_t.to(device)
-            if cte_label_noise > 0.0 or he_label_noise > 0.0:
-                cte_mask = torch.rand_like(cte_t, dtype=torch.float32) < cte_label_noise
-                he_mask = torch.rand_like(he_t, dtype=torch.float32) < he_label_noise
-                if cte_mask.any():
-                    cte_t = cte_t.clone()
-                    cte_t[cte_mask] = torch.randint(0, 5, (int(cte_mask.sum()),), device=device)
-                if he_mask.any():
-                    he_t = he_t.clone()
-                    he_t[he_mask] = torch.randint(0, 3, (int(he_mask.sum()),), device=device)
             optimizer.zero_grad()
             cte_o, he_o = model(images)
             loss = criterion(cte_o, cte_t) + criterion(he_o, he_t)

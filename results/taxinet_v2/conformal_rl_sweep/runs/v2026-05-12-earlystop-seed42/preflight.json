@@ -1,0 +1,8 @@
+{
+  "model_path": "/home/dev/ipomdp_shielding/results/cache/taxinet_v2_earlystop_search_seed42/best_in_band_model.pth",
+  "split": "test",
+  "num_samples": 825,
+  "cte_accuracy": 0.8715151515151515,
+  "he_accuracy": 0.9672727272727273,
+  "joint_accuracy": 0.8460606060606061
+}

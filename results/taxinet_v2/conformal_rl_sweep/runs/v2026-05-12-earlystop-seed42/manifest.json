@@ -1,0 +1,37 @@
+{
+  "version": "v2026-05-12-earlystop-seed42",
+  "created_utc": "2026-05-12",
+  "case_study": "taxinet_v2",
+  "experiment": "conformal_rl_sweep",
+  "source_checkpoint": "/home/dev/ipomdp_shielding/results/cache/taxinet_v2_earlystop_search_seed42/best_in_band_model.pth",
+  "measured_test_accuracy": {
+    "cte_accuracy": 0.8715151515151515,
+    "he_accuracy": 0.9672727272727273,
+    "joint_accuracy": 0.8460606060606061
+  },
+  "headline_operating_point": {
+    "shield_threshold": 0.8,
+    "action_filter": 0.7,
+    "num_trials": 1000,
+    "trial_length": 30
+  },
+  "sweep_grid": [
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    0.95
+  ],
+  "conformal_mode": "shared-event/axis-paired",
+  "point_realization": "uniform",
+  "artifacts": {
+    "preflight": "preflight.json",
+    "headline_json": "headline_1000.json",
+    "headline_csv": "headline_1000.csv",
+    "beta_sweep_json": "beta_sweep.json",
+    "beta_sweep_csv": "beta_sweep.csv",
+    "summary_markdown": "evaluation_summary.md",
+    "figures_dir": "figures/"
+  }
+}

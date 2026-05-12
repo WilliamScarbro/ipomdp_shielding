@@ -1,0 +1,7 @@
+seed,initial,trial_length,method,confidence_level,confidence_level_independent,num_trials,fail_rate,stuck_rate,safe_rate,mean_steps,mean_stuck_count,primary_count,fallback_count,intervention_rate
+42,safe,30,single_belief,,True,1000,0.689,0.005,0.306,17.612,0.005,16798,814,0.046218487394957986
+42,safe,30,envelope,,True,1000,0.429,0.466,0.105,11.559,0.384,10877,682,0.059001643740808025
+42,safe,30,forward_sampling,,True,1000,0.502,0.354,0.144,13.608,0.354,12719,889,0.06532921810699588
+42,safe,30,cp_control_conformal,0.95,False,1000,0.698,0.0,0.302,17.342,0.0,16420,922,0.05316572482989275
+42,safe,30,cp_control_conformal,0.99,False,1000,0.213,0.775,0.012,6.765,0.775,4868,1897,0.2804138950480414
+42,safe,30,cp_control_conformal,0.995,False,1000,0.063,0.937,0.0,3.106,0.937,1543,1563,0.5032195750160978
