@@ -1,0 +1,24 @@
+{
+  "version": "v2026-05-13-beta-af-operating-sweep",
+  "created_utc": "2026-05-13T17:52:55Z",
+  "case_study": "taxinet_v2",
+  "experiment": "operating_pareto_sweep",
+  "selector": "rl",
+  "shared_rl_controller": true,
+  "shared_adversarial_policy": true,
+  "source_rl_cache": "ipomdp_shielding_/results/cache/rl_shield_taxinet_v2_agent.pt",
+  "source_adversarial_cache": "ipomdp_shielding_/results/cache/rl_shield_taxinet_v2_comparison_point_opt_realization.json",
+  "beta_values": [0.5, 0.6, 0.7, 0.8, 0.9, 0.95],
+  "confidence_levels": ["0.95", "0.99", "0.995"],
+  "action_filter_values": [0.6, 0.7, 0.8, 0.9],
+  "num_trials": 100,
+  "trial_length": 20,
+  "seed": 42,
+  "artifacts": {
+    "results_json": "results.json",
+    "results_csv": "results.csv",
+    "summary_md": "evaluation_summary.md",
+    "figure_dir": "figures",
+    "pareto_scatter": "figures/pareto_scatter.png"
+  }
+}
