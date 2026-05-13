@@ -1,0 +1,224 @@
+======================================================================
+TAXINET V2 COMPARISON EXPERIMENT
+Trials: 100, Length: 20, Seed: 42
+Shield threshold: 0.8
+======================================================================
+
+Loading TaxiNetV2 IPOMDP (conf=0.99)...
+  States: 16, Actions: 3, Observations: 69
+
+======================================================================
+SETUP: RL AGENT
+======================================================================
+Training RL agent (500 episodes, adversarial-greedy perception)...
+Ep   50: safe=2.00%, ε=0.778, reward=-9.18
+Ep  100: safe=0.00%, ε=0.606, reward=-9.67
+Ep  150: safe=2.00%, ε=0.471, reward=-9.10
+Ep  200: safe=0.00%, ε=0.367, reward=-9.55
+Ep  250: safe=2.00%, ε=0.286, reward=-9.09
+Ep  300: safe=0.00%, ε=0.222, reward=-9.56
+Ep  350: safe=0.00%, ε=0.173, reward=-9.46
+Ep  400: safe=4.00%, ε=0.135, reward=-8.63
+Ep  450: safe=2.00%, ε=0.105, reward=-9.11
+Ep  500: safe=0.00%, ε=0.082, reward=-9.43
+RL agent saved to results/cache/rl_shield_taxinet_v2_conf99_agent.pt
+  Final safe rate: 1.20%
+
+======================================================================
+SETUP: OPTIMIZED REALIZATIONS
+======================================================================
+Training optimized realization (envelope) (10 iterations)...
+============================================================
+Training Optimal Fixed Realization
+============================================================
+Parameter shape: (15, 69)
+Candidates per iteration: 10
+Trials per candidate: 5
+Max iterations: 10
+============================================================
+Iteration 1/10: best=0.2000, mean=0.1000, elite_mean=0.1000, std=0.2429
+Iteration 2/10: best=0.2000, mean=0.1200, elite_mean=0.1200, std=0.2014
+Iteration 3/10: best=0.4000, mean=0.1200, elite_mean=0.1200, std=0.1707
+Iteration 4/10: best=0.4000, mean=0.1000, elite_mean=0.1000, std=0.1463
+Iteration 5/10: best=0.4000, mean=0.0200, elite_mean=0.0200, std=0.1264
+Iteration 6/10: best=0.6000, mean=0.1000, elite_mean=0.1000, std=0.1096
+Iteration 7/10: best=0.6000, mean=0.0400, elite_mean=0.0400, std=0.0946
+Iteration 8/10: best=0.6000, mean=0.0600, elite_mean=0.0600, std=0.0816
+Iteration 9/10: best=0.6000, mean=0.0600, elite_mean=0.0600, std=0.0713
+Iteration 10/10: best=0.6000, mean=0.0400, elite_mean=0.0400, std=0.0615
+============================================================
+Training complete! Best score: 0.6000
+============================================================
+
+Saved optimal realization to: results/cache/rl_shield_taxinet_v2_conf99_opt_realization.json
+Optimized realization (envelope) saved to results/cache/rl_shield_taxinet_v2_conf99_opt_realization.json
+  Best score (envelope): 0.6
+
+Experiment grid: 30 combinations (2 perceptions × 3 selectors × 5 shields)
+
+[1/30] Running: uniform/random/none ... fail=100.0%  stuck=0.0%  safe=0.0%  (0.0s)
+
+[2/30] Running: uniform/random/observation ... fail=60.0%  stuck=32.0%  safe=8.0%  (0.1s)
+
+[3/30] Running: uniform/random/single_belief ... fail=63.0%  stuck=2.0%  safe=35.0%  (0.2s)
+
+[4/30] Running: uniform/random/envelope ... fail=11.0%  stuck=89.0%  safe=0.0%  (11.2s)
+
+[5/30] Running: uniform/random/conformal_prediction ... fail=44.0%  stuck=55.0%  safe=1.0%  (0.0s)
+
+[6/30] Running: uniform/best/none ... fail=100.0%  stuck=0.0%  safe=0.0%  (0.0s)
+
+[7/30] Running: uniform/best/observation ... fail=63.0%  stuck=29.0%  safe=8.0%  (0.1s)
+
+[8/30] Running: uniform/best/single_belief ... fail=65.0%  stuck=4.0%  safe=31.0%  (0.1s)
+
+[9/30] Running: uniform/best/envelope ... fail=8.0%  stuck=92.0%  safe=0.0%  (10.9s)
+
+[10/30] Running: uniform/best/conformal_prediction ... fail=48.0%  stuck=51.0%  safe=1.0%  (0.1s)
+
+[11/30] Running: uniform/rl/none ... fail=99.0%  stuck=0.0%  safe=1.0%  (0.2s)
+
+[12/30] Running: uniform/rl/observation ... fail=67.0%  stuck=24.0%  safe=9.0%  (0.3s)
+
+[13/30] Running: uniform/rl/single_belief ... fail=71.0%  stuck=3.0%  safe=26.0%  (0.3s)
+
+[14/30] Running: uniform/rl/envelope ... fail=9.0%  stuck=88.0%  safe=3.0%  (16.2s)
+
+[15/30] Running: uniform/rl/conformal_prediction ... fail=44.0%  stuck=56.0%  safe=0.0%  (0.1s)
+
+[16/30] Running: adversarial_opt/random/none ... fail=100.0%  stuck=0.0%  safe=0.0%  (0.0s)
+
+[17/30] Running: adversarial_opt/random/observation ... fail=64.0%  stuck=27.0%  safe=9.0%  (0.0s)
+
+[18/30] Running: adversarial_opt/random/single_belief ... fail=70.0%  stuck=2.0%  safe=28.0%  (0.0s)
+
+[19/30] Running: adversarial_opt/random/envelope ... fail=5.0%  stuck=95.0%  safe=0.0%  (10.9s)
+
+[20/30] Running: adversarial_opt/random/conformal_prediction ... fail=47.0%  stuck=53.0%  safe=0.0%  (0.0s)
+
+[21/30] Running: adversarial_opt/best/none ... fail=100.0%  stuck=0.0%  safe=0.0%  (0.0s)
+
+[22/30] Running: adversarial_opt/best/observation ... fail=69.0%  stuck=21.0%  safe=10.0%  (0.0s)
+
+[23/30] Running: adversarial_opt/best/single_belief ... fail=65.0%  stuck=3.0%  safe=32.0%  (0.0s)
+
+[24/30] Running: adversarial_opt/best/envelope ... fail=3.0%  stuck=97.0%  safe=0.0%  (11.8s)
+
+[25/30] Running: adversarial_opt/best/conformal_prediction ... fail=40.0%  stuck=60.0%  safe=0.0%  (0.0s)
+
+[26/30] Running: adversarial_opt/rl/none ... fail=96.0%  stuck=0.0%  safe=4.0%  (0.1s)
+
+[27/30] Running: adversarial_opt/rl/observation ... fail=71.0%  stuck=19.0%  safe=10.0%  (0.1s)
+
+[28/30] Running: adversarial_opt/rl/single_belief ... fail=65.0%  stuck=0.0%  safe=35.0%  (0.1s)
+
+[29/30] Running: adversarial_opt/rl/envelope ... fail=6.0%  stuck=93.0%  safe=1.0%  (12.8s)
+
+[30/30] Running: adversarial_opt/rl/conformal_prediction ... fail=35.0%  stuck=65.0%  safe=0.0%  (0.0s)
+
+==========================================================================================
+RL SHIELDING EXPERIMENT RESULTS - TAXINET_V2_COMPARISON_CONF99
+==========================================================================================
+Perception        Selector   Shield             Fail%  Stuck%   Safe%   Steps
+------------------------------------------------------------------------------------------
+adversarial_opt   best       conformal_prediction  40.0%  60.0%   0.0%     3.7
+adversarial_opt   best       envelope           3.0%  97.0%   0.0%     0.3
+adversarial_opt   best       none             100.0%   0.0%   0.0%     3.0
+adversarial_opt   best       observation       69.0%  21.0%  10.0%     7.4
+adversarial_opt   best       single_belief     65.0%   3.0%  32.0%    10.5
+adversarial_opt   random     conformal_prediction  47.0%  53.0%   0.0%     3.7
+adversarial_opt   random     envelope           5.0%  95.0%   0.0%     0.2
+adversarial_opt   random     none             100.0%   0.0%   0.0%     3.0
+adversarial_opt   random     observation       64.0%  27.0%   9.0%     6.9
+adversarial_opt   random     single_belief     70.0%   2.0%  28.0%     9.6
+adversarial_opt   rl         conformal_prediction  35.0%  65.0%   0.0%     2.8
+adversarial_opt   rl         envelope           6.0%  93.0%   1.0%     0.4
+adversarial_opt   rl         none              96.0%   0.0%   4.0%     6.1
+adversarial_opt   rl         observation       71.0%  19.0%  10.0%     7.3
+adversarial_opt   rl         single_belief     65.0%   0.0%  35.0%    10.2
+uniform           best       conformal_prediction  48.0%  51.0%   1.0%     3.3
+uniform           best       envelope           8.0%  92.0%   0.0%     0.2
+uniform           best       none             100.0%   0.0%   0.0%     2.9
+uniform           best       observation       63.0%  29.0%   8.0%     7.4
+uniform           best       single_belief     65.0%   4.0%  31.0%     9.3
+uniform           random     conformal_prediction  44.0%  55.0%   1.0%     2.7
+uniform           random     envelope          11.0%  89.0%   0.0%     0.3
+uniform           random     none             100.0%   0.0%   0.0%     3.1
+uniform           random     observation       60.0%  32.0%   8.0%     7.0
+uniform           random     single_belief     63.0%   2.0%  35.0%    10.1
+uniform           rl         conformal_prediction  44.0%  56.0%   0.0%     3.5
+uniform           rl         envelope           9.0%  88.0%   3.0%     0.8
+uniform           rl         none              99.0%   0.0%   1.0%     5.3
+uniform           rl         observation       67.0%  24.0%   9.0%     8.5
+uniform           rl         single_belief     71.0%   3.0%  26.0%     8.9
+
+==========================================================================================
+ANALYSIS: SHIELD COMPARISON FOR RL
+==========================================================================================
+
+  Perception: uniform
+    none             fail=99.0%  stuck=0.0%  safe=1.0%
+    observation      fail=67.0%  stuck=24.0%  safe=9.0%
+    single_belief    fail=71.0%  stuck=3.0%  safe=26.0%
+    envelope         fail=9.0%  stuck=88.0%  safe=3.0%
+    conformal_prediction fail=44.0%  stuck=56.0%  safe=0.0%
+
+  Perception: adversarial_opt
+    none             fail=96.0%  stuck=0.0%  safe=4.0%
+    observation      fail=71.0%  stuck=19.0%  safe=10.0%
+    single_belief    fail=65.0%  stuck=0.0%  safe=35.0%
+    envelope         fail=6.0%  stuck=93.0%  safe=1.0%
+    conformal_prediction fail=35.0%  stuck=65.0%  safe=0.0%
+
+==========================================================================================
+ANALYSIS: ENVELOPE vs SINGLE-BELIEF (expected: envelope better under adversarial)
+==========================================================================================
+  rl/uniform: envelope - single_belief = -62.0% fail rate
+  rl/adversarial_opt: envelope - single_belief = -59.0% fail rate
+  random/uniform: envelope - single_belief = -52.0% fail rate
+  random/adversarial_opt: envelope - single_belief = -65.0% fail rate
+  best/uniform: envelope - single_belief = -57.0% fail rate
+  best/adversarial_opt: envelope - single_belief = -62.0% fail rate
+
+Results saved to results/taxinet_v2/taxinet_v2_comparison_conf99_results.json
+
+Generating per-shield time-series figures...
+  Saved uniform_fail.png
+  Saved uniform_stuck.png
+  Saved adversarial_opt_fail.png
+  Saved adversarial_opt_stuck.png
+  Saved uniform_intervention_rate.png
+  Saved adversarial_opt_intervention_rate.png
+
+Total experiment time: 75.9s
+
+Generating comparison figure...
+  Saved comparison_uniform.png
+  Saved comparison_adversarial_opt.png
+
+Comparison table  (RL selector, conf=0.95):
+  Shield                 Perception           Fail%  Stuck%   Safe%
+  -----------------------------------------------------------------
+  none                   uniform             99.0%   0.0%   1.0%
+  observation            uniform             67.0%  24.0%   9.0%
+  single_belief          uniform             71.0%   3.0%  26.0%
+  envelope               uniform              9.0%  88.0%   3.0%
+  conformal_prediction   uniform             44.0%  56.0%   0.0%
+  none                   adversarial_opt     96.0%   0.0%   4.0%
+  observation            adversarial_opt     71.0%  19.0%  10.0%
+  single_belief          adversarial_opt     65.0%   0.0%  35.0%
+  envelope               adversarial_opt      6.0%  93.0%   1.0%
+  conformal_prediction   adversarial_opt     35.0%  65.0%   0.0%
+
+  Scarbro PRISM (conf=0.95, worst-case formal bounds):
+  Variant                 crash%  stuck%
+  ----------------------------------------
+  af8                     64.8%  82.1%
+  af6                     61.5%  86.6%
+  af7                     61.5%  86.6%
+  af9                     30.7%  92.9%
+
+All outputs written to: results/taxinet_v2/taxinet_v2_comparison_conf99_figures
+======================================================================
+TAXINET V2 COMPARISON COMPLETE
+======================================================================
