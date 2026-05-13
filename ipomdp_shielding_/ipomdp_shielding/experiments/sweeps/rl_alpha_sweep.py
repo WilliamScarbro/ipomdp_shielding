@@ -289,7 +289,13 @@ def run_alpha_sweep(config: AlphaSweepConfig):
 
 
 def _aggregate_sweep(tidy_rows):
-    """Aggregate per-seed results into mean +/- std per (alpha,beta,perception,shield)."""
+    """Aggregate per-seed results per (alpha,beta,perception,shield).
+
+    For binary trial outcomes (fail/stuck/safe), the reported std is the
+    pooled across-trial std computed from the trial-weighted mean:
+    sqrt(p * (1 - p)) over all trials across all seeds. For continuous
+    metrics (mean_steps) we fall back to the std of per-seed means.
+    """
     from collections import defaultdict
     groups = defaultdict(list)
     for row in tidy_rows:
@@ -298,24 +304,32 @@ def _aggregate_sweep(tidy_rows):
 
     agg = []
     for (alpha, beta, perc, shield), rows in sorted(groups.items()):
-        fail_rates = [r["fail_rate"] for r in rows]
-        stuck_rates = [r["stuck_rate"] for r in rows]
-        safe_rates = [r["safe_rate"] for r in rows]
+        total_trials = sum(r["num_trials"] for r in rows)
+        if total_trials > 0:
+            fail_pool = sum(r["fail_rate"] * r["num_trials"] for r in rows) / total_trials
+            stuck_pool = sum(r["stuck_rate"] * r["num_trials"] for r in rows) / total_trials
+            safe_pool = sum(r["safe_rate"] * r["num_trials"] for r in rows) / total_trials
+        else:
+            fail_pool = stuck_pool = safe_pool = 0.0
+        fail_std = float(np.sqrt(max(fail_pool * (1.0 - fail_pool), 0.0)))
+        stuck_std = float(np.sqrt(max(stuck_pool * (1.0 - stuck_pool), 0.0)))
+        safe_std = float(np.sqrt(max(safe_pool * (1.0 - safe_pool), 0.0)))
         mean_steps = [r["mean_steps"] for r in rows]
         agg.append({
             "alpha": alpha,
             "beta": beta,
             "perception": perc,
             "shield": shield,
-            "fail_rate_mean": float(np.mean(fail_rates)),
-            "fail_rate_std": float(np.std(fail_rates)),
-            "stuck_rate_mean": float(np.mean(stuck_rates)),
-            "stuck_rate_std": float(np.std(stuck_rates)),
-            "safe_rate_mean": float(np.mean(safe_rates)),
-            "safe_rate_std": float(np.std(safe_rates)),
+            "fail_rate_mean": float(fail_pool),
+            "fail_rate_std": fail_std,
+            "stuck_rate_mean": float(stuck_pool),
+            "stuck_rate_std": stuck_std,
+            "safe_rate_mean": float(safe_pool),
+            "safe_rate_std": safe_std,
             "mean_steps_mean": float(np.mean(mean_steps)),
             "mean_steps_std": float(np.std(mean_steps)),
             "n_seeds": len(rows),
+            "n_trials_total": int(total_trials),
         })
     return agg
 
