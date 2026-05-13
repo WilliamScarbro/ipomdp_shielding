@@ -1,18 +1,8 @@
 """TaxiNetV2 comparison: conformal prediction shielding vs. iPOMDP shielding.
 
-Runs the RL shield experiment for TaxiNetV2 with an augmented shield grid
-that includes ConformalPredictionShield alongside the standard iPOMDP shields
-(none, observation, single_belief, envelope).  Both approaches are evaluated
-via the same Monte Carlo protocol so results are directly comparable.
-
-After running, generates a comparison figure for the MC results and keeps the
-Scarbro PRISM baseline available for separate tabular/internal comparison.
-
-Usage:
-    python -m ipomdp_shielding.experiments.run_taxinet_v2_comparison [--plot-only]
-
-Options:
-    --plot-only    Skip the MC experiment; re-plot from saved results.
+Runs TaxiNetV2 comparison bundles where point shields always use the shared
+single-estimate confusion model, while conformal prediction shielding consumes
+paired point/conformal events at the requested confidence level.
 """
 
 from __future__ import annotations
@@ -22,36 +12,36 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
-from .experiment_io import build_metadata, add_rate_cis, save_experiment_results
 from .run_rl_shield_experiment import (
-    ConformalPredictionShield,
     ShieldCompliantSelector,
+    create_conformal_shield_factory,
+    create_envelope_shield_factory,
+    create_forward_sampling_shield_factory,
     create_no_shield_factory,
     create_observation_shield_factory,
     create_single_belief_shield_factory,
-    create_envelope_shield_factory,
-    create_forward_sampling_shield_factory,
-    create_conformal_shield_factory,
-    run_experiment,
+    plot_results,
     print_results_table,
     save_results,
-    plot_results,
     setup,
-    compute_timestep_outcomes,
+)
+from .run_taxinet_v2_conformal_rl_sweep import _intervention_stats, _run_dual_observation_trials
+from ..CaseStudies.TaxiNetV2 import (
+    build_taxinet_v2_single_estimate_ipomdp,
+    get_taxinet_v2_conditional_conformal_axis_data,
 )
 from ..CaseStudies.Taxinet.taxinet import taxinet_cte_states, taxinet_he_states
 from ..MonteCarlo import (
-    UniformPerceptionModel,
-    RandomActionSelector,
     BeliefSelector,
+    ModularConditionalConformalTaxiNetPerception,
+    RandomActionSelector,
+    RandomInitialState,
+    UniformPerceptionModel,
+    compute_safety_metrics,
 )
 
-
-# ============================================================
-# Paths
-# ============================================================
 
 def _project_root() -> Path:
     return Path(__file__).resolve().parents[2]
@@ -60,76 +50,6 @@ def _project_root() -> Path:
 def _scarbro_path() -> Path:
     return _project_root() / "results" / "taxinet_v2" / "scarbro_baseline_import.json"
 
-
-# ============================================================
-# Augmented grid
-# ============================================================
-
-def build_comparison_grid(ipomdp, pp_shield, rl_selector, optimized_perceptions, config):
-    """Build an experiment grid that adds ConformalPredictionShield.
-
-    Extends the standard TaxiNetV2 comparison grid with forward_sampling and
-    ConformalPredictionShield.
-    """
-    all_actions = list(ipomdp.actions)
-    pomdp = ipomdp.to_pomdp()
-
-    uniform_perception = UniformPerceptionModel()
-
-    def perception_for(p_name: str, sh_name: str):
-        if p_name == "uniform":
-            return uniform_perception
-        if p_name != "adversarial_opt":
-            raise ValueError(f"Unknown perception regime: {p_name!r}")
-        if sh_name in optimized_perceptions:
-            return optimized_perceptions[sh_name]
-        if "envelope" in optimized_perceptions:
-            return optimized_perceptions["envelope"]
-        return next(iter(optimized_perceptions.values()))
-
-    selectors = {
-        "random": RandomActionSelector(),
-        "best": BeliefSelector(mode="best"),
-        "rl": ShieldCompliantSelector(rl_selector, all_actions),
-    }
-
-    cte_st = taxinet_cte_states()
-    he_st = taxinet_he_states()
-
-    shields = {
-        "none": create_no_shield_factory(all_actions),
-        "observation": create_observation_shield_factory(ipomdp, pp_shield, config.shield_threshold),
-        "single_belief": create_single_belief_shield_factory(pomdp, pp_shield, config.shield_threshold),
-        "envelope": create_envelope_shield_factory(ipomdp, pp_shield, config.shield_threshold),
-        "forward_sampling": create_forward_sampling_shield_factory(
-            ipomdp,
-            pp_shield,
-            config.shield_threshold,
-            budget=getattr(config, "forward_budget", 500),
-            K_samples=getattr(config, "forward_k_samples", 100),
-        ),
-        "conformal_prediction": create_conformal_shield_factory(
-            pp_shield, all_actions, cte_st, he_st
-        ),
-    }
-
-    grid = []
-    for p_name in ["uniform", "adversarial_opt"]:
-        for s_name, selector in selectors.items():
-            for sh_name, shield_factory in shields.items():
-                grid.append((
-                    p_name, s_name, sh_name,
-                    perception_for(p_name, sh_name),
-                    selector,
-                    shield_factory,
-                ))
-
-    return grid
-
-
-# ============================================================
-# Scarbro baseline loader
-# ============================================================
 
 def load_scarbro_baseline() -> Optional[Dict]:
     path = _scarbro_path()
@@ -145,37 +65,38 @@ def extract_scarbro_tradeoff_points(
     confidence_level: str = "0.95",
     default_action_only: bool = True,
 ) -> List[Dict]:
-    """Extract scalar (crash, stuck) comparison points from Scarbro baseline.
-
-    Returns one point per action-filter variant at the given confidence level.
-    """
     points = []
-    for v in scarbro.get("variants", []):
-        m = v["metadata"]
-        s = v["summary"]
-        if m["confidence_level"] != confidence_level:
+    for variant in scarbro.get("variants", []):
+        metadata = variant["metadata"]
+        summary = variant["summary"]
+        if metadata["confidence_level"] != confidence_level:
             continue
-        if default_action_only and not m["default_action"]:
+        if default_action_only and not metadata["default_action"]:
             continue
-        crash = (s.get("crash") or {}).get("value")
-        stuck = (s.get("stuck_or_default") or {}).get("value")
+        crash = (summary.get("crash") or {}).get("value")
+        stuck = (summary.get("stuck_or_default") or {}).get("value")
         if crash is None or stuck is None:
             continue
-        points.append({
-            "label": m.get("action_filter_label", m["action_filter_tag"]),
-            "confidence_level": m["confidence_level"],
-            "action_filter": m.get("action_filter"),
-            "crash": crash,
-            "stuck": stuck,
-        })
-    return sorted(points, key=lambda p: p["stuck"])
+        points.append(
+            {
+                "label": metadata.get("action_filter_label", metadata["action_filter_tag"]),
+                "confidence_level": metadata["confidence_level"],
+                "action_filter": metadata.get("action_filter"),
+                "crash": crash,
+                "stuck": stuck,
+            }
+        )
+    return sorted(points, key=lambda point: point["stuck"])
 
 
-# ============================================================
-# Comparison figure
-# ============================================================
-
-_SHIELD_ORDER = ["none", "observation", "single_belief", "envelope", "forward_sampling", "conformal_prediction"]
+_SHIELD_ORDER = [
+    "none",
+    "observation",
+    "single_belief",
+    "envelope",
+    "forward_sampling",
+    "conformal_prediction",
+]
 _SHIELD_COLORS = {
     "none": "gray",
     "observation": "darkorange",
@@ -208,21 +129,14 @@ def plot_comparison(
     output_dir: str,
     confidence_level: str = "0.95",
     selector: str = "rl",
-):
-    """Generate comparison scatter plot: safety vs. conservatism.
+) -> None:
+    """Generate comparison scatter plot: safety vs. conservatism."""
 
-    X-axis: stuck/default rate (conservatism).
-    Y-axis: fail/crash rate (safety risk).
-    Lower-left is better.
-
-    One panel per perception regime. The scatter shows only the MC evaluation
-    points; the Scarbro PRISM baseline is kept out of the Pareto figure.
-    """
     try:
         import matplotlib
+
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
-        from matplotlib.lines import Line2D
     except ImportError:
         print("matplotlib not available, skipping comparison plot")
         return
@@ -233,39 +147,43 @@ def plot_comparison(
     if scarbro is not None:
         scarbro_points = extract_scarbro_tradeoff_points(scarbro, confidence_level)
 
-    for p_name in ["uniform", "adversarial_opt"]:
+    for perception_name in ["uniform", "adversarial_opt"]:
         fig, ax = plt.subplots(figsize=(7, 6))
 
-        # --- our MC results ---
-        for sh_name in _SHIELD_ORDER:
-            key = f"{p_name}/{selector}/{sh_name}"
-            r = our_results.get(key)
-            if r is None:
+        for shield_name in _SHIELD_ORDER:
+            key = f"{perception_name}/{selector}/{shield_name}"
+            result = our_results.get(key)
+            if result is None:
                 continue
             ax.scatter(
-                r["stuck_rate"], r["fail_rate"],
-                s=140, zorder=5,
-                color=_SHIELD_COLORS[sh_name],
-                marker=_SHIELD_MARKERS[sh_name],
-                label=f"iPOMDP: {_SHIELD_LABELS[sh_name]}",
+                result["stuck_rate"],
+                result["fail_rate"],
+                s=140,
+                zorder=5,
+                color=_SHIELD_COLORS[shield_name],
+                marker=_SHIELD_MARKERS[shield_name],
+                label=f"iPOMDP: {_SHIELD_LABELS[shield_name]}",
             )
-            # 95 % CI error bars on fail_rate
-            if "fail_rate_ci_low" in r:
+            if "fail_rate_ci_low" in result:
                 ax.errorbar(
-                    r["stuck_rate"], r["fail_rate"],
-                    yerr=[[r["fail_rate"] - r["fail_rate_ci_low"]],
-                          [r["fail_rate_ci_high"] - r["fail_rate"]]],
+                    result["stuck_rate"],
+                    result["fail_rate"],
+                    yerr=[
+                        [result["fail_rate"] - result["fail_rate_ci_low"]],
+                        [result["fail_rate_ci_high"] - result["fail_rate"]],
+                    ],
                     fmt="none",
-                    ecolor=_SHIELD_COLORS[sh_name],
-                    capsize=3, alpha=0.6,
+                    ecolor=_SHIELD_COLORS[shield_name],
+                    capsize=3,
+                    alpha=0.6,
                 )
 
-        p_label = "Uniform Perception" if p_name == "uniform" else "Adversarial Perception"
-        ax.set_xlabel("Stuck Rate  (conservatism →)", fontsize=11)
-        ax.set_ylabel("Fail/Crash Rate  (← safety)", fontsize=11)
+        perception_label = "Uniform Perception" if perception_name == "uniform" else "Adversarial Perception"
+        ax.set_xlabel("Stuck Rate  (conservatism ->)", fontsize=11)
+        ax.set_ylabel("Fail/Crash Rate  (<- safety)", fontsize=11)
         ax.set_title(
-            f"TaxiNetV2  |  conf={confidence_level}  |  {p_label}\n"
-            f"Safety–Liveness Tradeoff  (MC, {selector.upper()} selector)",
+            f"TaxiNetV2  |  conf={confidence_level}  |  {perception_label}\n"
+            f"Safety-Liveness Tradeoff  (MC, {selector.upper()} selector)",
             fontsize=10,
         )
         ax.legend(loc="upper right", fontsize=8, framealpha=0.9)
@@ -273,45 +191,125 @@ def plot_comparison(
         ax.set_ylim(-0.03, 1.03)
         ax.grid(True, alpha=0.25)
 
-        fname = f"comparison_{p_name}.png"
+        output_name = f"comparison_{perception_name}.png"
         fig.tight_layout()
-        fig.savefig(os.path.join(output_dir, fname), dpi=150, bbox_inches="tight")
+        fig.savefig(os.path.join(output_dir, output_name), dpi=150, bbox_inches="tight")
         plt.close(fig)
-        print(f"  Saved {fname}")
+        print(f"  Saved {output_name}")
 
-    # --- summary table to stdout ---
-    print("\nComparison table  (RL selector, conf=0.95):")
+    print("\nComparison table  (RL selector):")
     print(f"  {'Shield':<22} {'Perception':<18} {'Fail%':>7} {'Stuck%':>7} {'Safe%':>7}")
     print("  " + "-" * 65)
-    for p_name in ["uniform", "adversarial_opt"]:
-        for sh_name in _SHIELD_ORDER:
-            key = f"{p_name}/rl/{sh_name}"
-            r = our_results.get(key)
-            if r is None:
+    for perception_name in ["uniform", "adversarial_opt"]:
+        for shield_name in _SHIELD_ORDER:
+            key = f"{perception_name}/{selector}/{shield_name}"
+            result = our_results.get(key)
+            if result is None:
                 continue
-            print(f"  {sh_name:<22} {p_name:<18} "
-                  f"{r['fail_rate']:>6.1%} {r['stuck_rate']:>6.1%} {r['safe_rate']:>6.1%}")
+            print(
+                f"  {shield_name:<22} {perception_name:<18} "
+                f"{result['fail_rate']:>6.1%} {result['stuck_rate']:>6.1%} {result['safe_rate']:>6.1%}"
+            )
     if scarbro_points:
-        print("\n  Scarbro PRISM (conf=0.95, worst-case formal bounds):")
+        print("\n  Scarbro PRISM (worst-case formal bounds):")
         print(f"  {'Variant':<22} {'crash%':>7} {'stuck%':>7}")
         print("  " + "-" * 40)
-        for pt in scarbro_points:
-            print(f"  {pt['label']:<22} {pt['crash']:>6.1%} {pt['stuck']:>6.1%}")
+        for point in scarbro_points:
+            print(f"  {point['label']:<22} {point['crash']:>6.1%} {point['stuck']:>6.1%}")
 
 
-# ============================================================
-# Main experiment runner
-# ============================================================
+def _point_perception_for(name: str, optimized_perceptions: Dict[str, Any]):
+    if name == "uniform":
+        return UniformPerceptionModel()
+    if name != "adversarial_opt":
+        raise ValueError(f"Unsupported perception regime: {name!r}")
+    if "envelope" in optimized_perceptions:
+        return optimized_perceptions["envelope"]
+    return next(iter(optimized_perceptions.values()))
 
-def run(config, skip_run: bool = False):
-    """Run the TaxiNetV2 comparison experiment.
 
-    Parameters
-    ----------
-    config : RLShieldExperimentConfig
-    skip_run : bool
-        If True, skip the MC experiment and only re-plot from saved results.
-    """
+def _selectors(rl_selector, all_actions: List[Any]) -> Dict[str, Any]:
+    return {
+        "random": RandomActionSelector(),
+        "best": BeliefSelector(mode="best"),
+        "rl": ShieldCompliantSelector(rl_selector, all_actions),
+    }
+
+
+def _point_shields(point_ipomdp, pp_shield, config) -> Dict[str, Callable[[], Any]]:
+    return {
+        "none": create_no_shield_factory(list(point_ipomdp.actions)),
+        "observation": create_observation_shield_factory(point_ipomdp, pp_shield, config.shield_threshold),
+        "single_belief": create_single_belief_shield_factory(
+            point_ipomdp.to_pomdp(),
+            pp_shield,
+            config.shield_threshold,
+        ),
+        "envelope": create_envelope_shield_factory(
+            point_ipomdp,
+            pp_shield,
+            config.shield_threshold,
+        ),
+        "forward_sampling": create_forward_sampling_shield_factory(
+            point_ipomdp,
+            pp_shield,
+            config.shield_threshold,
+            budget=getattr(config, "forward_budget", 500),
+            K_samples=getattr(config, "forward_k_samples", 100),
+        ),
+    }
+
+
+def _run_batch(
+    *,
+    point_ipomdp,
+    pp_shield,
+    paired_perception,
+    shield_factory: Callable[[], Any],
+    selector,
+    initial_generator,
+    num_trials: int,
+    trial_length: int,
+    seed: int,
+    use_conformal_shield_observation: bool,
+):
+    if hasattr(selector, "reset_stats"):
+        selector.reset_stats()
+    trial_results, _shield_stats, _size_stats = _run_dual_observation_trials(
+        ipomdp=point_ipomdp,
+        pp_shield=pp_shield,
+        paired_perception=paired_perception,
+        rt_shield_factory=shield_factory,
+        action_selector=selector,
+        initial_generator=initial_generator,
+        num_trials=num_trials,
+        trial_length=trial_length,
+        seed=seed,
+        use_conformal_shield_observation=use_conformal_shield_observation,
+        store_trajectories=False,
+    )
+    metrics = compute_safety_metrics(trial_results)
+    intervention = (
+        _intervention_stats(selector)
+        if isinstance(selector, ShieldCompliantSelector)
+        else {
+            "primary_count": 0,
+            "fallback_count": 0,
+            "intervention_rate": 0.0,
+        }
+    )
+    return metrics, trial_results, intervention
+
+
+def _conformal_shield_factory(pp_shield, all_actions):
+    cte_states = taxinet_cte_states()
+    he_states = taxinet_he_states()
+    return create_conformal_shield_factory(pp_shield, all_actions, cte_states, he_states)
+
+
+def run(config, skip_run: bool = False) -> None:
+    """Run the TaxiNetV2 comparison experiment."""
+
     results_path = config.results_path
     figures_dir = config.figures_dir
     os.makedirs(os.path.dirname(results_path), exist_ok=True)
@@ -319,48 +317,126 @@ def run(config, skip_run: bool = False):
 
     if not skip_run:
         print("=" * 70)
-        print(f"TAXINET V2 COMPARISON EXPERIMENT")
+        print("TAXINET V2 COMPARISON EXPERIMENT")
         print(f"Trials: {config.num_trials}, Length: {config.trial_length}, Seed: {config.seed}")
         print(f"Shield threshold: {config.shield_threshold}")
         print("=" * 70)
 
-        print(f"\nLoading TaxiNetV2 IPOMDP (conf={config.ipomdp_kwargs.get('confidence_level', '?')})...")
-        ipomdp, pp_shield, _, _ = config.build_ipomdp_fn(**config.ipomdp_kwargs)
-        print(f"  States: {len(ipomdp.states)}, Actions: {len(ipomdp.actions)}, "
-              f"Observations: {len(ipomdp.observations)}")
+        confidence_level = config.ipomdp_kwargs.get("confidence_level", "0.95")
+        print(f"\nLoading TaxiNetV2 point-estimate IPOMDP (shared across conf={confidence_level})...")
+        point_ipomdp, pp_shield, _, _ = build_taxinet_v2_single_estimate_ipomdp(**config.ipomdp_kwargs)
+        print(
+            f"  States: {len(point_ipomdp.states)}, Actions: {len(point_ipomdp.actions)}, "
+            f"Observations: {len(point_ipomdp.observations)}"
+        )
 
-        rl_selector, optimized_perceptions, setup_info = setup(ipomdp, pp_shield, config)
+        rl_selector, optimized_perceptions, setup_info = setup(point_ipomdp, pp_shield, config)
+        if not optimized_perceptions:
+            raise ValueError("TaxiNetV2 comparison requires a cached or trained adversarial realization.")
 
-        grid = build_comparison_grid(ipomdp, pp_shield, rl_selector, optimized_perceptions, config)
-        print(f"\nExperiment grid: {len(grid)} combinations "
-              f"(2 perceptions × 3 selectors × 6 shields)")
+        conditional_cte_sets, conditional_he_sets = get_taxinet_v2_conditional_conformal_axis_data(
+            confidence_level
+        )
+        point_shields = _point_shields(point_ipomdp, pp_shield, config)
+        conformal_factory = _conformal_shield_factory(pp_shield, list(point_ipomdp.actions))
+        initial_generator = RandomInitialState()
 
-        t0 = time.time()
-        results, trial_data, intervention_stats = run_experiment(ipomdp, pp_shield, grid, config)
-        total_time = time.time() - t0
+        total_combinations = 2 * 3 * (len(point_shields) + 1)
+        print(f"\nExperiment grid: {total_combinations} combinations (2 perceptions x 3 selectors x 6 shields)")
 
+        results = {}
+        trial_data = {}
+        intervention_stats = {}
+        combo_index = 0
+        started = time.time()
+
+        for perception_name in ["uniform", "adversarial_opt"]:
+            point_perception = _point_perception_for(perception_name, optimized_perceptions)
+            conformal_perception = ModularConditionalConformalTaxiNetPerception(
+                point_perception,
+                point_ipomdp,
+                conditional_cte_sets,
+                conditional_he_sets,
+            )
+
+            for selector_name, selector in _selectors(rl_selector, list(point_ipomdp.actions)).items():
+                for shield_name, shield_factory in point_shields.items():
+                    combo_index += 1
+                    label = f"{perception_name}/{selector_name}/{shield_name}"
+                    print(f"\n[{combo_index}/{total_combinations}] Running: {label} ...", end=" ", flush=True)
+                    t0 = time.time()
+                    metrics, trials, intervention = _run_batch(
+                        point_ipomdp=point_ipomdp,
+                        pp_shield=pp_shield,
+                        paired_perception=point_perception,
+                        shield_factory=shield_factory,
+                        selector=selector,
+                        initial_generator=initial_generator,
+                        num_trials=config.num_trials,
+                        trial_length=config.trial_length,
+                        seed=config.seed,
+                        use_conformal_shield_observation=False,
+                    )
+                    elapsed = time.time() - t0
+                    key = (perception_name, selector_name, shield_name)
+                    results[key] = metrics
+                    trial_data[key] = trials
+                    if selector_name == "rl":
+                        intervention_stats[key] = intervention
+                    print(
+                        f"fail={metrics.fail_rate:.1%}  stuck={metrics.stuck_rate:.1%}  "
+                        f"safe={metrics.safe_rate:.1%}  ({elapsed:.1f}s)"
+                    )
+
+                combo_index += 1
+                label = f"{perception_name}/{selector_name}/conformal_prediction"
+                print(f"\n[{combo_index}/{total_combinations}] Running: {label} ...", end=" ", flush=True)
+                t0 = time.time()
+                metrics, trials, intervention = _run_batch(
+                    point_ipomdp=point_ipomdp,
+                    pp_shield=pp_shield,
+                    paired_perception=conformal_perception,
+                    shield_factory=conformal_factory,
+                    selector=selector,
+                    initial_generator=initial_generator,
+                    num_trials=config.num_trials,
+                    trial_length=config.trial_length,
+                    seed=config.seed,
+                    use_conformal_shield_observation=True,
+                )
+                elapsed = time.time() - t0
+                key = (perception_name, selector_name, "conformal_prediction")
+                results[key] = metrics
+                trial_data[key] = trials
+                if selector_name == "rl":
+                    intervention_stats[key] = intervention
+                print(
+                    f"fail={metrics.fail_rate:.1%}  stuck={metrics.stuck_rate:.1%}  "
+                    f"safe={metrics.safe_rate:.1%}  ({elapsed:.1f}s)"
+                )
+
+        total_time = time.time() - started
         print_results_table(results, config)
 
         extra = {
             **setup_info,
             "total_time_s": total_time,
             "intervention_stats": {
-                f"{k[0]}/{k[1]}/{k[2]}": v for k, v in intervention_stats.items()
+                f"{perception}/{selector}/{shield}": stats
+                for (perception, selector, shield), stats in intervention_stats.items()
             },
             "note": (
-                "Augmented grid: adds forward_sampling and ConformalPredictionShield "
-                "to the TaxiNetV2 shield set for direct comparison with the Scarbro "
-                "PRISM baseline."
+                "Point shields use the shared TaxiNetV2 single-estimate confusion model and shared RL/"
+                "adversarial caches across all confidence-level bundles; only conformal_prediction "
+                f"depends on confidence_level={confidence_level} via paired conformal-set sampling."
             ),
         }
         save_results(results, config, setup_info=extra)
 
         print("\nGenerating per-shield time-series figures...")
         plot_results(trial_data, config, intervention_stats=intervention_stats)
-
         print(f"\nTotal experiment time: {total_time:.1f}s")
 
-    # Load saved results for comparison plot
     if not os.path.exists(results_path):
         print(f"Results not found at {results_path}; cannot plot comparison.")
         return
@@ -381,12 +457,10 @@ def run(config, skip_run: bool = False):
     print("=" * 70)
 
 
-def main():
+def main() -> None:
     import importlib
-    skip_run = "--plot-only" in sys.argv
 
-    # Allow overriding the config module via --config <name>.
-    # Default: rl_shield_taxinet_v2_comparison (conf=0.95)
+    skip_run = "--plot-only" in sys.argv
     config_name = "rl_shield_taxinet_v2_comparison"
     args = sys.argv[1:]
     if "--config" in args:
@@ -398,7 +472,6 @@ def main():
         package="ipomdp_shielding.experiments",
     )
     config = config_module.config
-
     run(config, skip_run=skip_run)
 
 

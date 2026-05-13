@@ -459,7 +459,7 @@ def build_grid(ipomdp, pp_shield, rl_selector, optimized_perceptions, config):
     Factors:
       - Perception: uniform, adversarial_opt
       - Selector: random, best, rl
-      - Shield: none, observation, single_belief, envelope
+      - Shield: none, observation, single_belief, envelope, forward_sampling
 
     Returns list of (p_name, s_name, sh_name,
                      perception, selector, shield_factory) tuples.
@@ -636,13 +636,14 @@ def plot_results(trial_data, config, intervention_stats=None):
 
     perceptions = ["uniform", "adversarial_opt"]
     outcomes = ["fail", "stuck"]
-    shield_order = ["none", "observation", "single_belief", "envelope", "conformal_prediction"]
+    shield_order = ["none", "observation", "single_belief", "envelope", "forward_sampling", "conformal_prediction"]
 
     shield_labels = {
         "none": "No Shield",
         "observation": "Observation Shield",
         "single_belief": "Single-Belief Shield",
         "envelope": "Envelope Shield",
+        "forward_sampling": "Forward-Sampling Shield",
         "conformal_prediction": "Conf. Pred. Shield",
     }
     shield_colors = {
@@ -650,6 +651,7 @@ def plot_results(trial_data, config, intervention_stats=None):
         "observation": "orange",
         "single_belief": "blue",
         "envelope": "green",
+        "forward_sampling": "teal",
         "conformal_prediction": "red",
     }
     perception_labels = {
@@ -755,7 +757,7 @@ def print_results_table(results, config):
     print("=" * 90)
     for p_name in ["uniform", "adversarial_opt"]:
         print(f"\n  Perception: {p_name}")
-        for sh_name in ["none", "observation", "single_belief", "envelope", "conformal_prediction"]:
+        for sh_name in ["none", "observation", "single_belief", "envelope", "forward_sampling", "conformal_prediction"]:
             key = (p_name, "rl", sh_name)
             if key in results:
                 m = results[key]
@@ -821,6 +823,9 @@ def save_results(results, config, setup_info=None):
         "observation": f"ObservationShield (midpoint posterior, threshold={config.shield_threshold})",
         "single_belief": f"SingleBeliefShield (POMDP belief, threshold={config.shield_threshold})",
         "envelope": f"RuntimeImpShield (LFP polytope, threshold={config.shield_threshold})",
+        "forward_sampling": (
+            f"ForwardSamplingShield (forward-sampled belief envelope, threshold={config.shield_threshold})"
+        ),
         "conformal_prediction": (
             "ConformalPredictionShield (memoryless; allows action iff safe for all states "
             "in the conformal set; TaxiNetV2 only)"
@@ -869,7 +874,7 @@ def run_rl_experiment(config):
     # Build 3-factor grid
     grid = build_grid(ipomdp, pp_shield, rl_selector, optimized_perceptions, config)
     print(f"\nExperiment grid: {len(grid)} combinations "
-          f"(2 perceptions x 3 selectors x 4 shields)")
+          f"(2 perceptions x 3 selectors x 5 shields)")
 
     # Run all combinations
     t0 = time.time()

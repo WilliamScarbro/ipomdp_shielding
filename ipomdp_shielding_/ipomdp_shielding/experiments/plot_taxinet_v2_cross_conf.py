@@ -31,13 +31,14 @@ RESULT_FILES = {
 SCARBRO_FILE = "results/taxinet_v2/scarbro_baseline_import.json"
 OUTPUT_DIR = "results/taxinet_v2/cross_conf_figures"
 
-SHIELDS = ["none", "conformal_prediction", "observation", "single_belief", "envelope"]
+SHIELDS = ["none", "conformal_prediction", "observation", "single_belief", "envelope", "forward_sampling"]
 SHIELD_LABELS = {
     "none": "No Shield",
     "conformal_prediction": "Conf. Pred.",
     "observation": "Obs.",
     "single_belief": "Single-Belief",
     "envelope": "Envelope",
+    "forward_sampling": "Fwd-Sampling",
 }
 SHIELD_COLORS = {
     "none": "#888888",
@@ -45,6 +46,7 @@ SHIELD_COLORS = {
     "observation": "#f4a261",
     "single_belief": "#4a90d9",
     "envelope": "#2a9d8f",
+    "forward_sampling": "#00838F",
 }
 SHIELD_MARKERS = {
     "none": "X",
@@ -52,6 +54,7 @@ SHIELD_MARKERS = {
     "observation": "s",
     "single_belief": "D",
     "envelope": "o",
+    "forward_sampling": "P",
 }
 
 
