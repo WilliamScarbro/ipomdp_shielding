@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "source_dir": "/home/dev/IPOMDP_shielding_paper/ipomdp_shielding/ipomdp_shielding_/results/taxinet_v2/prism_output",
+    "source_dir": "/home/dev/ipomdp_shielding/ipomdp_shielding_/results/taxinet_v2/prism_output",
     "num_variants": 24,
     "note": "This file imports vendored precomputed PRISM outputs. It does not regenerate the baseline."
   },
@@ -10,6 +10,8 @@
         "source_file": "conf95_af6_new_def_act_results.txt",
         "confidence_level": "0.95",
         "action_filter_tag": "af6",
+        "action_filter": 0.6,
+        "action_filter_label": "action_filter=0.6",
         "default_action": true
       },
       "summary": {
@@ -2215,6 +2217,8 @@
         "source_file": "conf95_af6_new_results.txt",
         "confidence_level": "0.95",
         "action_filter_tag": "af6",
+        "action_filter": 0.6,
+        "action_filter_label": "action_filter=0.6",
         "default_action": false
       },
       "summary": {},
@@ -2982,6 +2986,8 @@
         "source_file": "conf95_af7_new_def_act_results.txt",
         "confidence_level": "0.95",
         "action_filter_tag": "af7",
+        "action_filter": 0.7,
+        "action_filter_label": "action_filter=0.7",
         "default_action": true
       },
       "summary": {
@@ -5187,6 +5193,8 @@
         "source_file": "conf95_af7_new_results.txt",
         "confidence_level": "0.95",
         "action_filter_tag": "af7",
+        "action_filter": 0.7,
+        "action_filter_label": "action_filter=0.7",
         "default_action": false
       },
       "summary": {},
@@ -5954,6 +5962,8 @@
         "source_file": "conf95_af8_new_def_act_results.txt",
         "confidence_level": "0.95",
         "action_filter_tag": "af8",
+        "action_filter": 0.8,
+        "action_filter_label": "action_filter=0.8",
         "default_action": true
       },
       "summary": {
@@ -8227,6 +8237,8 @@
         "source_file": "conf95_af8_new_results.txt",
         "confidence_level": "0.95",
         "action_filter_tag": "af8",
+        "action_filter": 0.8,
+        "action_filter_label": "action_filter=0.8",
         "default_action": false
       },
       "summary": {},
@@ -9026,6 +9038,8 @@
         "source_file": "conf95_af9_new_def_act_results.txt",
         "confidence_level": "0.95",
         "action_filter_tag": "af9",
+        "action_filter": 0.9,
+        "action_filter_label": "action_filter=0.9",
         "default_action": true
       },
       "summary": {
@@ -11335,6 +11349,8 @@
         "source_file": "conf95_af9_new_results.txt",
         "confidence_level": "0.95",
         "action_filter_tag": "af9",
+        "action_filter": 0.9,
+        "action_filter_label": "action_filter=0.9",
         "default_action": false
       },
       "summary": {},
@@ -12226,6 +12242,8 @@
         "source_file": "conf995_af6_new_def_act_results.txt",
         "confidence_level": "0.995",
         "action_filter_tag": "af6",
+        "action_filter": 0.6,
+        "action_filter_label": "action_filter=0.6",
         "default_action": true
       },
       "summary": {
@@ -14299,6 +14317,8 @@
         "source_file": "conf995_af6_new_results.txt",
         "confidence_level": "0.995",
         "action_filter_tag": "af6",
+        "action_filter": 0.6,
+        "action_filter_label": "action_filter=0.6",
         "default_action": false
       },
       "summary": {},
@@ -15382,6 +15402,8 @@
         "source_file": "conf995_af7_new_def_act_results.txt",
         "confidence_level": "0.995",
         "action_filter_tag": "af7",
+        "action_filter": 0.7,
+        "action_filter_label": "action_filter=0.7",
         "default_action": true
       },
       "summary": {
@@ -17455,6 +17477,8 @@
         "source_file": "conf995_af7_new_results.txt",
         "confidence_level": "0.995",
         "action_filter_tag": "af7",
+        "action_filter": 0.7,
+        "action_filter_label": "action_filter=0.7",
         "default_action": false
       },
       "summary": {},
@@ -18538,6 +18562,8 @@
         "source_file": "conf995_af8_new_def_act_results.txt",
         "confidence_level": "0.995",
         "action_filter_tag": "af8",
+        "action_filter": 0.8,
+        "action_filter_label": "action_filter=0.8",
         "default_action": true
       },
       "summary": {
@@ -20583,6 +20609,8 @@
         "source_file": "conf995_af8_new_results.txt",
         "confidence_level": "0.995",
         "action_filter_tag": "af8",
+        "action_filter": 0.8,
+        "action_filter_label": "action_filter=0.8",
         "default_action": false
       },
       "summary": {},
@@ -21714,6 +21742,8 @@
         "source_file": "conf995_af9_new_def_act_results.txt",
         "confidence_level": "0.995",
         "action_filter_tag": "af9",
+        "action_filter": 0.9,
+        "action_filter_label": "action_filter=0.9",
         "default_action": true
       },
       "summary": {
@@ -24103,6 +24133,8 @@
         "source_file": "conf995_af9_new_results.txt",
         "confidence_level": "0.995",
         "action_filter_tag": "af9",
+        "action_filter": 0.9,
+        "action_filter_label": "action_filter=0.9",
         "default_action": false
       },
       "summary": {},
@@ -24546,6 +24578,8 @@
         "source_file": "conf99_af6_new_def_act_results.txt",
         "confidence_level": "0.99",
         "action_filter_tag": "af6",
+        "action_filter": 0.6,
+        "action_filter_label": "action_filter=0.6",
         "default_action": true
       },
       "summary": {
@@ -26775,6 +26809,8 @@
         "source_file": "conf99_af6_new_results.txt",
         "confidence_level": "0.99",
         "action_filter_tag": "af6",
+        "action_filter": 0.6,
+        "action_filter_label": "action_filter=0.6",
         "default_action": false
       },
       "summary": {},
@@ -27398,6 +27434,8 @@
         "source_file": "conf99_af7_new_def_act_results.txt",
         "confidence_level": "0.99",
         "action_filter_tag": "af7",
+        "action_filter": 0.7,
+        "action_filter_label": "action_filter=0.7",
         "default_action": true
       },
       "summary": {
@@ -29627,6 +29665,8 @@
         "source_file": "conf99_af7_new_results.txt",
         "confidence_level": "0.99",
         "action_filter_tag": "af7",
+        "action_filter": 0.7,
+        "action_filter_label": "action_filter=0.7",
         "default_action": false
       },
       "summary": {},
@@ -30250,6 +30290,8 @@
         "source_file": "conf99_af8_new_def_act_results.txt",
         "confidence_level": "0.99",
         "action_filter_tag": "af8",
+        "action_filter": 0.8,
+        "action_filter_label": "action_filter=0.8",
         "default_action": true
       },
       "summary": {
@@ -32443,6 +32485,8 @@
         "source_file": "conf99_af8_new_results.txt",
         "confidence_level": "0.99",
         "action_filter_tag": "af8",
+        "action_filter": 0.8,
+        "action_filter_label": "action_filter=0.8",
         "default_action": false
       },
       "summary": {},
@@ -33046,6 +33090,8 @@
         "source_file": "conf99_af9_new_def_act_results.txt",
         "confidence_level": "0.99",
         "action_filter_tag": "af9",
+        "action_filter": 0.9,
+        "action_filter_label": "action_filter=0.9",
         "default_action": true
       },
       "summary": {
@@ -35415,6 +35461,8 @@
         "source_file": "conf99_af9_new_results.txt",
         "confidence_level": "0.99",
         "action_filter_tag": "af9",
+        "action_filter": 0.9,
+        "action_filter_label": "action_filter=0.9",
         "default_action": false
       },
       "summary": {},

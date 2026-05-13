@@ -1,9 +1,4 @@
-"""Threshold/action-filter sweep for TaxiNetV2 conformal RL evaluation.
-
-For point-IPOMDP shields, we sweep the real-time shield threshold `beta`.
-For the cp-control conformal shield, we sweep `action_filter` over the same
-numeric grid so the curves can be compared on a common operating-axis.
-"""
+"""Independent beta/action-filter sweeps for TaxiNetV2 conformal RL evaluation."""
 
 from __future__ import annotations
 
@@ -64,10 +59,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--measured-cte-accuracy", type=float, default=None)
     parser.add_argument("--measured-he-accuracy", type=float, default=None)
     parser.add_argument("--measured-joint-accuracy", type=float, default=None)
-    parser.add_argument(
-        "--conformal-mode",
-        default="shared-event/axis-paired",
-    )
+    parser.add_argument("--conformal-mode", default="shared-event/axis-paired")
     parser.add_argument(
         "--initial",
         choices=["safe", "boundary"],
@@ -88,13 +80,13 @@ def parse_args() -> argparse.Namespace:
         args.rl_episode_length = args.trial_length
     if args.action_filter_values is None:
         args.action_filter_values = list(args.threshold_values)
-    if len(args.threshold_values) != len(args.action_filter_values):
-        raise ValueError("threshold-values and action-filter-values must have the same length")
     return args
 
 
 def _result_row(
     *,
+    sweep_axis: str,
+    operating_value: float,
     beta: float,
     action_filter: float,
     method: str,
@@ -102,6 +94,8 @@ def _result_row(
     metrics: Dict[str, float],
 ) -> dict:
     return {
+        "sweep_axis": sweep_axis,
+        "operating_value": operating_value,
         "beta": beta,
         "action_filter": action_filter,
         "method": method,
@@ -118,6 +112,8 @@ def _result_row(
 
 def _write_rows(rows: Iterable[dict], path: Path) -> None:
     fieldnames = [
+        "sweep_axis",
+        "operating_value",
         "beta",
         "action_filter",
         "method",
@@ -137,7 +133,14 @@ def _write_rows(rows: Iterable[dict], path: Path) -> None:
         writer.writerows(rows)
 
 
-def _single_run_args(args: argparse.Namespace, beta: float, action_filter: float) -> argparse.Namespace:
+def _single_run_args(
+    args: argparse.Namespace,
+    beta: float,
+    action_filter: float,
+    *,
+    skip_point_baselines: bool,
+    skip_conformal: bool,
+) -> argparse.Namespace:
     return argparse.Namespace(
         num_trials=args.num_trials,
         trial_length=args.trial_length,
@@ -160,91 +163,24 @@ def _single_run_args(args: argparse.Namespace, beta: float, action_filter: float
         measured_joint_accuracy=args.measured_joint_accuracy,
         conformal_mode=args.conformal_mode,
         store_trajectories=False,
+        skip_point_baselines=skip_point_baselines,
+        skip_conformal=skip_conformal,
         initial=args.initial,
         output=Path("__unused__.json"),
         csv_output=Path("__unused__.csv"),
     )
 
 
-def run_beta_sweep(args: argparse.Namespace) -> dict:
-    rows: List[dict] = []
-    grid_results: Dict[str, dict] = {}
-
-    for beta, action_filter in zip(args.threshold_values, args.action_filter_values):
-        print(f"Running beta={beta:.2f} action_filter={action_filter:.2f}")
-        run_args = _single_run_args(args, beta, action_filter)
-        result = run_sweep(run_args)
-        beta_key = f"{beta:.2f}"
-        grid_results[beta_key] = {
-            "beta": beta,
-            "action_filter": action_filter,
-            "point_baselines": result["point_baselines"],
-            "conformal_results": result["conformal_results"],
-        }
-
-        for method in POINT_METHODS:
-            metrics = result["point_baselines"][method]
-            rows.append(
-                _result_row(
-                    beta=beta,
-                    action_filter=action_filter,
-                    method=method,
-                    confidence_level="",
-                    metrics=metrics,
-                )
-            )
-        for confidence_level, methods in result["conformal_results"].items():
-            metrics = methods[CONFORMAL_METHOD]
-            rows.append(
-                _result_row(
-                    beta=beta,
-                    action_filter=action_filter,
-                    method=CONFORMAL_METHOD,
-                    confidence_level=confidence_level,
-                    metrics=metrics,
-                )
-            )
-
-        payload = {
-            "metadata": {
-                "case_study": "taxinet_v2_beta_sweep",
-                "args": {
-                    "num_trials": args.num_trials,
-                    "trial_length": args.trial_length,
-                    "seed": args.seed,
-                    "confidence_method": args.confidence_method,
-                    "alpha": args.alpha,
-                    "confidence_levels": list(args.confidence_levels),
-                    "threshold_values": list(args.threshold_values),
-                    "action_filter_values": list(args.action_filter_values),
-                    "action_success": args.action_success,
-                    "forward_budget": args.forward_budget,
-                    "forward_k_samples": args.forward_k_samples,
-                    "point_realization": args.point_realization,
-                    "rl_episodes": args.rl_episodes,
-                    "rl_episode_length": args.rl_episode_length,
-                    "rl_cache_path": str(args.rl_cache_path),
-                    "base_checkpoint": str(args.base_checkpoint),
-                    "measured_cte_accuracy": args.measured_cte_accuracy,
-                    "measured_he_accuracy": args.measured_he_accuracy,
-                    "measured_joint_accuracy": args.measured_joint_accuracy,
-                    "conformal_mode": args.conformal_mode,
-                    "initial": args.initial,
-                    "output": str(args.output),
-                    "csv_output": str(args.csv_output),
-                },
-            },
-            "grid_results": grid_results,
-        }
-        _write_rows(rows, args.csv_output)
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        with args.output.open("w") as handle:
-            json.dump(payload, handle, indent=2)
-
-    _write_rows(rows, args.csv_output)
-    payload = {
+def _payload(args: argparse.Namespace, point_sweep_results: dict, conformal_sweep_results: dict) -> dict:
+    point_action_filter_reference = (
+        0.7 if any(abs(value - 0.7) < 1e-9 for value in args.action_filter_values) else args.action_filter_values[0]
+    )
+    conformal_beta_reference = (
+        0.8 if any(abs(value - 0.8) < 1e-9 for value in args.threshold_values) else args.threshold_values[0]
+    )
+    return {
         "metadata": {
-            "case_study": "taxinet_v2_beta_sweep",
+            "case_study": "taxinet_v2_operating_sweeps",
             "args": {
                 "num_trials": args.num_trials,
                 "trial_length": args.trial_length,
@@ -267,25 +203,112 @@ def run_beta_sweep(args: argparse.Namespace) -> dict:
                 "measured_joint_accuracy": args.measured_joint_accuracy,
                 "conformal_mode": args.conformal_mode,
                 "initial": args.initial,
+                "point_action_filter_reference": point_action_filter_reference,
+                "conformal_beta_reference": conformal_beta_reference,
                 "output": str(args.output),
                 "csv_output": str(args.csv_output),
             },
         },
-        "grid_results": grid_results,
+        "point_sweep_results": point_sweep_results,
+        "conformal_sweep_results": conformal_sweep_results,
     }
-    return payload
+
+
+def run_beta_sweep(args: argparse.Namespace) -> dict:
+    rows: List[dict] = []
+    point_sweep_results: Dict[str, dict] = {}
+    conformal_sweep_results: Dict[str, dict] = {}
+
+    point_action_filter_reference = (
+        0.7 if any(abs(value - 0.7) < 1e-9 for value in args.action_filter_values) else args.action_filter_values[0]
+    )
+    conformal_beta_reference = (
+        0.8 if any(abs(value - 0.8) < 1e-9 for value in args.threshold_values) else args.threshold_values[0]
+    )
+
+    for beta in args.threshold_values:
+        print(f"Running point sweep at beta={beta:.2f}")
+        run_args = _single_run_args(
+            args,
+            beta,
+            point_action_filter_reference,
+            skip_point_baselines=False,
+            skip_conformal=True,
+        )
+        result = run_sweep(run_args)
+        point_sweep_results[f"{beta:.2f}"] = {
+            "beta": beta,
+            "point_baselines": result["point_baselines"],
+        }
+        for method in POINT_METHODS:
+            rows.append(
+                _result_row(
+                    sweep_axis="beta",
+                    operating_value=beta,
+                    beta=beta,
+                    action_filter=point_action_filter_reference,
+                    method=method,
+                    confidence_level="",
+                    metrics=result["point_baselines"][method],
+                )
+            )
+
+        _write_rows(rows, args.csv_output)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        with args.output.open("w") as handle:
+            json.dump(_payload(args, point_sweep_results, conformal_sweep_results), handle, indent=2)
+
+    for action_filter in args.action_filter_values:
+        print(f"Running conformal sweep at action_filter={action_filter:.2f}")
+        run_args = _single_run_args(
+            args,
+            conformal_beta_reference,
+            action_filter,
+            skip_point_baselines=True,
+            skip_conformal=False,
+        )
+        result = run_sweep(run_args)
+        conformal_sweep_results[f"{action_filter:.2f}"] = {
+            "beta": conformal_beta_reference,
+            "action_filter": action_filter,
+            "conformal_results": result["conformal_results"],
+        }
+        for confidence_level, methods in result["conformal_results"].items():
+            rows.append(
+                _result_row(
+                    sweep_axis="action_filter",
+                    operating_value=action_filter,
+                    beta=conformal_beta_reference,
+                    action_filter=action_filter,
+                    method=CONFORMAL_METHOD,
+                    confidence_level=confidence_level,
+                    metrics=methods[CONFORMAL_METHOD],
+                )
+            )
+
+        _write_rows(rows, args.csv_output)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        with args.output.open("w") as handle:
+            json.dump(_payload(args, point_sweep_results, conformal_sweep_results), handle, indent=2)
+
+    return _payload(args, point_sweep_results, conformal_sweep_results)
 
 
 def main() -> None:
     args = parse_args()
     result = run_beta_sweep(args)
-    print(f"Saved TaxiNetV2 beta sweep JSON to {args.output}")
+    print(f"Saved TaxiNetV2 operating sweep JSON to {args.output}")
     print(f"Saved tidy CSV to {args.csv_output}")
-    for beta_key, beta_result in result["grid_results"].items():
+    for beta_key, beta_result in result["point_sweep_results"].items():
         print(
-            f"beta={beta_key} action_filter={beta_result['action_filter']:.2f} "
+            f"point beta={beta_key} "
             f"single_belief fail={beta_result['point_baselines']['single_belief']['fail_rate']:.1%} "
-            f"stuck={beta_result['point_baselines']['single_belief']['stuck_rate']:.1%}"
+            f"forward_sampling fail={beta_result['point_baselines']['forward_sampling']['fail_rate']:.1%}"
+        )
+    for filter_key, filter_result in result["conformal_sweep_results"].items():
+        print(
+            f"conformal action_filter={filter_key} "
+            f"conf95 fail={filter_result['conformal_results']['0.95'][CONFORMAL_METHOD]['fail_rate']:.1%}"
         )
 
 

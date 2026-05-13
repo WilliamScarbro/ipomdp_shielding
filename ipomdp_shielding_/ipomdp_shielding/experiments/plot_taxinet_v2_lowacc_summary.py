@@ -30,6 +30,9 @@ COLORS = {
 }
 
 
+SCARBRO_ACTION_FILTER = 0.7
+
+
 def _load_json(path: Path) -> dict:
     with path.open() as handle:
         return json.load(handle)
@@ -106,15 +109,39 @@ def make_conformal_size_plot(headline: dict, out_dir: Path, title_prefix: str) -
     return out
 
 
-def _curve_from_beta_sweep(beta_sweep: dict, method: str, confidence_level: str = "") -> List[Tuple[float, float, float]]:
+def _point_sweep_results(beta_sweep: dict) -> dict:
+    return beta_sweep.get("point_sweep_results", beta_sweep.get("grid_results", {}))
+
+
+def _conformal_sweep_results(beta_sweep: dict) -> dict:
+    if "conformal_sweep_results" in beta_sweep:
+        return beta_sweep["conformal_sweep_results"]
+    return beta_sweep.get("grid_results", {})
+
+
+def _grid_entry(grid: dict, target: float) -> dict:
+    key = f"{target:.2f}"
+    if key in grid:
+        return grid[key]
+    nearest_key = min(grid.keys(), key=lambda candidate: abs(float(candidate) - target))
+    return grid[nearest_key]
+
+
+def _curve_from_point_sweep(beta_sweep: dict, method: str) -> List[Tuple[float, float, float]]:
     points = []
-    for beta_key, result in sorted(beta_sweep["grid_results"].items(), key=lambda item: float(item[0])):
+    for beta_key, result in sorted(_point_sweep_results(beta_sweep).items(), key=lambda item: float(item[0])):
         beta = result["beta"]
-        if method == "cp_control_conformal":
-            metrics = result["conformal_results"][confidence_level]["cp_control_conformal"]
-        else:
-            metrics = result["point_baselines"][method]
+        metrics = result["point_baselines"][method]
         points.append((beta, metrics["fail_rate"], metrics["stuck_rate"]))
+    return points
+
+
+def _curve_from_conformal_sweep(beta_sweep: dict, confidence_level: str) -> List[Tuple[float, float, float]]:
+    points = []
+    for filter_key, result in sorted(_conformal_sweep_results(beta_sweep).items(), key=lambda item: float(item[0])):
+        action_filter = result["action_filter"]
+        metrics = result["conformal_results"][confidence_level]["cp_control_conformal"]
+        points.append((action_filter, metrics["fail_rate"], metrics["stuck_rate"]))
     return points
 
 
@@ -126,10 +153,13 @@ def make_beta_pareto(beta_sweep: dict, out_dir: Path, title_prefix: str) -> Path
     ]
     for ax, (title, series) in zip(axes, panels):
         for method, confidence in series:
-            curve = _curve_from_beta_sweep(beta_sweep, method, confidence)
+            if method == "cp_control_conformal":
+                curve = _curve_from_conformal_sweep(beta_sweep, confidence)
+            else:
+                curve = _curve_from_point_sweep(beta_sweep, method)
             xs = [stuck * 100 for _, _, stuck in curve]
             ys = [fail * 100 for _, fail, _ in curve]
-            thresholds = [beta for beta, _, _ in curve]
+            thresholds = [value for value, _, _ in curve]
             label = method if method != "cp_control_conformal" else f"conformal {confidence}"
             color = COLORS["cp_control_conformal"] if method == "cp_control_conformal" else COLORS[method]
             ax.plot(xs, ys, marker="o", color=color, label=label)
@@ -159,13 +189,16 @@ def _scarbro_rows(scarbro: dict) -> List[Tuple[str, float, float]]:
             metadata = variant.get("metadata", {})
             if (
                 metadata.get("confidence_level") == confidence
-                and metadata.get("action_filter_tag") == "af7"
+                and metadata.get("action_filter") == SCARBRO_ACTION_FILTER
                 and metadata.get("default_action") is True
             ):
                 match = variant
                 break
         if match is None:
-            raise KeyError(f"Missing Scarbro af7/default-action variant for confidence={confidence}")
+            raise KeyError(
+                f"Missing Scarbro action_filter={SCARBRO_ACTION_FILTER:.1f}/default-action variant "
+                f"for confidence={confidence}"
+            )
         summary = match["summary"]
         rows.append(
             (
@@ -202,7 +235,7 @@ def make_scarbro_compare(headline: dict, scarbro: dict, out_dir: Path, title_pre
     ax.set_xticklabels(confidences)
     ax.set_xlabel("Confidence level")
     ax.set_ylabel("Rate (%)")
-    ax.set_title(f"{title_prefix} vs Scarbro Import (af7)")
+    ax.set_title(f"{title_prefix} vs Scarbro Import (action_filter={SCARBRO_ACTION_FILTER:.1f})")
     ax.grid(axis="y", alpha=0.3)
     ax.legend(fontsize=8)
     fig.tight_layout()
@@ -225,14 +258,18 @@ def write_summary(
 ) -> None:
     accuracy = lowacc_metrics
     rows = _ordered_headline_rows(headline)
-    beta_080 = beta_sweep["grid_results"]["0.80"]
-    beta_095 = beta_sweep["grid_results"]["0.95"]
+    point_sweep = _point_sweep_results(beta_sweep)
+    conformal_sweep = _conformal_sweep_results(beta_sweep)
+    beta_080 = _grid_entry(point_sweep, 0.80)
+    beta_095 = _grid_entry(point_sweep, 0.95)
+    filter_070 = _grid_entry(conformal_sweep, 0.70)
     scarbro_rows = _scarbro_rows(scarbro)
     metadata = headline.get("metadata", {})
     measured = metadata.get("measured_test_accuracy", {})
     conformal_mode = metadata.get("conformal_mode", "unknown")
     base_checkpoint = metadata.get("base_perception_model", "unknown")
-    sweep_grid = beta_sweep["metadata"]["args"]["threshold_values"]
+    threshold_grid = beta_sweep["metadata"]["args"]["threshold_values"]
+    action_filter_grid = beta_sweep["metadata"]["args"]["action_filter_values"]
 
     lines: List[str] = []
     lines.append(f"# {title_prefix} Evaluation Summary\n")
@@ -245,7 +282,8 @@ def write_summary(
         f"- Conformal mode: `{conformal_mode}`\n"
         f"- Point estimate realization: `{point_realization}` modular realization over the TaxiNetV2 point-estimate IPOMDP\n"
         f"- Headline run: `1000` trials, horizon `30`, initial state `safe`, point-shield beta `0.8`, conformal `action_filter=0.7`\n"
-        f"- Beta sweep: `{beta_sweep['metadata']['args']['num_trials']}` trials per operating point, beta/action-filter grid `{sweep_grid}`\n"
+        f"- Point sweep: `{beta_sweep['metadata']['args']['num_trials']}` trials per operating point, beta grid `{threshold_grid}`\n"
+        f"- Conformal sweep: `{beta_sweep['metadata']['args']['num_trials']}` trials per operating point, action-filter grid `{action_filter_grid}`\n"
     )
 
     lines.append("## Headline Results\n")
@@ -268,7 +306,7 @@ def write_summary(
         f"- The new sweep shows the usual beta tradeoff for point shields. At `beta=0.80`, envelope reaches fail `{beta_080['point_baselines']['envelope']['fail_rate']:.1%}` / stuck `{beta_080['point_baselines']['envelope']['stuck_rate']:.1%}`. By `beta=0.95`, it shifts to fail `{beta_095['point_baselines']['envelope']['fail_rate']:.1%}` / stuck `{beta_095['point_baselines']['envelope']['stuck_rate']:.1%}`."
     )
     lines.append(
-        "- Sweeping conformal `action_filter` over the same numeric range gives a comparable Pareto curve, but the confidence level dominates behavior more strongly than the filter does. `0.95` remains usable; `0.99+` quickly collapses into near-total stuck behavior."
+        f"- Sweeping conformal `action_filter` independently shows the same pattern: at `action_filter=0.7`, the `0.95` conformal controller reaches fail `{filter_070['conformal_results']['0.95']['cp_control_conformal']['fail_rate']:.1%}` / stuck `{filter_070['conformal_results']['0.95']['cp_control_conformal']['stuck_rate']:.1%}`, while `0.99+` remains dominated by stuck behavior across the filter grid."
     )
 
     lines.append("\n## Scarbro Comparison\n")
@@ -280,7 +318,9 @@ def write_summary(
             f"| {confidence} | {scarbro_fail:.1%} | {scarbro_stuck:.1%} | {ours['fail_rate']:.1%} | {ours['stuck_rate']:.1%} |"
         )
     lines.append(
-        "\nThese are still not apples-to-apples with Scarbro et al.: their imported numbers are PRISM properties over a different controller/default-action semantics, while these are Monte Carlo RL-selector evaluations using the local paired-event artifact model."
+        f"\nThese are still not apples-to-apples with Scarbro et al.: the imported PRISM numbers here use "
+        f"`action_filter={SCARBRO_ACTION_FILTER:.1f}` with default-action semantics, while these are Monte "
+        "Carlo RL-selector evaluations using the local paired-event artifact model."
     )
 
     lines.append("\n## Figures\n")

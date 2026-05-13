@@ -5,8 +5,8 @@ that includes ConformalPredictionShield alongside the standard iPOMDP shields
 (none, observation, single_belief, envelope).  Both approaches are evaluated
 via the same Monte Carlo protocol so results are directly comparable.
 
-After running, generates a comparison figure that overlays the MC results
-against the Scarbro PRISM baseline (vendored in results/taxinet_v2/).
+After running, generates a comparison figure for the MC results and keeps the
+Scarbro PRISM baseline available for separate tabular/internal comparison.
 
 Usage:
     python -m ipomdp_shielding.experiments.run_taxinet_v2_comparison [--plot-only]
@@ -32,6 +32,7 @@ from .run_rl_shield_experiment import (
     create_observation_shield_factory,
     create_single_belief_shield_factory,
     create_envelope_shield_factory,
+    create_forward_sampling_shield_factory,
     create_conformal_shield_factory,
     run_experiment,
     print_results_table,
@@ -67,8 +68,8 @@ def _scarbro_path() -> Path:
 def build_comparison_grid(ipomdp, pp_shield, rl_selector, optimized_perceptions, config):
     """Build an experiment grid that adds ConformalPredictionShield.
 
-    Extends the standard 2×3×4 grid (perception × selector × shield) with a
-    fifth shield type, yielding 2×3×5 = 30 combinations.
+    Extends the standard TaxiNetV2 comparison grid with forward_sampling and
+    ConformalPredictionShield.
     """
     all_actions = list(ipomdp.actions)
     pomdp = ipomdp.to_pomdp()
@@ -100,6 +101,13 @@ def build_comparison_grid(ipomdp, pp_shield, rl_selector, optimized_perceptions,
         "observation": create_observation_shield_factory(ipomdp, pp_shield, config.shield_threshold),
         "single_belief": create_single_belief_shield_factory(pomdp, pp_shield, config.shield_threshold),
         "envelope": create_envelope_shield_factory(ipomdp, pp_shield, config.shield_threshold),
+        "forward_sampling": create_forward_sampling_shield_factory(
+            ipomdp,
+            pp_shield,
+            config.shield_threshold,
+            budget=getattr(config, "forward_budget", 500),
+            K_samples=getattr(config, "forward_k_samples", 100),
+        ),
         "conformal_prediction": create_conformal_shield_factory(
             pp_shield, all_actions, cte_st, he_st
         ),
@@ -154,8 +162,9 @@ def extract_scarbro_tradeoff_points(
         if crash is None or stuck is None:
             continue
         points.append({
-            "label": m["action_filter_tag"],
+            "label": m.get("action_filter_label", m["action_filter_tag"]),
             "confidence_level": m["confidence_level"],
+            "action_filter": m.get("action_filter"),
             "crash": crash,
             "stuck": stuck,
         })
@@ -166,12 +175,13 @@ def extract_scarbro_tradeoff_points(
 # Comparison figure
 # ============================================================
 
-_SHIELD_ORDER = ["none", "observation", "single_belief", "envelope", "conformal_prediction"]
+_SHIELD_ORDER = ["none", "observation", "single_belief", "envelope", "forward_sampling", "conformal_prediction"]
 _SHIELD_COLORS = {
     "none": "gray",
     "observation": "darkorange",
     "single_belief": "steelblue",
     "envelope": "green",
+    "forward_sampling": "teal",
     "conformal_prediction": "crimson",
 }
 _SHIELD_LABELS = {
@@ -179,6 +189,7 @@ _SHIELD_LABELS = {
     "observation": "Obs. Shield",
     "single_belief": "Single-Belief",
     "envelope": "Envelope",
+    "forward_sampling": "Fwd-Sampling",
     "conformal_prediction": "Conf. Pred.",
 }
 _SHIELD_MARKERS = {
@@ -186,6 +197,7 @@ _SHIELD_MARKERS = {
     "observation": "s",
     "single_belief": "D",
     "envelope": "o",
+    "forward_sampling": "P",
     "conformal_prediction": "^",
 }
 
@@ -203,9 +215,8 @@ def plot_comparison(
     Y-axis: fail/crash rate (safety risk).
     Lower-left is better.
 
-    One panel per perception regime.  The Scarbro PRISM points are shown only
-    on the uniform-perception panel (PRISM is a worst-case formal bound, not
-    tied to a specific perception strategy).
+    One panel per perception regime. The scatter shows only the MC evaluation
+    points; the Scarbro PRISM baseline is kept out of the Pareto figure.
     """
     try:
         import matplotlib
@@ -247,21 +258,6 @@ def plot_comparison(
                     fmt="none",
                     ecolor=_SHIELD_COLORS[sh_name],
                     capsize=3, alpha=0.6,
-                )
-
-        # --- Scarbro PRISM baseline (uniform panel only) ---
-        if p_name == "uniform" and scarbro_points:
-            sx = [p["stuck"] for p in scarbro_points]
-            sy = [p["crash"] for p in scarbro_points]
-            ax.scatter(sx, sy, s=90, zorder=4, color="purple", marker="P",
-                       label="PRISM (Scarbro) conf=0.95")
-            ax.plot(sx, sy, color="purple", linestyle="--", alpha=0.35, linewidth=1.2)
-            for pt in scarbro_points:
-                ax.annotate(
-                    pt["label"],
-                    (pt["stuck"], pt["crash"]),
-                    textcoords="offset points", xytext=(5, 4),
-                    fontsize=7, color="purple",
                 )
 
         p_label = "Uniform Perception" if p_name == "uniform" else "Adversarial Perception"
@@ -337,7 +333,7 @@ def run(config, skip_run: bool = False):
 
         grid = build_comparison_grid(ipomdp, pp_shield, rl_selector, optimized_perceptions, config)
         print(f"\nExperiment grid: {len(grid)} combinations "
-              f"(2 perceptions × 3 selectors × 5 shields)")
+              f"(2 perceptions × 3 selectors × 6 shields)")
 
         t0 = time.time()
         results, trial_data, intervention_stats = run_experiment(ipomdp, pp_shield, grid, config)
@@ -352,8 +348,9 @@ def run(config, skip_run: bool = False):
                 f"{k[0]}/{k[1]}/{k[2]}": v for k, v in intervention_stats.items()
             },
             "note": (
-                "Augmented grid: adds ConformalPredictionShield to the standard "
-                "4-shield set for direct comparison with Scarbro PRISM baseline."
+                "Augmented grid: adds forward_sampling and ConformalPredictionShield "
+                "to the TaxiNetV2 shield set for direct comparison with the Scarbro "
+                "PRISM baseline."
             ),
         }
         save_results(results, config, setup_info=extra)

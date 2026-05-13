@@ -90,10 +90,16 @@ def _variant_metadata(path: Path) -> Dict[str, object]:
     parts = stem.split("_")
     conf_tag = parts[0]
     af_tag = parts[1]
+    try:
+        action_filter = float(f"0.{af_tag[2:]}")
+    except ValueError:
+        action_filter = None
     return {
         "source_file": path.name,
         "confidence_level": f"0.{conf_tag[4:]}",
         "action_filter_tag": af_tag,
+        "action_filter": action_filter,
+        "action_filter_label": f"action_filter={action_filter:.1f}" if action_filter is not None else af_tag,
         "default_action": "_def_act" in stem,
     }
 

@@ -3,8 +3,8 @@
 Loads results from all three confidence levels (0.95, 0.99, 0.995) and
 generates:
   1. Grouped bar chart: fail rate and stuck rate per shield per conf level.
-  2. Pareto scatter: fail vs. stuck for all shields/confs, with PRISM overlay.
-  3. Grounding plot: CP MC fail rate vs. PRISM af9 crash bound across conf levels.
+  2. Pareto scatter: fail vs. stuck for all shields/confs.
+  3. Grounding plot: CP MC fail rate vs. PRISM action_filter=0.9 crash bound across conf levels.
 
 Usage:
     python -m ipomdp_shielding.experiments.plot_taxinet_v2_cross_conf
@@ -55,6 +55,12 @@ SHIELD_MARKERS = {
 }
 
 
+def _action_filter_label(value: float | None) -> str:
+    if value is None:
+        return "action_filter=?"
+    return f"action_filter={value:.1f}"
+
+
 def load_all_results() -> Dict[str, Dict]:
     root = _project_root()
     results = {}
@@ -87,6 +93,8 @@ def load_scarbro() -> List[Dict]:
         pts.append({
             "conf": m["confidence_level"],
             "af": m["action_filter_tag"],
+            "action_filter": m.get("action_filter"),
+            "action_filter_label": m.get("action_filter_label", _action_filter_label(m.get("action_filter"))),
             "crash": crash,
             "stuck": stuck,
         })
@@ -150,7 +158,7 @@ def make_grouped_bar(all_results, scarbro_pts, perc, selector, outdir):
                         yerr=[lo_errs, hi_errs],
                         fmt="none", ecolor="black", capsize=2, alpha=0.6)
 
-        # PRISM af9 overlay (horizontal lines per conf) — fail panel only
+        # PRISM action_filter=0.9 overlay (horizontal lines per conf) — fail panel only
         if metric == "fail_rate":
             prism_by_conf = {}
             for pt in scarbro_pts:
@@ -164,7 +172,7 @@ def make_grouped_bar(all_results, scarbro_pts, perc, selector, outdir):
                     ax.hlines(prism_by_conf[conf], x_start, x_end,
                               colors=conf_colors[ci], linestyles="--",
                               linewidth=1.5, alpha=0.9,
-                              label=f"PRISM af9 conf={conf}" if ci == 0 else "")
+                              label=f"PRISM action_filter=0.9 conf={conf}" if ci == 0 else "")
 
         ax.set_xticks(x_positions + (n_confs - 1) * bar_width / 2)
         ax.set_xticklabels([SHIELD_LABELS[s] for s in shields_to_plot], fontsize=9)
@@ -195,7 +203,7 @@ def make_grounding_plot(all_results, scarbro_pts, outdir):
     x = np.arange(len(confs))
     conf_labels = [f"conf={c}" for c in confs]
 
-    # PRISM af9 crash per conf
+    # PRISM action-filter crash per conf
     prism_af9 = {}
     prism_af6 = {}
     for pt in scarbro_pts:
@@ -223,10 +231,10 @@ def make_grounding_plot(all_results, scarbro_pts, outdir):
         # PRISM bound lines
         if any(v is not None for v in prism_crash_af9):
             ax.plot(x, prism_crash_af9, "s--", color="purple", linewidth=1.8,
-                    markersize=6, label="PRISM af9 crash ≤ (formal bound)")
+                    markersize=6, label="PRISM action_filter=0.9 crash ≤ (formal bound)")
         if any(v is not None for v in prism_crash_af6):
             ax.plot(x, prism_crash_af6, "D:", color="mediumpurple", linewidth=1.2,
-                    markersize=5, alpha=0.7, label="PRISM af6 crash ≤ (formal bound)")
+                    markersize=5, alpha=0.7, label="PRISM action_filter=0.6 crash ≤ (formal bound)")
 
         ax.set_xticks(x)
         ax.set_xticklabels(conf_labels, fontsize=9)
@@ -277,13 +285,6 @@ def make_pareto_scatter(all_results, scarbro_pts, outdir):
                 if conf == "0.95":
                     ax.annotate(f"  {conf}", (r["stuck_rate"], r["fail_rate"]),
                                 fontsize=6, color=SHIELD_COLORS[sh])
-
-        # PRISM af9 points
-        for pt in scarbro_pts:
-            if pt["af"] == "af9":
-                ax.scatter(pt["stuck"], pt["crash"], s=80, color="purple",
-                           marker="P", zorder=4, alpha=0.9,
-                           label=f"PRISM af9 conf={pt['conf']}" if perc == "uniform" else None)
 
         p_label = "Uniform" if perc == "uniform" else "Adversarial"
         ax.set_xlabel("Stuck Rate  (conservatism →)", fontsize=10)

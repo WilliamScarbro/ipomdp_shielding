@@ -45,7 +45,7 @@ The `ConformalPredictionShield` is a stateless filter: at each step it takes the
 current conformal observation `(cte_set, he_set)`, forms the Cartesian product of
 possible `(cte, he)` states, and permits only actions safe for **every** state in
 that product.  This is the exact runtime analog of what PRISM reasons about in the
-af9 ("strictest action filter") configuration — PRISM's af9 blocks any action that
+`action_filter=0.9` ("strictest action filter") configuration — PRISM's `action_filter=0.9` blocks any action that
 could cause a crash for any state consistent with the current prediction set.
 
 PRISM results are **formal upper bounds** on crash probability under worst-case
@@ -55,24 +55,24 @@ the RL policy is suboptimal relative to PRISM's computed-optimal policy.
 
 ### PRISM Formal Bounds (Scarbro, horizon=30)
 
-| conf | PRISM variant | Crash ≤ | Stuck/Default |
+| conf | PRISM action-filter variant | Crash ≤ | Stuck/Default |
 |---|---|---|---|
-| 0.95 | af6, af7 | 99.1% | 4.6% |
-| 0.95 | af8        | 98.6% | 10.8% |
-| 0.95 | **af9**    | **87.7%** | **41.2%** |
-| 0.99 | af6, af7 | 61.5% | 86.6% |
-| 0.99 | af8        | 64.8% | 82.1% |
-| 0.99 | **af9**    | **30.7%** | **92.9%** |
-| 0.995 | af6, af7 | 42.8% | 95.5% |
-| 0.995 | af8        | 46.3% | 97.0% |
-| 0.995 | **af9**    | **9.4%** | **98.9%** |
+| 0.95 | action_filter=0.6, 0.7 | 99.1% | 4.6% |
+| 0.95 | action_filter=0.8      | 98.6% | 10.8% |
+| 0.95 | **action_filter=0.9**  | **87.7%** | **41.2%** |
+| 0.99 | action_filter=0.6, 0.7 | 61.5% | 86.6% |
+| 0.99 | action_filter=0.8      | 64.8% | 82.1% |
+| 0.99 | **action_filter=0.9**  | **30.7%** | **92.9%** |
+| 0.995 | action_filter=0.6, 0.7 | 42.8% | 95.5% |
+| 0.995 | action_filter=0.8      | 46.3% | 97.0% |
+| 0.995 | **action_filter=0.9**  | **9.4%** | **98.9%** |
 
-af9 is the strictest PRISM action filter (the most directly comparable to our CP
-shield).  af6/af7 are nearly identical — likely using the same permissive threshold.
+`action_filter=0.9` is the strictest PRISM action filter (the most directly comparable to our CP
+shield). `action_filter=0.6` and `0.7` are nearly identical.
 
 ### MC Conformal Prediction Shield Results (100 trials, RL selector)
 
-| conf | Perception | CP Fail% | CP Stuck% | PRISM af9 Crash ≤ | PRISM af9 Stuck |
+| conf | Perception | CP Fail% | CP Stuck% | PRISM action_filter=0.9 Crash ≤ | PRISM action_filter=0.9 Stuck |
 |---|---|---|---|---|---|
 | 0.95 | uniform      | **84%** | 0%  | 87.7% | 41.2% |
 | 0.95 | adversarial  | **80%** | 0%  | 87.7% | 41.2% |
@@ -86,13 +86,13 @@ shield).  af6/af7 are nearly identical — likely using the same permissive thre
 ### Grounding Analysis
 
 **conf=0.95 — consistent with PRISM bound**  
-CP MC fail = 84% (uniform), 3.7 pp below PRISM af9 = 87.7%.  The MC evaluation
+CP MC fail = 84% (uniform), 3.7 pp below PRISM `action_filter=0.9` = 87.7%.  The MC evaluation
 falls within the formal bound, as expected.  The small gap is within MC noise
 (±~10 pp at 95% CI for n=100 trials near 85%).
 
 **conf=0.99 and 0.995 — MC fail rate exceeds PRISM bound**  
-At conf=0.99, CP MC fail = 44% (uniform) vs. PRISM af9 = 30.7% — 13.3 pp above
-the formal bound.  At conf=0.995, CP MC fail = 26% vs. PRISM af9 = 9.4% — 16.6 pp
+At conf=0.99, CP MC fail = 44% (uniform) vs. PRISM `action_filter=0.9` = 30.7% — 13.3 pp above
+the formal bound.  At conf=0.995, CP MC fail = 26% vs. PRISM `action_filter=0.9` = 9.4% — 16.6 pp
 above.  This is not a bug; it indicates that **our RL policy is suboptimal relative to
 the PRISM-computed optimal policy at higher confidence levels**.
 
@@ -173,7 +173,7 @@ its specific action-filter semantics; our RL agent was trained for a different o
 
 ### Cross-confidence summary (RL selector, uniform perception)
 
-| conf | Shield | Fail% | Stuck% | PRISM af9 crash ≤ |
+| conf | Shield | Fail% | Stuck% | PRISM action_filter=0.9 crash ≤ |
 |---|---|---|---|---|
 | 0.95  | CP | 84% | 0%  | 87.7% |
 | 0.95  | Single-Belief | 60% | 1%  | — |
@@ -203,12 +203,12 @@ its specific action-filter semantics; our RL agent was trained for a different o
 
 ### Grounding findings (§1)
 
-1. **MC tracks PRISM at conf=0.95**: CP shield MC fail = 84% vs. PRISM af9 bound =
+1. **MC tracks PRISM at conf=0.95**: CP shield MC fail = 84% vs. PRISM `action_filter=0.9` bound =
    87.7% — below the formal bound as expected.  The MC evaluation is consistent with
    PRISM at the baseline confidence level.
 
 2. **MC exceeds PRISM bound at conf≥0.99**: at conf=0.99, CP MC fail = 44% vs.
-   PRISM af9 = 30.7%; at conf=0.995, 26% vs. 9.4%.  The RL policy becomes increasingly
+   PRISM `action_filter=0.9` = 30.7%; at conf=0.995, 26% vs. 9.4%.  The RL policy becomes increasingly
    suboptimal relative to PRISM's computed-optimal policy as prediction sets grow.
 
 3. **Stuck-rate discrepancy is structural**: PRISM's "default action" keeps episodes
@@ -217,9 +217,9 @@ its specific action-filter semantics; our RL agent was trained for a different o
    action 41% of the time to avoid high-risk choices.  At conf=0.99+, both measures
    of conservatism converge: CP stuck ≥ 56%, PRISM default ≥ 93%.
 
-4. **af6/af7 ≈ af8 >> af9 gap**: PRISM af9 is the only variant approaching a
-   meaningful safety guarantee; af6–af8 give 87.7–99.1% crash at conf=0.95.  The
-   af9 filter corresponds to our all-states-safe requirement; af6–af8 use more
+4. **action_filter=0.6/0.7 ≈ 0.8 >> 0.9 gap**: PRISM `action_filter=0.9` is the only variant approaching a
+   meaningful safety guarantee; `action_filter=0.6`–`0.8` give 87.7–99.1% crash at conf=0.95.  The
+   `action_filter=0.9` filter corresponds to our all-states-safe requirement; `action_filter=0.6`–`0.8` use more
    permissive filters that allow substantially more crashes.
 
 ### Shield comparison findings (§2)

@@ -84,6 +84,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--store-trajectories", action="store_true")
     parser.add_argument(
+        "--skip-point-baselines",
+        action="store_true",
+        help="Skip single-belief, envelope, and forward-sampling evaluation.",
+    )
+    parser.add_argument(
+        "--skip-conformal",
+        action="store_true",
+        help="Skip cp-control conformal evaluation.",
+    )
+    parser.add_argument(
         "--initial",
         choices=["safe", "boundary"],
         default="safe",
@@ -421,112 +431,117 @@ def run_sweep(args: argparse.Namespace) -> dict:
 
     point_perception = _build_point_perception(args.point_realization, pp_shield)
 
+    run_point_baselines = not getattr(args, "skip_point_baselines", False)
+    run_conformal = not getattr(args, "skip_conformal", False)
+
     csv_rows = []
     point_baselines: Dict[str, dict] = {}
     trials: Dict[str, Any] = {"point_baselines": {}, "conformal_results": {}}
 
-    for method in POINT_METHODS:
-        selector = ShieldCompliantSelector(rl_selector, list(point_ipomdp.actions))
-        selector.reset_stats()
-        started = time.time()
-        trial_results, shield_stats, _size_stats = _run_dual_observation_trials(
-            ipomdp=point_ipomdp,
-            pp_shield=pp_shield,
-            paired_perception=point_perception,
-            rt_shield_factory=point_methods[method],
-            action_selector=selector,
-            initial_generator=initial_generator,
-            num_trials=args.num_trials,
-            trial_length=args.trial_length,
-            seed=args.seed,
-            use_conformal_shield_observation=False,
-            store_trajectories=args.store_trajectories,
-        )
-        metrics = _metrics_to_dict(trial_results)
-        metrics.update(_intervention_stats(selector))
-        metrics.update(shield_stats)
-        metrics["elapsed_seconds"] = time.time() - started
-        metrics["confidence_level_independent"] = True
-        point_baselines[method] = metrics
-        trials["point_baselines"][method] = [trial.__dict__ for trial in trial_results]
-        csv_rows.append(
-            _row_for_csv(
-                seed=args.seed,
-                initial=args.initial,
+    if run_point_baselines:
+        for method in POINT_METHODS:
+            selector = ShieldCompliantSelector(rl_selector, list(point_ipomdp.actions))
+            selector.reset_stats()
+            started = time.time()
+            trial_results, shield_stats, _size_stats = _run_dual_observation_trials(
+                ipomdp=point_ipomdp,
+                pp_shield=pp_shield,
+                paired_perception=point_perception,
+                rt_shield_factory=point_methods[method],
+                action_selector=selector,
+                initial_generator=initial_generator,
+                num_trials=args.num_trials,
                 trial_length=args.trial_length,
-                method=method,
-                confidence_level="",
-                confidence_level_independent=True,
-                metrics=metrics,
+                seed=args.seed,
+                use_conformal_shield_observation=False,
+                store_trajectories=args.store_trajectories,
             )
-        )
+            metrics = _metrics_to_dict(trial_results)
+            metrics.update(_intervention_stats(selector))
+            metrics.update(shield_stats)
+            metrics["elapsed_seconds"] = time.time() - started
+            metrics["confidence_level_independent"] = True
+            point_baselines[method] = metrics
+            trials["point_baselines"][method] = [trial.__dict__ for trial in trial_results]
+            csv_rows.append(
+                _row_for_csv(
+                    seed=args.seed,
+                    initial=args.initial,
+                    trial_length=args.trial_length,
+                    method=method,
+                    confidence_level="",
+                    confidence_level_independent=True,
+                    metrics=metrics,
+                )
+            )
 
     conformal_results: Dict[str, dict] = {}
-    for confidence_level in args.confidence_levels:
-        conformal_ipomdp, _conformal_pp, _projected_cte, _projected_he = (
-            build_taxinet_v2_conformal_ipomdp(
-                confidence_method=args.confidence_method,
-                alpha=args.alpha,
-                confidence_level=confidence_level,
-                action_success=args.action_success,
-                smoothing=True,
+    if run_conformal:
+        for confidence_level in args.confidence_levels:
+            conformal_ipomdp, _conformal_pp, _projected_cte, _projected_he = (
+                build_taxinet_v2_conformal_ipomdp(
+                    confidence_method=args.confidence_method,
+                    alpha=args.alpha,
+                    confidence_level=confidence_level,
+                    action_success=args.action_success,
+                    smoothing=True,
+                )
             )
-        )
-        _validate_matching_dynamics(point_ipomdp, conformal_ipomdp, confidence_level)
-        conditional_cte_sets, conditional_he_sets = get_taxinet_v2_conditional_conformal_axis_data(
-            confidence_level
-        )
-        paired_perception = ModularConditionalConformalTaxiNetPerception(
-            point_perception,
-            point_ipomdp,
-            conditional_cte_sets,
-            conditional_he_sets,
-        )
-
-        def conformal_factory():
-            return ConformalSetIntersectionShield.from_tempest_csv(
-                action_filter=args.action_filter,
-                all_actions=point_ipomdp.actions,
+            _validate_matching_dynamics(point_ipomdp, conformal_ipomdp, confidence_level)
+            conditional_cte_sets, conditional_he_sets = get_taxinet_v2_conditional_conformal_axis_data(
+                confidence_level
+            )
+            paired_perception = ModularConditionalConformalTaxiNetPerception(
+                point_perception,
+                point_ipomdp,
+                conditional_cte_sets,
+                conditional_he_sets,
             )
 
-        selector = ShieldCompliantSelector(rl_selector, list(point_ipomdp.actions))
-        selector.reset_stats()
-        started = time.time()
-        trial_results, shield_stats, size_stats = _run_dual_observation_trials(
-            ipomdp=point_ipomdp,
-            pp_shield=pp_shield,
-            paired_perception=paired_perception,
-            rt_shield_factory=conformal_factory,
-            action_selector=selector,
-            initial_generator=initial_generator,
-            num_trials=args.num_trials,
-            trial_length=args.trial_length,
-            seed=args.seed,
-            use_conformal_shield_observation=True,
-            store_trajectories=args.store_trajectories,
-        )
-        metrics = _metrics_to_dict(trial_results)
-        metrics.update(_intervention_stats(selector))
-        metrics.update(shield_stats)
-        metrics.update(_summarize_conformal_sizes(size_stats))
-        metrics["elapsed_seconds"] = time.time() - started
-        metrics["action_filter"] = args.action_filter
-        metrics["confidence_level"] = confidence_level
-        conformal_results.setdefault(confidence_level, {})[CONFORMAL_METHOD] = metrics
-        trials["conformal_results"].setdefault(confidence_level, {})[CONFORMAL_METHOD] = [
-            trial.__dict__ for trial in trial_results
-        ]
-        csv_rows.append(
-            _row_for_csv(
-                seed=args.seed,
-                initial=args.initial,
+            def conformal_factory():
+                return ConformalSetIntersectionShield.from_tempest_csv(
+                    action_filter=args.action_filter,
+                    all_actions=point_ipomdp.actions,
+                )
+
+            selector = ShieldCompliantSelector(rl_selector, list(point_ipomdp.actions))
+            selector.reset_stats()
+            started = time.time()
+            trial_results, shield_stats, size_stats = _run_dual_observation_trials(
+                ipomdp=point_ipomdp,
+                pp_shield=pp_shield,
+                paired_perception=paired_perception,
+                rt_shield_factory=conformal_factory,
+                action_selector=selector,
+                initial_generator=initial_generator,
+                num_trials=args.num_trials,
                 trial_length=args.trial_length,
-                method=CONFORMAL_METHOD,
-                confidence_level=confidence_level,
-                confidence_level_independent=False,
-                metrics=metrics,
+                seed=args.seed,
+                use_conformal_shield_observation=True,
+                store_trajectories=args.store_trajectories,
             )
-        )
+            metrics = _metrics_to_dict(trial_results)
+            metrics.update(_intervention_stats(selector))
+            metrics.update(shield_stats)
+            metrics.update(_summarize_conformal_sizes(size_stats))
+            metrics["elapsed_seconds"] = time.time() - started
+            metrics["action_filter"] = args.action_filter
+            metrics["confidence_level"] = confidence_level
+            conformal_results.setdefault(confidence_level, {})[CONFORMAL_METHOD] = metrics
+            trials["conformal_results"].setdefault(confidence_level, {})[CONFORMAL_METHOD] = [
+                trial.__dict__ for trial in trial_results
+            ]
+            csv_rows.append(
+                _row_for_csv(
+                    seed=args.seed,
+                    initial=args.initial,
+                    trial_length=args.trial_length,
+                    method=CONFORMAL_METHOD,
+                    confidence_level=confidence_level,
+                    confidence_level_independent=False,
+                    metrics=metrics,
+                )
+            )
 
     metadata = {
         "case_study": "taxinet_v2_conformal_rl_sweep",
@@ -554,6 +569,8 @@ def run_sweep(args: argparse.Namespace) -> dict:
         "point_realization": args.point_realization,
         "confidence_levels": args.confidence_levels,
         "initial": args.initial,
+        "run_point_baselines": run_point_baselines,
+        "run_conformal": run_conformal,
         "args": _json_safe_args(args),
         "taxinet_v2_metadata": get_taxinet_v2_metadata(args.confidence_levels[0]).__dict__,
         "setup": setup_info,
