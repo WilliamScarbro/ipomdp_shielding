@@ -203,7 +203,16 @@ def _draw_best_bars(ax, best_rows: Dict[str, dict], title: str) -> None:
         edgecolor="white",
         zorder=3,
     )
-    ax.bar(x, safes, width, bottom=np.array(fails) + np.array(stucks), color=colors, alpha=0.14, zorder=3)
+    ax.bar(
+        x,
+        safes,
+        width,
+        bottom=np.array(fails) + np.array(stucks),
+        color="white",
+        edgecolor=colors,
+        linewidth=1.4,
+        zorder=3,
+    )
 
     for i, method in enumerate(methods):
         total = fails[i] + stucks[i] + safes[i]
@@ -263,10 +272,16 @@ def make_best_bar_figure(results: dict, out_path: Path, objective: str) -> Path:
 
     fail_patch = mpatches.Patch(facecolor="gray", alpha=0.9, label="Fail %")
     stuck_patch = mpatches.Patch(facecolor="gray", alpha=0.34, hatch="///", edgecolor="white", label="Stuck %")
-    safe_patch = mpatches.Patch(facecolor="gray", alpha=0.14, label="Safe %")
-    axes[1].legend(handles=[fail_patch, stuck_patch, safe_patch], fontsize=8, loc="upper right")
+    safe_patch = mpatches.Patch(facecolor="white", edgecolor="#455A64", linewidth=1.2, label="Safe %")
+    axes[1].legend(
+        handles=[fail_patch, stuck_patch, safe_patch],
+        fontsize=8,
+        loc="upper left",
+        bbox_to_anchor=(1.02, 1.0),
+        borderaxespad=0.0,
+    )
 
-    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    fig.tight_layout(rect=(0, 0, 0.9, 0.96))
     fig.savefig(out_path, dpi=160, bbox_inches="tight")
     plt.close(fig)
     return out_path
