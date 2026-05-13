@@ -38,10 +38,10 @@ keep the scatter as the geometric summary.*
 ![Fail rate vs alpha](alpha_vs_fail.png)
 ![Stuck rate vs alpha](alpha_vs_stuck.png)
 
-*Error bars: ±1 std across all 100 trials per cell. For binary trial
-outcomes this collapses to sqrt(p·(1−p)), so the bars reflect inherent
-trial-to-trial dispersion (peaks near 0.5 when p ≈ 0.5), not the
-uncertainty of the mean.*
+*Error bars: 95% Clopper-Pearson binomial CI on the pooled n = 100 trials
+per cell. Bars are asymmetric near p = 0 / p = 1 and shrink as √N, so they
+reflect uncertainty in the estimated mean (≈ ±10pp at p ≈ 0.5,
+≈ ±5pp at p ≈ 0.1, ≈ ±2pp at p ≈ 0.02).*
 
 ---
 
@@ -196,12 +196,11 @@ Cells show `fail% / stuck%` (mean across 100 trials per cell = 5 seeds ×
 3. **Single-belief is the right shield if stuck must be near zero.** It is
    ≤ 4% stuck in every cell, at the cost of higher fail (5–15 pp at low
    beta; ~0 pp at high beta).
-4. **Statistical context.** Pooled trial-level std for binary outcomes is
-   sqrt(p(1−p)); on the plots this peaks near 0.5 when p ≈ 0.5. For the
-   *mean*, the binomial standard error on n = 100 trials is
-   sqrt(p(1−p)/100) ≈ 5 pp at p ≈ 0.6 — so within-shield alpha trends
-   on the order of 5 pp sit at the edge of significance, but the larger
-   cross-shield and cross-beta orderings are robust.
+4. **Statistical context.** The plotted error bars are 95%
+   Clopper-Pearson CIs on n = 100 trials per cell (≈ ±10pp at p ≈ 0.5).
+   Within-shield alpha trends of < 10pp at a given beta are not
+   statistically distinguishable, but the larger cross-shield and
+   cross-beta orderings are robust.
 
 ## Limitations
 

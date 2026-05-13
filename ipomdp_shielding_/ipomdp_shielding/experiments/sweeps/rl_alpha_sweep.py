@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Callable
 
 import numpy as np
+from statsmodels.stats.proportion import proportion_confint
 
 from ..experiment_io import build_metadata, add_rate_cis, save_experiment_results
 from ..run_rl_shield_experiment import (
@@ -288,13 +289,13 @@ def run_alpha_sweep(config: AlphaSweepConfig):
     return tidy_rows, summary
 
 
-def _aggregate_sweep(tidy_rows):
+def _aggregate_sweep(tidy_rows, ci_alpha: float = 0.05):
     """Aggregate per-seed results per (alpha,beta,perception,shield).
 
-    For binary trial outcomes (fail/stuck/safe), the reported std is the
-    pooled across-trial std computed from the trial-weighted mean:
-    sqrt(p * (1 - p)) over all trials across all seeds. For continuous
-    metrics (mean_steps) we fall back to the std of per-seed means.
+    For binary trial outcomes (fail/stuck/safe), reports the trial-weighted
+    pooled mean and a Clopper-Pearson 95% binomial CI over all trials across
+    all seeds (n_trials_total per cell). For continuous metrics (mean_steps)
+    falls back to mean and std of per-seed means.
     """
     from collections import defaultdict
     groups = defaultdict(list)
@@ -304,32 +305,43 @@ def _aggregate_sweep(tidy_rows):
 
     agg = []
     for (alpha, beta, perc, shield), rows in sorted(groups.items()):
-        total_trials = sum(r["num_trials"] for r in rows)
-        if total_trials > 0:
-            fail_pool = sum(r["fail_rate"] * r["num_trials"] for r in rows) / total_trials
-            stuck_pool = sum(r["stuck_rate"] * r["num_trials"] for r in rows) / total_trials
-            safe_pool = sum(r["safe_rate"] * r["num_trials"] for r in rows) / total_trials
-        else:
-            fail_pool = stuck_pool = safe_pool = 0.0
-        fail_std = float(np.sqrt(max(fail_pool * (1.0 - fail_pool), 0.0)))
-        stuck_std = float(np.sqrt(max(stuck_pool * (1.0 - stuck_pool), 0.0)))
-        safe_std = float(np.sqrt(max(safe_pool * (1.0 - safe_pool), 0.0)))
+        total_trials = int(sum(r["num_trials"] for r in rows))
+
+        def _pool(field):
+            if total_trials == 0:
+                return 0.0, 0.0, 0.0, 0
+            n_succ = int(round(sum(float(r[field]) * int(r["num_trials"]) for r in rows)))
+            n_succ = max(0, min(total_trials, n_succ))
+            p = n_succ / total_trials
+            lo, hi = proportion_confint(n_succ, total_trials, alpha=ci_alpha, method="beta")
+            return float(p), float(lo), float(hi), n_succ
+
+        fail_p, fail_lo, fail_hi, fail_n = _pool("fail_rate")
+        stuck_p, stuck_lo, stuck_hi, stuck_n = _pool("stuck_rate")
+        safe_p, safe_lo, safe_hi, safe_n = _pool("safe_rate")
         mean_steps = [r["mean_steps"] for r in rows]
         agg.append({
             "alpha": alpha,
             "beta": beta,
             "perception": perc,
             "shield": shield,
-            "fail_rate_mean": float(fail_pool),
-            "fail_rate_std": fail_std,
-            "stuck_rate_mean": float(stuck_pool),
-            "stuck_rate_std": stuck_std,
-            "safe_rate_mean": float(safe_pool),
-            "safe_rate_std": safe_std,
+            "fail_rate_mean": fail_p,
+            "fail_rate_ci_low": fail_lo,
+            "fail_rate_ci_high": fail_hi,
+            "fail_count": fail_n,
+            "stuck_rate_mean": stuck_p,
+            "stuck_rate_ci_low": stuck_lo,
+            "stuck_rate_ci_high": stuck_hi,
+            "stuck_count": stuck_n,
+            "safe_rate_mean": safe_p,
+            "safe_rate_ci_low": safe_lo,
+            "safe_rate_ci_high": safe_hi,
+            "safe_count": safe_n,
             "mean_steps_mean": float(np.mean(mean_steps)),
             "mean_steps_std": float(np.std(mean_steps)),
             "n_seeds": len(rows),
-            "n_trials_total": int(total_trials),
+            "n_trials_total": total_trials,
+            "ci_alpha": ci_alpha,
         })
     return agg
 
@@ -462,10 +474,12 @@ def _plot_alpha_trends(agg, config):
                     subset.sort(key=lambda x: x["alpha"])
                     xs = [x["alpha"] for x in subset]
                     ys = [x[metric_key] for x in subset]
-                    std_key = metric_key.replace("_mean", "_std")
-                    yerr = [x[std_key] for x in subset]
+                    lo_key = metric_key.replace("_mean", "_ci_low")
+                    hi_key = metric_key.replace("_mean", "_ci_high")
+                    yerr_lo = [max(y - x[lo_key], 0.0) for x, y in zip(subset, ys)]
+                    yerr_hi = [max(x[hi_key] - y, 0.0) for x, y in zip(subset, ys)]
                     style = SHIELD_STYLES.get(shield, {"color": None, "marker": "o", "label": shield})
-                    ax.errorbar(xs, ys, yerr=yerr, marker=style["marker"],
+                    ax.errorbar(xs, ys, yerr=[yerr_lo, yerr_hi], marker=style["marker"],
                                 color=style["color"], label=style["label"],
                                 linewidth=1.4, markersize=5,
                                 capsize=2, elinewidth=0.8, alpha=0.9)
