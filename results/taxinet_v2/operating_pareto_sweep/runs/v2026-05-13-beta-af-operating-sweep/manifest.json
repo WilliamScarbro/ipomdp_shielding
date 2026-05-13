@@ -19,6 +19,7 @@
     "results_csv": "results.csv",
     "summary_md": "evaluation_summary.md",
     "figure_dir": "figures",
-    "pareto_scatter": "figures/pareto_scatter.png"
+    "pareto_scatter": "figures/pareto_scatter.png",
+    "best_method_bars": "figures/best_method_bars.png"
   }
 }
