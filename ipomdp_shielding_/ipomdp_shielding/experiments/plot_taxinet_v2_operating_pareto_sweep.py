@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
@@ -54,6 +55,10 @@ BEST_BAR_COLORS = {
     "envelope": POINT_COLORS["envelope"],
     "forward_sampling": POINT_COLORS["forward_sampling"],
     "conformal": CONFORMAL_COLOR,
+}
+BEST_BAR_SUBTITLE = {
+    "safe": "Highest Safety per Method",
+    "fail": "Lowest Failure per Method",
 }
 
 
@@ -141,32 +146,38 @@ def make_pareto_figure(results: dict, out_path: Path) -> Path:
     return out_path
 
 
-def _best_score(metrics: dict) -> Tuple[float, float, float]:
+def _best_safe_score(metrics: dict) -> Tuple[float, float, float]:
     return (-metrics["safe_rate"], metrics["fail_rate"], metrics["stuck_rate"])
 
 
-def _best_point_method(results: dict, perception: str, method: str) -> Tuple[str, dict]:
+def _best_fail_score(metrics: dict) -> Tuple[float, float, float]:
+    return (metrics["fail_rate"], metrics["stuck_rate"], -metrics["safe_rate"])
+
+
+def _best_point_method(results: dict, perception: str, method: str, objective: str) -> Tuple[str, dict]:
     rows = [
         (f"beta={beta:.2f}", metrics)
         for beta, metrics in _curve(results, perception, method)
     ]
-    return min(rows, key=lambda item: _best_score(item[1]))
+    scorer = _best_safe_score if objective == "safe" else _best_fail_score
+    return min(rows, key=lambda item: scorer(item[1]))
 
 
-def _best_conformal(results: dict, perception: str) -> Tuple[str, dict]:
+def _best_conformal(results: dict, perception: str, objective: str) -> Tuple[str, dict]:
     rows = []
     for confidence_level in results["metadata"]["confidence_levels"]:
         for action_filter, metrics in _conf_curve(results, perception, confidence_level):
             rows.append((f"conf={confidence_level}, af={action_filter:.1f}", metrics))
-    return min(rows, key=lambda item: _best_score(item[1]))
+    scorer = _best_safe_score if objective == "safe" else _best_fail_score
+    return min(rows, key=lambda item: scorer(item[1]))
 
 
-def _best_bar_rows(results: dict, perception: str) -> Dict[str, dict]:
+def _best_bar_rows(results: dict, perception: str, objective: str) -> Dict[str, dict]:
     best_rows: Dict[str, dict] = {}
     for method in POINT_METHODS:
-        setting, metrics = _best_point_method(results, perception, method)
+        setting, metrics = _best_point_method(results, perception, method, objective)
         best_rows[method] = {"setting": setting, **metrics}
-    setting, metrics = _best_conformal(results, perception)
+    setting, metrics = _best_conformal(results, perception, objective)
     best_rows["conformal"] = {"setting": setting, **metrics}
     return best_rows
 
@@ -194,27 +205,65 @@ def _draw_best_bars(ax, best_rows: Dict[str, dict], title: str) -> None:
     )
     ax.bar(x, safes, width, bottom=np.array(fails) + np.array(stucks), color=colors, alpha=0.14, zorder=3)
 
+    for i, method in enumerate(methods):
+        total = fails[i] + stucks[i] + safes[i]
+        setting = best_rows[method]["setting"]
+        ax.text(x[i], total + 1.2, setting, ha="center", va="bottom", fontsize=7.2)
+        if fails[i] >= 6:
+            ax.text(
+                x[i],
+                fails[i] / 2,
+                f"{fails[i]:.0f}%",
+                ha="center",
+                va="center",
+                fontsize=7.5,
+                color="white",
+                fontweight="bold",
+            )
+        if stucks[i] >= 6:
+            ax.text(
+                x[i],
+                fails[i] + stucks[i] / 2,
+                f"{stucks[i]:.0f}%",
+                ha="center",
+                va="center",
+                fontsize=7.2,
+                color="white",
+                fontweight="bold",
+            )
+        if safes[i] >= 6:
+            ax.text(
+                x[i],
+                fails[i] + stucks[i] + safes[i] / 2,
+                f"{safes[i]:.0f}%",
+                ha="center",
+                va="center",
+                fontsize=7.2,
+                color="#263238",
+                fontweight="bold",
+            )
+
     ax.set_xticks(x)
     ax.set_xticklabels([BEST_BAR_LABELS[method] for method in methods], fontsize=9)
     ax.set_ylabel("Rate (%)")
-    ax.set_ylim(0, 100)
+    ax.set_ylim(0, 114)
     ax.set_title(title, fontsize=10)
     ax.grid(axis="y", alpha=0.3, zorder=0)
 
 
-def make_best_bar_figure(results: dict, out_path: Path) -> Path:
+def make_best_bar_figure(results: dict, out_path: Path, objective: str) -> Path:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.6), sharey=True)
-    fig.suptitle("Best Swept Operating Point per Method", fontsize=11)
+    fig.suptitle(BEST_BAR_SUBTITLE[objective], fontsize=11)
 
     for ax, perception in zip(axes, ("uniform", "adversarial_opt")):
-        rows = _best_bar_rows(results, perception)
+        rows = _best_bar_rows(results, perception, objective)
         title = "Uniform perception" if perception == "uniform" else "Shared adversarial perception"
         _draw_best_bars(ax, rows, title)
 
-    fail_patch = mpatches.Patch(facecolor="gray", alpha=0.9, label="Fail")
-    stuck_patch = mpatches.Patch(facecolor="gray", alpha=0.34, hatch="///", edgecolor="white", label="Stuck")
-    safe_patch = mpatches.Patch(facecolor="gray", alpha=0.14, label="Safe")
+    fail_patch = mpatches.Patch(facecolor="gray", alpha=0.9, label="Fail %")
+    stuck_patch = mpatches.Patch(facecolor="gray", alpha=0.34, hatch="///", edgecolor="white", label="Stuck %")
+    safe_patch = mpatches.Patch(facecolor="gray", alpha=0.14, label="Safe %")
     axes[1].legend(handles=[fail_patch, stuck_patch, safe_patch], fontsize=8, loc="upper right")
 
     fig.tight_layout(rect=(0, 0, 1, 0.96))
@@ -249,15 +298,33 @@ def _table_lines(results: dict, perception: str) -> List[str]:
     return lines
 
 
-def write_summary(results: dict, figure_path: Path, bar_figure_path: Path, summary_path: Path) -> None:
+def _best_table_lines(best_rows: Dict[str, dict]) -> List[str]:
+    return [
+        f"| {BEST_BAR_LABELS[method]} | `{best_rows[method]['setting']}` | "
+        f"{best_rows[method]['fail_rate']:.1%} | "
+        f"{best_rows[method]['stuck_rate']:.1%} | "
+        f"{best_rows[method]['safe_rate']:.1%} |"
+        for method in BEST_BAR_ORDER
+    ]
+
+
+def write_summary(
+    results: dict,
+    figure_path: Path,
+    safest_bar_figure_path: Path,
+    lowest_fail_bar_figure_path: Path,
+    summary_path: Path,
+) -> None:
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     meta = results["metadata"]
     uniform_best_fail = _best_entry(_iter_perception_rows(results, "uniform"), "fail_rate")
     adv_best_fail = _best_entry(_iter_perception_rows(results, "adversarial_opt"), "fail_rate")
     uniform_best_stuck = _best_entry(_iter_perception_rows(results, "uniform"), "stuck_rate")
     adv_best_stuck = _best_entry(_iter_perception_rows(results, "adversarial_opt"), "stuck_rate")
-    uniform_best_by_method = _best_bar_rows(results, "uniform")
-    adv_best_by_method = _best_bar_rows(results, "adversarial_opt")
+    uniform_safest_by_method = _best_bar_rows(results, "uniform", "safe")
+    adv_safest_by_method = _best_bar_rows(results, "adversarial_opt", "safe")
+    uniform_lowest_fail_by_method = _best_bar_rows(results, "uniform", "fail")
+    adv_lowest_fail_by_method = _best_bar_rows(results, "adversarial_opt", "fail")
     lines: List[str] = [
         "# TaxiNetV2 Operating Pareto Sweep",
         "",
@@ -279,33 +346,36 @@ def write_summary(results: dict, figure_path: Path, bar_figure_path: Path, summa
         f"- Adversarial lowest stuck: `{adv_best_stuck[0]}` at `{adv_best_stuck[1]['stuck_rate']:.1%}` stuck and `{adv_best_stuck[1]['fail_rate']:.1%}` fail.",
         "- Only the conformal shield moves with `conf` and `af`; `single_belief`, `envelope`, and `forward_sampling` move only with `beta`.",
         "- The RL controller and adversarial realization are held fixed across the whole sweep, so the plotted differences are shield-operating-point differences rather than controller/retraining differences.",
-        "- In the stacked-bar figure, each method keeps only its highest-safe operating point, tie-broken by lower fail and then lower stuck.",
+        "- The safest stacked-bar figure keeps each method's highest-safe operating point, tie-broken by lower fail and then lower stuck.",
+        "- The lowest-fail stacked-bar figure keeps each method's lowest-fail operating point, tie-broken by lower stuck and then higher safe.",
         "",
-        "## Best Point per Method",
+        "## Safest Point per Method",
         "",
         "### Uniform perception",
         "",
         "| Method | Setting | Fail | Stuck | Safe |",
         "|---|---|---:|---:|---:|",
-        *[
-            f"| {BEST_BAR_LABELS[method]} | `{uniform_best_by_method[method]['setting']}` | "
-            f"{uniform_best_by_method[method]['fail_rate']:.1%} | "
-            f"{uniform_best_by_method[method]['stuck_rate']:.1%} | "
-            f"{uniform_best_by_method[method]['safe_rate']:.1%} |"
-            for method in BEST_BAR_ORDER
-        ],
+        *_best_table_lines(uniform_safest_by_method),
         "",
         "### Shared adversarial perception",
         "",
         "| Method | Setting | Fail | Stuck | Safe |",
         "|---|---|---:|---:|---:|",
-        *[
-            f"| {BEST_BAR_LABELS[method]} | `{adv_best_by_method[method]['setting']}` | "
-            f"{adv_best_by_method[method]['fail_rate']:.1%} | "
-            f"{adv_best_by_method[method]['stuck_rate']:.1%} | "
-            f"{adv_best_by_method[method]['safe_rate']:.1%} |"
-            for method in BEST_BAR_ORDER
-        ],
+        *_best_table_lines(adv_safest_by_method),
+        "",
+        "## Lowest-Fail Point per Method",
+        "",
+        "### Uniform perception",
+        "",
+        "| Method | Setting | Fail | Stuck | Safe |",
+        "|---|---|---:|---:|---:|",
+        *_best_table_lines(uniform_lowest_fail_by_method),
+        "",
+        "### Shared adversarial perception",
+        "",
+        "| Method | Setting | Fail | Stuck | Safe |",
+        "|---|---|---:|---:|---:|",
+        *_best_table_lines(adv_lowest_fail_by_method),
         "",
         "## Uniform RL Results",
         "",
@@ -318,7 +388,8 @@ def write_summary(results: dict, figure_path: Path, bar_figure_path: Path, summa
         "## Figure",
         "",
         f"- Pareto scatter: ![]({figure_path.relative_to(summary_path.parent)})",
-        f"- Best-point bars: ![]({bar_figure_path.relative_to(summary_path.parent)})",
+        f"- Safest-point bars: ![]({safest_bar_figure_path.relative_to(summary_path.parent)})",
+        f"- Lowest-fail bars: ![]({lowest_fail_bar_figure_path.relative_to(summary_path.parent)})",
     ]
     summary_path.write_text("\n".join(lines))
 
@@ -327,10 +398,15 @@ def main() -> None:
     args = parse_args()
     results = _load(args.results_json)
     figure_path = make_pareto_figure(results, args.figures_dir / "pareto_scatter.png")
-    bar_figure_path = make_best_bar_figure(results, args.figures_dir / "best_method_bars.png")
-    write_summary(results, figure_path, bar_figure_path, args.summary_md)
+    safest_bar_figure_path = make_best_bar_figure(results, args.figures_dir / "safest_method_bars.png", "safe")
+    lowest_fail_bar_figure_path = make_best_bar_figure(results, args.figures_dir / "lowest_fail_method_bars.png", "fail")
+    old_bar_figure_path = args.figures_dir / "best_method_bars.png"
+    if old_bar_figure_path.exists():
+        os.remove(old_bar_figure_path)
+    write_summary(results, figure_path, safest_bar_figure_path, lowest_fail_bar_figure_path, args.summary_md)
     print(f"Wrote figure to {figure_path}")
-    print(f"Wrote figure to {bar_figure_path}")
+    print(f"Wrote figure to {safest_bar_figure_path}")
+    print(f"Wrote figure to {lowest_fail_bar_figure_path}")
     print(f"Wrote summary to {args.summary_md}")
 
 

@@ -18,9 +18,10 @@
 - Adversarial lowest stuck: `Single-Belief beta=0.50` at `0.0%` stuck and `61.0%` fail.
 - Only the conformal shield moves with `conf` and `af`; `single_belief`, `envelope`, and `forward_sampling` move only with `beta`.
 - The RL controller and adversarial realization are held fixed across the whole sweep, so the plotted differences are shield-operating-point differences rather than controller/retraining differences.
-- In the stacked-bar figure, each method keeps only its highest-safe operating point, tie-broken by lower fail and then lower stuck.
+- The safest stacked-bar figure keeps each method's highest-safe operating point, tie-broken by lower fail and then lower stuck.
+- The lowest-fail stacked-bar figure keeps each method's lowest-fail operating point, tie-broken by lower stuck and then higher safe.
 
-## Best Point per Method
+## Safest Point per Method
 
 ### Uniform perception
 
@@ -39,6 +40,26 @@
 | Envelope | `beta=0.80` | 40.0% | 37.0% | 23.0% |
 | Forward-Sampling | `beta=0.50` | 54.0% | 17.0% | 29.0% |
 | Conformal | `conf=0.95, af=0.6` | 71.0% | 0.0% | 29.0% |
+
+## Lowest-Fail Point per Method
+
+### Uniform perception
+
+| Method | Setting | Fail | Stuck | Safe |
+|---|---|---:|---:|---:|
+| Single-Belief | `beta=0.95` | 47.0% | 15.0% | 38.0% |
+| Envelope | `beta=0.90` | 32.0% | 46.0% | 22.0% |
+| Forward-Sampling | `beta=0.80` | 48.0% | 26.0% | 26.0% |
+| Conformal | `conf=0.995, af=0.9` | 7.0% | 93.0% | 0.0% |
+
+### Shared adversarial perception
+
+| Method | Setting | Fail | Stuck | Safe |
+|---|---|---:|---:|---:|
+| Single-Belief | `beta=0.90` | 56.0% | 3.0% | 41.0% |
+| Envelope | `beta=0.90` | 39.0% | 41.0% | 20.0% |
+| Forward-Sampling | `beta=0.95` | 47.0% | 29.0% | 24.0% |
+| Conformal | `conf=0.99, af=0.9` | 7.0% | 93.0% | 0.0% |
 
 ## Uniform RL Results
 
@@ -113,4 +134,5 @@
 ## Figure
 
 - Pareto scatter: ![](figures/pareto_scatter.png)
-- Best-point bars: ![](figures/best_method_bars.png)
+- Safest-point bars: ![](figures/safest_method_bars.png)
+- Lowest-fail bars: ![](figures/lowest_fail_method_bars.png)

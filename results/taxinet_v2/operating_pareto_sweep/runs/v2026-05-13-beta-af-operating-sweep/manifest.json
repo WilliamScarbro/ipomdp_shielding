@@ -20,6 +20,7 @@
     "summary_md": "evaluation_summary.md",
     "figure_dir": "figures",
     "pareto_scatter": "figures/pareto_scatter.png",
-    "best_method_bars": "figures/best_method_bars.png"
+    "safest_method_bars": "figures/safest_method_bars.png",
+    "lowest_fail_method_bars": "figures/lowest_fail_method_bars.png"
   }
 }
