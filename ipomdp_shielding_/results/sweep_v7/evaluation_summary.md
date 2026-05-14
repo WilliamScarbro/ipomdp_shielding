@@ -27,23 +27,23 @@ n≤249 states (TaxiNet, Obstacle, CartPole) and 100/690 extremals for Refuel.
 
 | Case study | Shield | t | Fail% (unif) | Stuck% (unif) | Fail% (adv) | Stuck% (adv) |
 |---|---|---|---|---|---|---|
-| TaxiNet (16 states, 16 obs) | Envelope | 0.95 | 40% | 32% | 37% | 40% |
-|  | Single-Belief | 0.95 | 44% | 12% | 48% | 8% |
+| TaxiNet (16 states, 16 obs) | Envelope | 0.95 | 38% | 36% | 40% | 38% |
+|  | Single-Belief | 0.95 | 44% | 14% | 44% | 10% |
 |  | Observation | 0.95 | 14% | 86% | 11% | 89% |
-|  | Carr | — | 8% | 92% | 4% | 96% |
-|  | Fwd-Sampling | 0.95 | 43% | 24% | 42% | 28% |
-| Obstacle (50 states, 3 obs) | Envelope | 0.95 | 3% | 85% | 8% | 79% |
-|  | Single-Belief | 0.95 | 14% | 50% | 12% | 56% |
-|  | Observation | 0.95 | 2% | 98% | 2% | 98% |
-|  | Carr | — | 2% | 98% | 2% | 98% |
-|  | Fwd-Sampling | 0.95 | 7% | 84% | 9% | 78% |
-| CartPole low-acc (82 states, P_mid=0.373) | Single-Belief | 0.75 | 2% | 0% | 2% | 0% |
-|  | Observation | 0.85 | 3% | 0% | 2% | 0% |
-|  | Carr | — | 3% | 0% | 2% | 0% |
-|  | Fwd-Sampling | 0.70 | 2% | 0% | 1% | 0% |
-| Refuel v2 (344 states, 29 obs) | Single-Belief | 0.90 | 0% | 79% | 0% | 58% |
-|  | Observation | 0.90 | 0% | 99% | 0% | 94% |
-|  | Fwd-Sampling | 0.90 | 0% | 98% | 0% | 93% |
+|  | Carr | — | 9% | 91% | 4% | 96% |
+|  | Fwd-Sampling | 0.95 | 36% | 30% | 42% | 26% |
+| Obstacle (50 states, 3 obs) | Envelope | 0.95 | 6% | 80% | 8% | 78% |
+|  | Single-Belief | 0.95 | 16% | 52% | 12% | 56% |
+|  | Observation | 0.95 | 1% | 99% | 2% | 98% |
+|  | Carr | — | 1% | 99% | 2% | 98% |
+|  | Fwd-Sampling | 0.95 | 8% | 86% | 8% | 79% |
+| CartPole low-acc (82 states, P_mid=0.373) | Single-Belief | 0.95 | 2% | 0% | 3% | 0% |
+|  | Observation | 0.85 | 2% | 0% | 2% | 0% |
+|  | Carr | — | 2% | 0% | 2% | 0% |
+|  | Fwd-Sampling | 0.80 | 0% | 0% | 2% | 0% |
+| Refuel v2 (344 states, 29 obs) | Single-Belief | 0.90 | 0% | 84% | 0% | 58% |
+|  | Observation | 0.90 | 0% | 98% | 0% | 94% |
+|  | Fwd-Sampling | 0.95 | 0% | 100% | 0% | 89% |
 
 ### Key cross-case findings
 
@@ -73,11 +73,11 @@ n≤249 states (TaxiNet, Obstacle, CartPole) and 100/690 extremals for Refuel.
 
 | Shield | t (unif) | Fail% (unif) | Stuck% (unif) | t (adv) | Fail% (adv) | Stuck% (adv) |
 |---|---|---|---|---|---|---|
-| Envelope | 0.95 | 40% | 32% | 0.95 | 37% | 40% |
-| Single-Belief | 0.95 | 44% | 12% | 0.95 | 48% | 8% |
+| Envelope | 0.95 | 38% | 36% | 0.95 | 40% | 38% |
+| Single-Belief | 0.95 | 44% | 14% | 0.95 | 44% | 10% |
 | Observation | 0.95 | 14% | 86% | 0.95 | 11% | 89% |
-| Carr | — | 8% | 92% | — | 4% | 96% |
-| Fwd-Sampling | 0.95 | 43% | 24% | 0.95 | 42% | 28% |
+| Carr | — | 9% | 91% | — | 4% | 96% |
+| Fwd-Sampling | 0.95 | 36% | 30% | 0.95 | 42% | 26% |
 
 ### Key findings
 
@@ -115,11 +115,11 @@ The irreducible ~34% fail at t=0.95 (Envelope) represents the fundamental diffic
 
 | Shield | t (unif) | Fail% (unif) | Stuck% (unif) | t (adv) | Fail% (adv) | Stuck% (adv) |
 |---|---|---|---|---|---|---|
-| Envelope | 0.95 | 3% | 85% | 0.95 | 8% | 79% |
-| Single-Belief | 0.95 | 14% | 50% | 0.95 | 12% | 56% |
-| Observation | 0.95 | 2% | 98% | 0.95 | 2% | 98% |
-| Carr | — | 2% | 98% | — | 2% | 98% |
-| Fwd-Sampling | 0.95 | 7% | 84% | 0.95 | 9% | 78% |
+| Envelope | 0.95 | 6% | 80% | 0.95 | 8% | 78% |
+| Single-Belief | 0.95 | 16% | 52% | 0.95 | 12% | 56% |
+| Observation | 0.95 | 1% | 99% | 0.95 | 2% | 98% |
+| Carr | — | 1% | 99% | — | 2% | 98% |
+| Fwd-Sampling | 0.95 | 8% | 86% | 0.95 | 8% | 79% |
 
 ### Key findings
 
@@ -150,10 +150,10 @@ Three observations for 50 states (~17 states per observation) is the most extrem
 
 | Shield | t (unif) | Fail% (unif) | Stuck% (unif) | t (adv) | Fail% (adv) | Stuck% (adv) |
 |---|---|---|---|---|---|---|
-| Single-Belief | 0.75 | 2% | 0% | 0.85 | 2% | 0% |
-| Observation | 0.85 | 3% | 0% | 0.85 | 2% | 0% |
-| Carr | — | 3% | 0% | — | 2% | 0% |
-| Fwd-Sampling | 0.70 | 2% | 0% | 0.65 | 1% | 0% |
+| Single-Belief | 0.95 | 2% | 0% | 0.95 | 3% | 0% |
+| Observation | 0.85 | 2% | 0% | 0.85 | 2% | 0% |
+| Carr | — | 2% | 0% | — | 2% | 0% |
+| Fwd-Sampling | 0.80 | 0% | 0% | 0.60 | 2% | 0% |
 
 ### Key findings
 
@@ -190,9 +190,9 @@ CartPole is the easiest shielding problem in this suite due to three compounding
 
 | Shield | t (unif) | Fail% (unif) | Stuck% (unif) | t (adv) | Fail% (adv) | Stuck% (adv) |
 |---|---|---|---|---|---|---|
-| Single-Belief | 0.90 | 0% | 79% | 0.75 | 0% | 58% |
-| Observation | 0.90 | 0% | 99% | 0.85 | 0% | 94% |
-| Fwd-Sampling | 0.90 | 0% | 98% | 0.85 | 0% | 93% |
+| Single-Belief | 0.90 | 0% | 84% | 0.75 | 0% | 58% |
+| Observation | 0.90 | 0% | 98% | 0.85 | 0% | 94% |
+| Fwd-Sampling | 0.95 | 0% | 100% | 0.85 | 0% | 89% |
 
 ### Key findings
 

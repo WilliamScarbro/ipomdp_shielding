@@ -263,66 +263,71 @@ def _run_dual_observation_trials(
         outcome = "safe"
         fail_step: Optional[int] = None
         steps_completed = 0
+        perception_context = {"rt_shield": rt_shield, "history": selector_history}
+        if hasattr(paired_perception, "begin_trajectory"):
+            paired_perception.begin_trajectory(ipomdp, perception_context)
+        try:
+            for step in range(trial_length):
+                if state == "FAIL":
+                    outcome = "fail"
+                    fail_step = step
+                    break
 
-        for step in range(trial_length):
-            if state == "FAIL":
-                outcome = "fail"
-                fail_step = step
-                break
-
-            perception_context = {"rt_shield": rt_shield, "history": selector_history}
-            if hasattr(paired_perception, "sample_event"):
-                event = paired_perception.sample_event(state, ipomdp, perception_context)
-            else:
-                point_observation = paired_perception.sample_observation(
-                    state,
-                    ipomdp,
-                    perception_context,
-                )
-                event = PairedPerceptionEvent(
-                    point_observation=point_observation,
-                    conformal_observation=point_observation,
-                )
-            selector_obs = event.point_observation
-            shield_obs = (
-                event.conformal_observation
-                if use_conformal_shield_observation
-                else event.point_observation
-            )
-
-            if use_conformal_shield_observation and shield_obs != "FAIL":
-                cte_obs, he_obs = shield_obs
-                cte_size = _axis_size(cte_obs)
-                he_size = _axis_size(he_obs)
-                size_stats["cte_sizes"].append(cte_size)
-                size_stats["he_sizes"].append(he_size)
-                size_stats["cartesian_sizes"].append(cte_size * he_size)
-
-            selector_history.append((selector_obs, action))
-
-            if store_trajectories:
-                trajectory.append(
-                    {
-                        "state": state,
-                        "shield_observation": shield_obs,
-                        "selector_observation": selector_obs,
-                        "previous_action": action,
-                    }
+                if hasattr(paired_perception, "sample_event"):
+                    event = paired_perception.sample_event(state, ipomdp, perception_context)
+                else:
+                    point_observation = paired_perception.sample_observation(
+                        state,
+                        ipomdp,
+                        perception_context,
+                    )
+                    event = PairedPerceptionEvent(
+                        point_observation=point_observation,
+                        conformal_observation=point_observation,
+                    )
+                selector_obs = event.point_observation
+                shield_obs = (
+                    event.conformal_observation
+                    if use_conformal_shield_observation
+                    else event.point_observation
                 )
 
-            allowed_actions = rt_shield.next_actions((shield_obs, action))
-            if not allowed_actions:
-                outcome = "stuck"
-                steps_completed = step
-                break
+                if use_conformal_shield_observation and shield_obs != "FAIL":
+                    cte_obs, he_obs = shield_obs
+                    cte_size = _axis_size(cte_obs)
+                    he_size = _axis_size(he_obs)
+                    size_stats["cte_sizes"].append(cte_size)
+                    size_stats["he_sizes"].append(he_size)
+                    size_stats["cartesian_sizes"].append(cte_size * he_size)
 
-            action = action_selector.select(
-                selector_history,
-                allowed_actions,
-                context={"rt_shield": rt_shield, "history": selector_history},
-            )
-            state = ipomdp.evolve(state, action)
-            steps_completed = step + 1
+                selector_history.append((selector_obs, action))
+
+                if store_trajectories:
+                    trajectory.append(
+                        {
+                            "state": state,
+                            "shield_observation": shield_obs,
+                            "selector_observation": selector_obs,
+                            "previous_action": action,
+                        }
+                    )
+
+                allowed_actions = rt_shield.next_actions((shield_obs, action))
+                if not allowed_actions:
+                    outcome = "stuck"
+                    steps_completed = step
+                    break
+
+                action = action_selector.select(
+                    selector_history,
+                    allowed_actions,
+                    context={"rt_shield": rt_shield, "history": selector_history},
+                )
+                state = ipomdp.evolve(state, action)
+                steps_completed = step + 1
+        finally:
+            if hasattr(paired_perception, "end_trajectory"):
+                paired_perception.end_trajectory()
 
         shield_stats["stuck_count"] += getattr(rt_shield, "stuck_count", 0)
         shield_stats["error_count"] += getattr(rt_shield, "error_count", 0)

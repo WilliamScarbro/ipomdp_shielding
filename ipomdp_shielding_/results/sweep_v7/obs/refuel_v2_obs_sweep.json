@@ -27,17 +27,17 @@
   "sweep_results": {
     "0.50": {
       "uniform/rl/observation": {
-        "fail_rate": 0.04,
+        "fail_rate": 0.03,
         "stuck_rate": 0.0,
-        "safe_rate": 0.96,
-        "mean_steps": 29.125,
+        "safe_rate": 0.97,
+        "mean_steps": 29.24,
         "num_trials": 200,
-        "fail_rate_ci_low": 0.017424808994480595,
-        "fail_rate_ci_high": 0.07729196822601608,
+        "fail_rate_ci_low": 0.011087455672254772,
+        "fail_rate_ci_high": 0.064150626705027,
         "stuck_rate_ci_low": 0.0,
         "stuck_rate_ci_high": 0.01827534035513624,
-        "safe_rate_ci_low": 0.9227080317739839,
-        "safe_rate_ci_high": 0.9825751910055194
+        "safe_rate_ci_low": 0.935849373294973,
+        "safe_rate_ci_high": 0.9889125443277452
       },
       "adversarial_opt/rl/observation": {
         "fail_rate": 0.02,
@@ -55,17 +55,17 @@
     },
     "0.60": {
       "uniform/rl/observation": {
-        "fail_rate": 0.03,
+        "fail_rate": 0.035,
         "stuck_rate": 0.0,
-        "safe_rate": 0.97,
-        "mean_steps": 29.235,
+        "safe_rate": 0.965,
+        "mean_steps": 29.2,
         "num_trials": 200,
-        "fail_rate_ci_low": 0.011087455672254772,
-        "fail_rate_ci_high": 0.064150626705027,
+        "fail_rate_ci_low": 0.014185525898419246,
+        "fail_rate_ci_high": 0.0707809983509772,
         "stuck_rate_ci_low": 0.0,
         "stuck_rate_ci_high": 0.01827534035513624,
-        "safe_rate_ci_low": 0.935849373294973,
-        "safe_rate_ci_high": 0.9889125443277452
+        "safe_rate_ci_low": 0.9292190016490228,
+        "safe_rate_ci_high": 0.9858144741015807
       },
       "adversarial_opt/rl/observation": {
         "fail_rate": 0.045,
@@ -83,17 +83,17 @@
     },
     "0.65": {
       "uniform/rl/observation": {
-        "fail_rate": 0.03,
+        "fail_rate": 0.035,
         "stuck_rate": 0.0,
-        "safe_rate": 0.97,
-        "mean_steps": 29.235,
+        "safe_rate": 0.965,
+        "mean_steps": 29.2,
         "num_trials": 200,
-        "fail_rate_ci_low": 0.011087455672254772,
-        "fail_rate_ci_high": 0.064150626705027,
+        "fail_rate_ci_low": 0.014185525898419246,
+        "fail_rate_ci_high": 0.0707809983509772,
         "stuck_rate_ci_low": 0.0,
         "stuck_rate_ci_high": 0.01827534035513624,
-        "safe_rate_ci_low": 0.935849373294973,
-        "safe_rate_ci_high": 0.9889125443277452
+        "safe_rate_ci_low": 0.9292190016490228,
+        "safe_rate_ci_high": 0.9858144741015807
       },
       "adversarial_opt/rl/observation": {
         "fail_rate": 0.045,
@@ -111,17 +111,17 @@
     },
     "0.70": {
       "uniform/rl/observation": {
-        "fail_rate": 0.02,
-        "stuck_rate": 0.625,
-        "safe_rate": 0.355,
-        "mean_steps": 15.04,
+        "fail_rate": 0.025,
+        "stuck_rate": 0.615,
+        "safe_rate": 0.36,
+        "mean_steps": 15.105,
         "num_trials": 200,
-        "fail_rate_ci_low": 0.0054755658795564485,
-        "fail_rate_ci_high": 0.05041360908989629,
-        "stuck_rate_ci_low": 0.5539486258174144,
-        "stuck_rate_ci_high": 0.6922861517823592,
-        "safe_rate_ci_low": 0.2887837777135845,
-        "safe_rate_ci_high": 0.42558616692657963
+        "fail_rate_ci_low": 0.008166166190842513,
+        "fail_rate_ci_high": 0.05737435112684586,
+        "stuck_rate_ci_low": 0.5437613072168548,
+        "stuck_rate_ci_high": 0.6827754746371323,
+        "safe_rate_ci_low": 0.29350472089116675,
+        "safe_rate_ci_high": 0.43071394601871726
       },
       "adversarial_opt/rl/observation": {
         "fail_rate": 0.02,
@@ -139,17 +139,17 @@
     },
     "0.75": {
       "uniform/rl/observation": {
-        "fail_rate": 0.005,
-        "stuck_rate": 0.62,
-        "safe_rate": 0.375,
-        "mean_steps": 15.66,
+        "fail_rate": 0.02,
+        "stuck_rate": 0.65,
+        "safe_rate": 0.33,
+        "mean_steps": 14.42,
         "num_trials": 200,
-        "fail_rate_ci_low": 0.00012658102786701825,
-        "fail_rate_ci_high": 0.02754189845720562,
-        "stuck_rate_ci_low": 0.5488512420834482,
-        "stuck_rate_ci_high": 0.6875345648223296,
-        "safe_rate_ci_low": 0.3077138482176408,
-        "safe_rate_ci_high": 0.4460513741825854
+        "fail_rate_ci_low": 0.0054755658795564485,
+        "fail_rate_ci_high": 0.05041360908989629,
+        "stuck_rate_ci_low": 0.5795493775220064,
+        "stuck_rate_ci_high": 0.7159293296770579,
+        "safe_rate_ci_low": 0.2652982034725618,
+        "safe_rate_ci_high": 0.39982926033305477
       },
       "adversarial_opt/rl/observation": {
         "fail_rate": 0.015,
@@ -168,16 +168,16 @@
     "0.80": {
       "uniform/rl/observation": {
         "fail_rate": 0.01,
-        "stuck_rate": 0.99,
-        "safe_rate": 0.0,
-        "mean_steps": 2.99,
+        "stuck_rate": 0.98,
+        "safe_rate": 0.01,
+        "mean_steps": 3.0,
         "num_trials": 200,
         "fail_rate_ci_low": 0.0012133490137360304,
         "fail_rate_ci_high": 0.035654668397239776,
-        "stuck_rate_ci_low": 0.9643453316027603,
-        "stuck_rate_ci_high": 0.998786650986264,
-        "safe_rate_ci_low": 0.0,
-        "safe_rate_ci_high": 0.01827534035513624
+        "stuck_rate_ci_low": 0.9495863909101037,
+        "stuck_rate_ci_high": 0.9945244341204436,
+        "safe_rate_ci_low": 0.0012133490137360304,
+        "safe_rate_ci_high": 0.035654668397239776
       },
       "adversarial_opt/rl/observation": {
         "fail_rate": 0.01,
@@ -195,17 +195,17 @@
     },
     "0.85": {
       "uniform/rl/observation": {
-        "fail_rate": 0.015,
-        "stuck_rate": 0.975,
-        "safe_rate": 0.01,
-        "mean_steps": 4.745,
+        "fail_rate": 0.005,
+        "stuck_rate": 0.965,
+        "safe_rate": 0.03,
+        "mean_steps": 4.3,
         "num_trials": 200,
-        "fail_rate_ci_low": 0.003104107621553509,
-        "fail_rate_ci_high": 0.0432082819177126,
-        "stuck_rate_ci_low": 0.9426256488731541,
-        "stuck_rate_ci_high": 0.9918338338091575,
-        "safe_rate_ci_low": 0.0012133490137360304,
-        "safe_rate_ci_high": 0.035654668397239776
+        "fail_rate_ci_low": 0.00012658102786701825,
+        "fail_rate_ci_high": 0.02754189845720562,
+        "stuck_rate_ci_low": 0.9292190016490228,
+        "stuck_rate_ci_high": 0.9858144741015807,
+        "safe_rate_ci_low": 0.011087455672254772,
+        "safe_rate_ci_high": 0.064150626705027
       },
       "adversarial_opt/rl/observation": {
         "fail_rate": 0.005,
@@ -224,16 +224,16 @@
     "0.90": {
       "uniform/rl/observation": {
         "fail_rate": 0.0,
-        "stuck_rate": 0.99,
-        "safe_rate": 0.01,
-        "mean_steps": 3.055,
+        "stuck_rate": 0.975,
+        "safe_rate": 0.025,
+        "mean_steps": 4.435,
         "num_trials": 200,
         "fail_rate_ci_low": 0.0,
         "fail_rate_ci_high": 0.01827534035513624,
-        "stuck_rate_ci_low": 0.9643453316027603,
-        "stuck_rate_ci_high": 0.998786650986264,
-        "safe_rate_ci_low": 0.0012133490137360304,
-        "safe_rate_ci_high": 0.035654668397239776
+        "stuck_rate_ci_low": 0.9426256488731541,
+        "stuck_rate_ci_high": 0.9918338338091575,
+        "safe_rate_ci_low": 0.008166166190842513,
+        "safe_rate_ci_high": 0.05737435112684586
       },
       "adversarial_opt/rl/observation": {
         "fail_rate": 0.01,

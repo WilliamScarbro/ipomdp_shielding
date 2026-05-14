@@ -2,8 +2,8 @@
   "source": {
     "cp_control_root": "/home/dev/cp-control",
     "data_dir": "/home/dev/cp-control/data/taxinet",
-    "model_path": "results/cache/taxinet_v2_lowacc_axis_noise_047_053/best_in_band_model.pth",
-    "model_sha256": "c1a6080a32a096e79ef2298dbc597cf2bccf0ebc0e1ceed1e46d3d342e0df444",
+    "model_path": "/home/dev/ipomdp_shielding/results/cache/taxinet_v2_earlystop_search_seed42/best_in_band_model.pth",
+    "model_sha256": "52931daf6053e51ba5989493b75289ece2f142696f7d1ddc716a57790425b1ad",
     "cal_indices_path": "/home/dev/cp-control/train/models/cal_indices.pt",
     "test_indices_path": "/home/dev/cp-control/train/models/test_indices.pt",
     "cal_indices_sha256": "69cd8d4568ee21e60be32cf2c5c82e57f81aa8a00863f11572b6a190ac41f101",
@@ -858,21 +858,26 @@
     "cal": 825,
     "test": 825
   },
+  "test_metrics": {
+    "cte_accuracy": 0.8715151515151515,
+    "he_accuracy": 0.9672727272727273,
+    "joint_accuracy": 0.8460606060606061
+  },
   "qhat": {
     "conf95": {
       "alpha": 0.05,
-      "cte_qhat": 0.7973619103431702,
-      "he_qhat": 0.6451796293258667
+      "cte_qhat": 0.8258514404296875,
+      "he_qhat": 0.6056151390075684
     },
     "conf99": {
       "alpha": 0.01,
-      "cte_qhat": 0.894463300704956,
-      "he_qhat": 0.7505911588668823
+      "cte_qhat": 0.9720184803009033,
+      "he_qhat": 0.9529603123664856
     },
     "conf995": {
       "alpha": 0.005,
-      "cte_qhat": 0.9047250151634216,
-      "he_qhat": 0.785204291343689
+      "cte_qhat": 0.9866088628768921,
+      "he_qhat": 0.9817823171615601
     }
   },
   "conformal_artifact_source": "locally_regenerated_from_calibration_split_with_top1_nonempty_repair",
@@ -881,42 +886,42 @@
       "cte": {
         "empty_set_violations": 0,
         "argmax_not_in_set_violations": 0,
-        "empirical_coverage": 0.943030303030303,
-        "mean_set_size": 1.3696969696969696
+        "empirical_coverage": 0.9503030303030303,
+        "mean_set_size": 1.1927272727272726
       },
       "he": {
         "empty_set_violations": 0,
         "argmax_not_in_set_violations": 0,
-        "empirical_coverage": 0.9503030303030303,
-        "mean_set_size": 1.063030303030303
+        "empirical_coverage": 0.9793939393939394,
+        "mean_set_size": 1.029090909090909
       }
     },
     "conf99": {
       "cte": {
         "empty_set_violations": 0,
         "argmax_not_in_set_violations": 0,
-        "empirical_coverage": 0.9890909090909091,
-        "mean_set_size": 2.9612121212121214
+        "empirical_coverage": 0.9963636363636363,
+        "mean_set_size": 1.7818181818181817
       },
       "he": {
         "empty_set_violations": 0,
         "argmax_not_in_set_violations": 0,
-        "empirical_coverage": 0.9915151515151515,
-        "mean_set_size": 1.6012121212121213
+        "empirical_coverage": 0.9987878787878788,
+        "mean_set_size": 1.4606060606060607
       }
     },
     "conf995": {
       "cte": {
         "empty_set_violations": 0,
         "argmax_not_in_set_violations": 0,
-        "empirical_coverage": 0.9915151515151515,
-        "mean_set_size": 3.2545454545454544
+        "empirical_coverage": 0.9987878787878788,
+        "mean_set_size": 2.1903030303030304
       },
       "he": {
         "empty_set_violations": 0,
         "argmax_not_in_set_violations": 0,
-        "empirical_coverage": 0.9975757575757576,
-        "mean_set_size": 1.8436363636363637
+        "empirical_coverage": 1.0,
+        "mean_set_size": 1.7733333333333334
       }
     }
   },
@@ -925,26 +930,24 @@
       "cte": {
         "empty_count": 0,
         "size_counts": {
-          "1": 553,
-          "2": 241,
-          "3": 29,
-          "4": 2
+          "1": 666,
+          "2": 159
         },
-        "mean_size": 1.3696969696969696,
-        "empirical_coverage": 0.943030303030303
+        "mean_size": 1.1927272727272726,
+        "empirical_coverage": 0.9503030303030303
       },
       "he": {
         "empty_count": 0,
         "size_counts": {
-          "1": 773,
-          "2": 52
+          "1": 801,
+          "2": 24
         },
-        "mean_size": 1.063030303030303,
-        "empirical_coverage": 0.9503030303030303
+        "mean_size": 1.029090909090909,
+        "empirical_coverage": 0.9793939393939394
       },
       "top1_nonempty_repairs": {
         "cte": 0,
-        "he": 4
+        "he": 0
       },
       "validation": {
         "cte": {
@@ -961,24 +964,23 @@
       "cte": {
         "empty_count": 0,
         "size_counts": {
-          "1": 46,
-          "2": 287,
-          "3": 229,
-          "4": 179,
-          "5": 84
+          "1": 344,
+          "2": 354,
+          "3": 90,
+          "4": 37
         },
-        "mean_size": 2.9612121212121214,
-        "empirical_coverage": 0.9890909090909091
+        "mean_size": 1.7818181818181817,
+        "empirical_coverage": 0.9963636363636363
       },
       "he": {
         "empty_count": 0,
         "size_counts": {
-          "1": 427,
-          "2": 300,
-          "3": 98
+          "1": 521,
+          "2": 228,
+          "3": 76
         },
-        "mean_size": 1.6012121212121213,
-        "empirical_coverage": 0.9915151515151515
+        "mean_size": 1.4606060606060607,
+        "empirical_coverage": 0.9987878787878788
       },
       "top1_nonempty_repairs": {
         "cte": 0,
@@ -999,24 +1001,24 @@
       "cte": {
         "empty_count": 0,
         "size_counts": {
-          "1": 14,
-          "2": 225,
-          "3": 264,
-          "4": 181,
-          "5": 141
+          "1": 256,
+          "2": 314,
+          "3": 117,
+          "4": 118,
+          "5": 20
         },
-        "mean_size": 3.2545454545454544,
-        "empirical_coverage": 0.9915151515151515
+        "mean_size": 2.1903030303030304,
+        "empirical_coverage": 0.9987878787878788
       },
       "he": {
         "empty_count": 0,
         "size_counts": {
-          "1": 311,
-          "2": 332,
-          "3": 182
+          "1": 362,
+          "2": 288,
+          "3": 175
         },
-        "mean_size": 1.8436363636363637,
-        "empirical_coverage": 0.9975757575757576
+        "mean_size": 1.7733333333333334,
+        "empirical_coverage": 1.0
       },
       "top1_nonempty_repairs": {
         "cte": 0,

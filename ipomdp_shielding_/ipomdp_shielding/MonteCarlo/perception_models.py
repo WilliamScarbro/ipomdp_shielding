@@ -62,6 +62,17 @@ class PerceptionModel(ABC):
         """
         pass
 
+    def begin_trajectory(
+        self,
+        ipomdp: Optional[IPOMDP] = None,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Prepare for a new trajectory or episode."""
+        del ipomdp, context
+
+    def end_trajectory(self) -> None:
+        """Clean up trajectory-scoped state."""
+
     def sample_distribution(
         self,
         state: Any,
@@ -129,6 +140,31 @@ class UniformPerceptionModel(PerceptionModel):
     then samples an observation from that distribution.
     """
 
+    def __init__(self):
+        self._active_realization: Optional[Dict[Any, Dict[Any, float]]] = None
+
+    def begin_trajectory(
+        self,
+        ipomdp: Optional[IPOMDP] = None,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Sample one full interval realization for the entire trajectory."""
+        del context
+        if ipomdp is None:
+            self._active_realization = None
+            return
+
+        self._active_realization = {}
+        for state in ipomdp.states:
+            if state == "FAIL":
+                continue
+            self._active_realization[state] = self._sample_valid_distribution(
+                state, ipomdp
+            )
+
+    def end_trajectory(self) -> None:
+        self._active_realization = None
+
     def sample_observation(
         self,
         state: Any,
@@ -139,10 +175,24 @@ class UniformPerceptionModel(PerceptionModel):
         if state == "FAIL":
             return "FAIL"
 
-        dist = self._sample_valid_distribution(state, ipomdp)
+        dist = self.sample_distribution(state, ipomdp, context)
         observations = list(dist.keys())
         probs = [dist[o] for o in observations]
         return random.choices(observations, weights=probs, k=1)[0]
+
+    def sample_distribution(
+        self,
+        state: Any,
+        ipomdp: IPOMDP,
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[Any, float]:
+        """Return the active trajectory realization or sample a fresh row."""
+        del context
+        if state == "FAIL":
+            return {"FAIL": 1.0}
+        if self._active_realization is not None:
+            return self._active_realization[state].copy()
+        return self._sample_valid_distribution(state, ipomdp)
 
     def _sample_valid_distribution(
         self,
@@ -776,6 +826,18 @@ class ModularConditionalConformalTaxiNetPerception(PerceptionModel):
             self.conditional_cte_sets.get((true_cte, point_cte)),
             self.conditional_he_sets.get((true_he, point_he)),
         )
+
+    def begin_trajectory(
+        self,
+        ipomdp: Optional[IPOMDP] = None,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        if hasattr(self.point_perception, "begin_trajectory"):
+            self.point_perception.begin_trajectory(self.point_ipomdp, context)
+
+    def end_trajectory(self) -> None:
+        if hasattr(self.point_perception, "end_trajectory"):
+            self.point_perception.end_trajectory()
 
     def _sample_supported_point_observation(
         self,

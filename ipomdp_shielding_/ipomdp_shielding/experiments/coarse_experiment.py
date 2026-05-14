@@ -11,6 +11,7 @@ Usage:
 import os
 import json
 import time
+import random
 
 import numpy as np
 
@@ -25,7 +26,7 @@ from ..Propagators import (
 )
 from ..Propagators.lfp_propagator import default_solver
 from ..Evaluation.coarseness_evaluator import CoarsenessEvaluator
-from ..Evaluation.script_library import ScriptLibrary
+from ..Evaluation.script_library import ScriptLibrary, generate_script
 from ..MonteCarlo import UniformPerceptionModel
 
 
@@ -77,19 +78,33 @@ def create_sampler(ipomdp, seed=None):
 def generate_trajectories(ipomdp, pp_shield, num, length, seed=None):
     """Generate trajectories under perfect-perception shielding with uniform perception."""
     perception_model = UniformPerceptionModel()
+    if seed is not None:
+        random.seed(seed)
+
+    library = ScriptLibrary(metadata={
+        "num_scripts": num,
+        "length": length,
+        "seed": seed,
+    })
 
     def perception_fn(state):
         return perception_model.sample_observation(state, ipomdp, {})
 
-    library = ScriptLibrary.generate(
-        ipomdp=ipomdp,
-        pp_shield=pp_shield,
-        perception=perception_fn,
-        initial=(INITIAL_STATE, INITIAL_ACTION),
-        num_scripts=num,
-        length=length,
-        seed=seed,
-    )
+    for i in range(num):
+        perception_model.begin_trajectory(ipomdp)
+        try:
+            script = generate_script(
+                ipomdp=ipomdp,
+                pp_shield=pp_shield,
+                perception=perception_fn,
+                initial=(INITIAL_STATE, INITIAL_ACTION),
+                length=length,
+            )
+        finally:
+            perception_model.end_trajectory()
+        script.metadata["script_id"] = i
+        library.add(script)
+
     return library
 
 
