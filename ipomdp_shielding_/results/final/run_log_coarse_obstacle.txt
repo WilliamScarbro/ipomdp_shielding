@@ -1,0 +1,103 @@
+======================================================================
+COARSENESS EXPERIMENT: OBSTACLE
+Trajectories: 200, Length: 20, Seed: 42
+Sampler budget: 500, K: 100
+Likelihood strategy: HYBRID
+Pruning strategy: FARTHEST_POINT
+======================================================================
+
+Building OBSTACLE IPOMDP...
+  States: 50, Actions: 4, Observations: 3
+
+Creating LFP propagator (canonical templates)...
+Creating ForwardSampledBelief propagator...
+
+Generating 200 trajectories (length 20)...
+  Trajectory lengths: min=20, max=20, mean=20.0
+
+Evaluating coarseness...
+  [1/200] max_gap=1.0000  mean_gap=0.2590  (63.1s)
+  [5/200] max_gap=0.9989  mean_gap=0.6915  (284.0s)
+  [10/200] max_gap=0.9958  mean_gap=0.3293  (562.3s)
+  [15/200] max_gap=0.9932  mean_gap=0.4967  (839.5s)
+  [20/200] max_gap=0.9816  mean_gap=0.3967  (1116.2s)
+  [25/200] max_gap=0.9192  mean_gap=0.2953  (1397.3s)
+  [30/200] max_gap=1.0000  mean_gap=0.1005  (1673.0s)
+  [35/200] max_gap=0.9994  mean_gap=0.2085  (1949.2s)
+  [40/200] max_gap=0.9999  mean_gap=0.4867  (2225.3s)
+  [45/200] max_gap=0.9986  mean_gap=0.5039  (2501.6s)
+  [50/200] max_gap=0.9973  mean_gap=0.2928  (2779.1s)
+  [55/200] max_gap=0.9981  mean_gap=0.3839  (3054.5s)
+  [60/200] max_gap=0.9985  mean_gap=0.3496  (3329.9s)
+  [65/200] max_gap=1.0000  mean_gap=0.5346  (3603.9s)
+  [70/200] max_gap=0.9857  mean_gap=0.1788  (3879.2s)
+  [75/200] max_gap=0.8318  mean_gap=0.3109  (4152.4s)
+  [80/200] max_gap=0.9979  mean_gap=0.2055  (4427.2s)
+  [85/200] max_gap=0.9910  mean_gap=0.4025  (4703.4s)
+  [90/200] max_gap=0.9882  mean_gap=0.3022  (4980.0s)
+  [95/200] max_gap=0.9998  mean_gap=0.4631  (5255.7s)
+  [100/200] max_gap=0.9965  mean_gap=0.5001  (5529.4s)
+  [105/200] max_gap=0.9612  mean_gap=0.2735  (5802.7s)
+  [110/200] max_gap=0.9935  mean_gap=0.7495  (6076.4s)
+  [115/200] max_gap=0.9980  mean_gap=0.3951  (6351.1s)
+  [120/200] max_gap=1.0000  mean_gap=0.4150  (6625.2s)
+  [125/200] max_gap=0.9968  mean_gap=0.3168  (6899.5s)
+  [130/200] max_gap=0.9049  mean_gap=0.3568  (7173.9s)
+  [135/200] max_gap=0.9998  mean_gap=0.2481  (7450.0s)
+  [140/200] max_gap=0.8516  mean_gap=0.2257  (7726.0s)
+  [145/200] max_gap=0.9971  mean_gap=0.4938  (8000.3s)
+  [150/200] max_gap=0.9428  mean_gap=0.3639  (8273.9s)
+  [155/200] max_gap=0.9988  mean_gap=0.3138  (8548.6s)
+  [160/200] max_gap=0.6971  mean_gap=0.1454  (8824.2s)
+  [165/200] max_gap=0.9931  mean_gap=0.4205  (9100.4s)
+  [170/200] max_gap=0.9988  mean_gap=0.5091  (9375.3s)
+  [175/200] max_gap=0.9989  mean_gap=0.3975  (9650.2s)
+  [180/200] max_gap=0.9949  mean_gap=0.5239  (9926.9s)
+  [185/200] max_gap=0.9941  mean_gap=0.3522  (10202.3s)
+  [190/200] max_gap=0.9962  mean_gap=0.3560  (10476.6s)
+  [195/200] max_gap=0.9977  mean_gap=0.4155  (10751.1s)
+  [200/200] max_gap=1.0000  mean_gap=0.2563  (11025.8s)
+
+Total evaluation time: 11025.8s
+
+======================================================================
+COARSENESS EVALUATION RESULTS
+======================================================================
+Case study: obstacle
+Trajectories evaluated: 200
+
+--- Overall Max Gap (sampled_min_allowed - lfp_min_allowed) ---
+  Mean: 0.9272  Std: 0.1532  Min: 0.0695  Max: 1.0000
+
+--- Overall Mean Gap ---
+  Mean: 0.3359  Std: 0.1613
+
+--- Per-Timestep Average Max Gap ---
+  t= 0: 0.0367 #
+  t= 1: 0.1535 #######
+  t= 2: 0.2260 ###########
+  t= 3: 0.2997 ##############
+  t= 4: 0.3704 ##################
+  t= 5: 0.4348 #####################
+  t= 6: 0.5002 #########################
+  t= 7: 0.5391 ##########################
+  t= 8: 0.5770 ############################
+  t= 9: 0.6149 ##############################
+  t=10: 0.6307 ###############################
+  t=11: 0.6625 #################################
+  t=12: 0.6891 ##################################
+  t=13: 0.6799 #################################
+  t=14: 0.6302 ###############################
+  t=15: 0.6928 ##################################
+  t=16: 0.7024 ###################################
+  t=17: 0.6988 ##################################
+  t=18: 0.6991 ##################################
+  t=19: 0.7036 ###################################
+
+Results saved to results/final/coarse_obstacle_results.json
+
+Plot saved to results/final/coarse_obstacle_results.png
+
+======================================================================
+EXPERIMENT COMPLETE
+======================================================================

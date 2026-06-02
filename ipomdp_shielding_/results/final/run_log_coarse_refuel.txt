@@ -1,0 +1,21 @@
+======================================================================
+COARSENESS EXPERIMENT: REFUEL
+Trajectories: 200, Length: 10, Seed: 42
+Sampler budget: 500, K: 100
+Likelihood strategy: HYBRID
+Pruning strategy: FARTHEST_POINT
+======================================================================
+
+Building REFUEL IPOMDP...
+  States: 344, Actions: 5, Observations: 29
+
+Creating LFP propagator (canonical templates)...
+Creating ForwardSampledBelief propagator...
+
+Generating 200 trajectories (length 10)...
+  Trajectory lengths: min=10, max=10, mean=10.0
+
+Evaluating coarseness...
+  [1/200] max_gap=1.0000  mean_gap=0.8952  (2176.3s)
+  [5/200] max_gap=0.9662  mean_gap=0.7087  (11097.2s)
+  [10/200] max_gap=0.9518  mean_gap=0.5196  (22468.2s)

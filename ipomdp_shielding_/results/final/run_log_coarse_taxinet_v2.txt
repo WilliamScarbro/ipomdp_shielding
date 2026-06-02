@@ -1,0 +1,103 @@
+======================================================================
+COARSENESS EXPERIMENT: TAXINET_V2
+Trajectories: 200, Length: 20, Seed: 42
+Sampler budget: 500, K: 100
+Likelihood strategy: HYBRID
+Pruning strategy: FARTHEST_POINT
+======================================================================
+
+Building TAXINET_V2 IPOMDP...
+  States: 16, Actions: 3, Observations: 16
+
+Creating LFP propagator (canonical templates)...
+Creating ForwardSampledBelief propagator...
+
+Generating 200 trajectories (length 20)...
+  Trajectory lengths: min=2, max=20, mean=14.2
+
+Evaluating coarseness...
+  [1/200] max_gap=0.9971  mean_gap=0.1889  (20.3s)
+  [5/200] max_gap=0.2516  mean_gap=0.0587  (45.7s)
+  [10/200] max_gap=0.0348  mean_gap=0.0043  (116.8s)
+  [15/200] max_gap=0.9900  mean_gap=0.1034  (188.7s)
+  [20/200] max_gap=0.9972  mean_gap=0.1707  (266.5s)
+  [25/200] max_gap=0.2451  mean_gap=0.0176  (353.1s)
+  [30/200] max_gap=0.9999  mean_gap=0.4345  (431.6s)
+  [35/200] max_gap=0.9973  mean_gap=0.1339  (509.6s)
+  [40/200] max_gap=0.0596  mean_gap=0.0265  (570.6s)
+  [45/200] max_gap=0.5434  mean_gap=0.1115  (637.2s)
+  [50/200] max_gap=1.0000  mean_gap=0.5114  (722.1s)
+  [55/200] max_gap=1.0000  mean_gap=0.4484  (801.7s)
+  [60/200] max_gap=0.0501  mean_gap=0.0103  (828.5s)
+  [65/200] max_gap=0.0712  mean_gap=0.0061  (895.6s)
+  [70/200] max_gap=0.2495  mean_gap=0.0294  (993.2s)
+  [75/200] max_gap=0.9999  mean_gap=0.3322  (1058.2s)
+  [80/200] max_gap=0.0213  mean_gap=0.0050  (1133.0s)
+  [85/200] max_gap=0.9978  mean_gap=0.1659  (1209.8s)
+  [90/200] max_gap=0.0410  mean_gap=0.0083  (1284.6s)
+  [95/200] max_gap=0.0266  mean_gap=0.0049  (1325.7s)
+  [100/200] max_gap=0.1724  mean_gap=0.0354  (1388.6s)
+  [105/200] max_gap=0.0647  mean_gap=0.0053  (1451.7s)
+  [110/200] max_gap=0.8092  mean_gap=0.0591  (1539.7s)
+  [115/200] max_gap=0.3320  mean_gap=0.0194  (1622.8s)
+  [120/200] max_gap=0.5373  mean_gap=0.0123  (1693.0s)
+  [125/200] max_gap=0.0133  mean_gap=0.0057  (1755.3s)
+  [130/200] max_gap=0.9991  mean_gap=0.1016  (1821.5s)
+  [135/200] max_gap=0.3297  mean_gap=0.0260  (1876.3s)
+  [140/200] max_gap=0.1578  mean_gap=0.0120  (1935.7s)
+  [145/200] max_gap=0.5966  mean_gap=0.0230  (2031.4s)
+  [150/200] max_gap=0.1710  mean_gap=0.0144  (2118.9s)
+  [155/200] max_gap=0.9952  mean_gap=0.4215  (2197.1s)
+  [160/200] max_gap=0.9932  mean_gap=0.1965  (2282.1s)
+  [165/200] max_gap=0.1076  mean_gap=0.0063  (2331.6s)
+  [170/200] max_gap=0.9996  mean_gap=0.1732  (2402.9s)
+  [175/200] max_gap=0.6984  mean_gap=0.0501  (2461.1s)
+  [180/200] max_gap=0.8386  mean_gap=0.0720  (2538.1s)
+  [185/200] max_gap=0.0938  mean_gap=0.0075  (2585.1s)
+  [190/200] max_gap=0.0380  mean_gap=0.0062  (2625.1s)
+  [195/200] max_gap=0.9986  mean_gap=0.3557  (2686.1s)
+  [200/200] max_gap=1.0000  mean_gap=0.4544  (2781.1s)
+
+Total evaluation time: 2781.1s
+
+======================================================================
+COARSENESS EVALUATION RESULTS
+======================================================================
+Case study: taxinet_v2
+Trajectories evaluated: 200
+
+--- Overall Max Gap (sampled_min_allowed - lfp_min_allowed) ---
+  Mean: 0.5467  Std: 0.4106  Min: 0.0117  Max: 1.0000
+
+--- Overall Mean Gap ---
+  Mean: 0.1376  Std: 0.1632
+
+--- Per-Timestep Average Max Gap ---
+  t= 0: 0.0272 #
+  t= 1: 0.1025 #####
+  t= 2: 0.1390 ######
+  t= 3: 0.1805 #########
+  t= 4: 0.2092 ##########
+  t= 5: 0.2505 ############
+  t= 6: 0.2606 #############
+  t= 7: 0.2684 #############
+  t= 8: 0.3205 ################
+  t= 9: 0.3417 #################
+  t=10: 0.3786 ##################
+  t=11: 0.3886 ###################
+  t=12: 0.4484 ######################
+  t=13: 0.4379 #####################
+  t=14: 0.4564 ######################
+  t=15: 0.4502 ######################
+  t=16: 0.4312 #####################
+  t=17: 0.4803 ########################
+  t=18: 0.4698 #######################
+  t=19: 0.5017 #########################
+
+Results saved to results/taxinet_v2/coarse_taxinet_v2_results.json
+
+Plot saved to results/taxinet_v2/coarse_taxinet_v2_results.png
+
+======================================================================
+EXPERIMENT COMPLETE
+======================================================================

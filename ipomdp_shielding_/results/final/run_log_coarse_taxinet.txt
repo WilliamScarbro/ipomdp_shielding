@@ -1,0 +1,103 @@
+======================================================================
+COARSENESS EXPERIMENT: TAXINET
+Trajectories: 200, Length: 20, Seed: 42
+Sampler budget: 500, K: 100
+Likelihood strategy: HYBRID
+Pruning strategy: FARTHEST_POINT
+======================================================================
+
+Building TAXINET IPOMDP...
+  States: 16, Actions: 3, Observations: 16
+
+Creating LFP propagator (canonical templates)...
+Creating ForwardSampledBelief propagator...
+
+Generating 200 trajectories (length 20)...
+  Trajectory lengths: min=3, max=20, mean=19.5
+
+Evaluating coarseness...
+  [1/200] max_gap=0.9842  mean_gap=0.1064  (20.2s)
+  [5/200] max_gap=0.9938  mean_gap=0.2776  (94.8s)
+  [10/200] max_gap=0.5672  mean_gap=0.0471  (188.5s)
+  [15/200] max_gap=0.9981  mean_gap=0.0300  (282.8s)
+  [20/200] max_gap=0.1010  mean_gap=0.0041  (377.1s)
+  [25/200] max_gap=0.3833  mean_gap=0.0346  (471.3s)
+  [30/200] max_gap=0.5836  mean_gap=0.0397  (549.5s)
+  [35/200] max_gap=0.3587  mean_gap=0.0232  (631.4s)
+  [40/200] max_gap=0.5858  mean_gap=0.0377  (725.3s)
+  [45/200] max_gap=0.3728  mean_gap=0.0253  (819.2s)
+  [50/200] max_gap=0.1186  mean_gap=0.0075  (911.6s)
+  [55/200] max_gap=0.7825  mean_gap=0.0533  (1005.8s)
+  [60/200] max_gap=0.4673  mean_gap=0.0296  (1100.0s)
+  [65/200] max_gap=0.2348  mean_gap=0.0288  (1195.7s)
+  [70/200] max_gap=1.0000  mean_gap=0.1596  (1298.8s)
+  [75/200] max_gap=0.3518  mean_gap=0.0279  (1393.0s)
+  [80/200] max_gap=0.2888  mean_gap=0.0206  (1477.1s)
+  [85/200] max_gap=0.2958  mean_gap=0.0356  (1558.2s)
+  [90/200] max_gap=0.1473  mean_gap=0.0212  (1656.7s)
+  [95/200] max_gap=0.9804  mean_gap=0.1256  (1753.7s)
+  [100/200] max_gap=0.0749  mean_gap=0.0052  (1848.1s)
+  [105/200] max_gap=0.8211  mean_gap=0.0511  (1927.1s)
+  [110/200] max_gap=0.1701  mean_gap=0.0164  (2021.5s)
+  [115/200] max_gap=0.7197  mean_gap=0.0757  (2115.4s)
+  [120/200] max_gap=0.8455  mean_gap=0.0998  (2194.4s)
+  [125/200] max_gap=0.0886  mean_gap=0.0092  (2288.2s)
+  [130/200] max_gap=0.3156  mean_gap=0.0167  (2384.4s)
+  [135/200] max_gap=0.0547  mean_gap=0.0047  (2478.4s)
+  [140/200] max_gap=0.8331  mean_gap=0.0868  (2572.7s)
+  [145/200] max_gap=0.6636  mean_gap=0.0615  (2677.1s)
+  [150/200] max_gap=0.9901  mean_gap=0.0799  (2771.2s)
+  [155/200] max_gap=0.4120  mean_gap=0.0252  (2865.6s)
+  [160/200] max_gap=0.3435  mean_gap=0.0275  (2959.8s)
+  [165/200] max_gap=0.2832  mean_gap=0.0273  (3054.0s)
+  [170/200] max_gap=0.9904  mean_gap=0.0939  (3148.0s)
+  [175/200] max_gap=0.9574  mean_gap=0.1194  (3241.7s)
+  [180/200] max_gap=0.5563  mean_gap=0.0442  (3335.3s)
+  [185/200] max_gap=0.1481  mean_gap=0.0134  (3429.3s)
+  [190/200] max_gap=0.2813  mean_gap=0.0221  (3517.5s)
+  [195/200] max_gap=0.3915  mean_gap=0.0319  (3611.4s)
+  [200/200] max_gap=0.1971  mean_gap=0.0197  (3705.3s)
+
+Total evaluation time: 3705.3s
+
+======================================================================
+COARSENESS EVALUATION RESULTS
+======================================================================
+Case study: taxinet
+Trajectories evaluated: 200
+
+--- Overall Max Gap (sampled_min_allowed - lfp_min_allowed) ---
+  Mean: 0.4447  Std: 0.3090  Min: 0.0458  Max: 1.0000
+
+--- Overall Mean Gap ---
+  Mean: 0.0474  Std: 0.0535
+
+--- Per-Timestep Average Max Gap ---
+  t= 0: 0.0460 ##
+  t= 1: 0.0748 ###
+  t= 2: 0.1298 ######
+  t= 3: 0.1415 #######
+  t= 4: 0.1381 ######
+  t= 5: 0.1549 #######
+  t= 6: 0.1346 ######
+  t= 7: 0.1280 ######
+  t= 8: 0.1278 ######
+  t= 9: 0.1013 #####
+  t=10: 0.1145 #####
+  t=11: 0.1356 ######
+  t=12: 0.1403 #######
+  t=13: 0.1464 #######
+  t=14: 0.1348 ######
+  t=15: 0.1248 ######
+  t=16: 0.1084 #####
+  t=17: 0.1024 #####
+  t=18: 0.1092 #####
+  t=19: 0.1158 #####
+
+Results saved to results/final/coarse_taxinet_results.json
+
+Plot saved to results/final/coarse_taxinet_results.png
+
+======================================================================
+EXPERIMENT COMPLETE
+======================================================================

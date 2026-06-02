@@ -1,0 +1,143 @@
+[2026-05-31 19:16:21] ==========================================
+[2026-05-31 19:16:21] Supervisor started. MAX_RESTARTS=8
+[2026-05-31 19:16:21] ==========================================
+[2026-05-31 19:16:21] Monitoring existing PID 2061249...
+[2026-05-31 20:48:07] PID 2061249 exited.
+[2026-05-31 20:48:07] Initial run ended without sweep_summary.json.
+[2026-05-31 20:48:07] --- tail of run_log_phase2a_restart4.txt ---
+      adversarial_opt/single_belief/seed=789: fail=32.5% stuck=0.0% safe=67.5%
+      adversarial_opt/envelope/seed=789: fail=37.5% stuck=0.0% safe=62.5%
+      adversarial_opt/forward_sampling/seed=789: fail=32.5% stuck=0.0% safe=67.5%
+      uniform/single_belief/seed=1024: fail=40.0% stuck=0.0% safe=60.0%
+      uniform/envelope/seed=1024: fail=40.0% stuck=7.5% safe=52.5%
+      uniform/forward_sampling/seed=1024: fail=25.0% stuck=5.0% safe=70.0%
+      adversarial_opt/single_belief/seed=1024: fail=52.5% stuck=0.0% safe=47.5%
+      adversarial_opt/envelope/seed=1024: fail=37.5% stuck=2.5% safe=60.0%
+      adversarial_opt/forward_sampling/seed=1024: fail=32.5% stuck=0.0% safe=67.5%
+
+  --- beta = 0.9 ---
+    Training adversarial realization (envelope) for alpha=0.05, beta=0.9...
+      uniform/single_belief/seed=42: fail=35.0% stuck=0.0% safe=65.0%
+      uniform/envelope/seed=42: fail=35.0% stuck=20.0% safe=45.0%
+      uniform/forward_sampling/seed=42: fail=30.0% stuck=17.5% safe=52.5%
+      adversarial_opt/single_belief/seed=42: fail=27.5% stuck=2.5% safe=70.0%
+      adversarial_opt/envelope/seed=42: fail=45.0% stuck=25.0% safe=30.0%
+      adversarial_opt/forward_sampling/seed=42: fail=27.5% stuck=22.5% safe=50.0%
+      uniform/single_belief/seed=123: fail=30.0% stuck=0.0% safe=70.0%
+      uniform/envelope/seed=123: fail=27.5% stuck=12.5% safe=60.0%
+      uniform/forward_sampling/seed=123: fail=27.5% stuck=12.5% safe=60.0%
+      adversarial_opt/single_belief/seed=123: fail=40.0% stuck=2.5% safe=57.5%
+      adversarial_opt/envelope/seed=123: fail=32.5% stuck=15.0% safe=52.5%
+      adversarial_opt/forward_sampling/seed=123: fail=32.5% stuck=2.5% safe=65.0%
+      uniform/single_belief/seed=456: fail=42.5% stuck=5.0% safe=52.5%
+      uniform/envelope/seed=456: fail=42.5% stuck=15.0% safe=42.5%
+      uniform/forward_sampling/seed=456: fail=40.0% stuck=5.0% safe=55.0%
+      adversarial_opt/single_belief/seed=456: fail=40.0% stuck=0.0% safe=60.0%
+      adversarial_opt/envelope/seed=456: fail=22.5% stuck=15.0% safe=62.5%
+      adversarial_opt/forward_sampling/seed=456: fail=32.5% stuck=2.5% safe=65.0%
+      uniform/single_belief/seed=789: fail=50.0% stuck=0.0% safe=50.0%
+      uniform/envelope/seed=789: fail=27.5% stuck=17.5% safe=55.0%
+      uniform/forward_sampling/seed=789: fail=45.0% stuck=5.0% safe=50.0%
+      adversarial_opt/single_belief/seed=789: fail=35.0% stuck=2.5% safe=62.5%
+      adversarial_opt/envelope/seed=789: fail=30.0% stuck=15.0% safe=55.0%
+      adversarial_opt/forward_sampling/seed=789: fail=35.0% stuck=12.5% safe=52.5%
+      uniform/single_belief/seed=1024: fail=35.0% stuck=2.5% safe=62.5%
+      uniform/envelope/seed=1024: fail=47.5% stuck=20.0% safe=32.5%
+      uniform/forward_sampling/seed=1024: fail=52.5% stuck=0.0% safe=47.5%
+      adversarial_opt/single_belief/seed=1024: fail=35.0% stuck=0.0% safe=65.0%
+[2026-05-31 20:48:07] --- end tail ---
+[2026-05-31 20:48:07] Cache files present: 12
+[2026-05-31 20:48:07] Started sweep run 1 (PID 2101108) log -> run_log_supervisor_run1.txt
+[2026-05-31 20:48:07] Sweep PID [2026-05-31 20:48:07] Started sweep run 1 (PID 2101108) log -> run_log_supervisor_run1.txt
+2101108 exited.
+[2026-05-31 20:48:07] --- tail of run_log_supervisor_run1.txt ---
+[2026-05-31 20:48:07] --- end tail ---
+[2026-05-31 20:48:07] Cache files present: 12
+[2026-05-31 20:48:07] Scheduling restart 2/8 in 5 s...
+[2026-05-31 20:48:12] Started sweep run 2 (PID 2101343) log -> run_log_supervisor_run2.txt
+[2026-05-31 20:48:12] Sweep PID [2026-05-31 20:48:12] Started sweep run 2 (PID 2101343) log -> run_log_supervisor_run2.txt
+2101343 exited.
+[2026-05-31 20:48:12] --- tail of run_log_supervisor_run2.txt ---
+[2026-05-31 20:48:12] --- end tail ---
+[2026-05-31 20:48:12] Cache files present: 12
+[2026-05-31 20:48:12] Scheduling restart 3/8 in 5 s...
+[2026-05-31 20:48:17] Started sweep run 3 (PID 2101578) log -> run_log_supervisor_run3.txt
+[2026-05-31 20:48:17] Sweep PID [2026-05-31 20:48:17] Started sweep run 3 (PID 2101578) log -> run_log_supervisor_run3.txt
+2101578 exited.
+[2026-05-31 20:48:17] --- tail of run_log_supervisor_run3.txt ---
+[2026-05-31 20:48:17] --- end tail ---
+[2026-05-31 20:48:17] Cache files present: 12
+[2026-05-31 20:48:17] Scheduling restart 4/8 in 5 s...
+[2026-05-31 20:48:22] Started sweep run 4 (PID 2101813) log -> run_log_supervisor_run4.txt
+[2026-05-31 20:48:22] Sweep PID [2026-05-31 20:48:22] Started sweep run 4 (PID 2101813) log -> run_log_supervisor_run4.txt
+2101813 exited.
+[2026-05-31 20:48:22] --- tail of run_log_supervisor_run4.txt ---
+[2026-05-31 20:48:22] --- end tail ---
+[2026-05-31 20:48:22] Cache files present: 12
+[2026-05-31 20:48:22] Scheduling restart 5/8 in 5 s...
+[2026-05-31 20:48:27] Started sweep run 5 (PID 2102048) log -> run_log_supervisor_run5.txt
+[2026-05-31 20:48:27] Sweep PID [2026-05-31 20:48:27] Started sweep run 5 (PID 2102048) log -> run_log_supervisor_run5.txt
+2102048 exited.
+[2026-05-31 20:48:27] --- tail of run_log_supervisor_run5.txt ---
+[2026-05-31 20:48:27] --- end tail ---
+[2026-05-31 20:48:27] Cache files present: 12
+[2026-05-31 20:48:27] Scheduling restart 6/8 in 5 s...
+[2026-05-31 20:48:32] Started sweep run 6 (PID 2102283) log -> run_log_supervisor_run6.txt
+[2026-05-31 20:48:32] Sweep PID [2026-05-31 20:48:32] Started sweep run 6 (PID 2102283) log -> run_log_supervisor_run6.txt
+2102283 exited.
+[2026-05-31 20:48:32] --- tail of run_log_supervisor_run6.txt ---
+[2026-05-31 20:48:32] --- end tail ---
+[2026-05-31 20:48:32] Cache files present: 12
+[2026-05-31 20:48:32] Scheduling restart 7/8 in 5 s...
+[2026-05-31 20:48:37] Started sweep run 7 (PID 2102518) log -> run_log_supervisor_run7.txt
+[2026-05-31 20:48:37] Sweep PID [2026-05-31 20:48:37] Started sweep run 7 (PID 2102518) log -> run_log_supervisor_run7.txt
+2102518 exited.
+[2026-05-31 20:48:37] --- tail of run_log_supervisor_run7.txt ---
+[2026-05-31 20:48:37] --- end tail ---
+[2026-05-31 20:48:37] Cache files present: 12
+[2026-05-31 20:48:37] Scheduling restart 8/8 in 5 s...
+[2026-05-31 20:48:42] Started sweep run 8 (PID 2102753) log -> run_log_supervisor_run8.txt
+[2026-05-31 20:48:42] Sweep PID [2026-05-31 20:48:42] Started sweep run 8 (PID 2102753) log -> run_log_supervisor_run8.txt
+2102753 exited.
+[2026-05-31 20:48:42] --- tail of run_log_supervisor_run8.txt ---
+[2026-05-31 20:48:42] --- end tail ---
+[2026-05-31 20:48:42] Cache files present: 12
+[2026-05-31 20:48:42] FAILED: exhausted 8 restarts without producing sweep_summary.json.
+[2026-06-01 21:55:12] ==========================================
+[2026-06-01 21:55:12] Supervisor started. MAX_RESTARTS=8
+[2026-06-01 21:55:12] ==========================================
+[2026-06-01 21:55:13] Started sweep run 1 (PID 2651975) log -> run_log_supervisor_run1.txt
+[2026-06-01 21:55:13] Sweep PID [2026-06-01 21:55:13] Started sweep run 1 (PID 2651975) log -> run_log_supervisor_run1.txt
+2651975 exited.
+[2026-06-01 21:55:13] --- tail of run_log_supervisor_run1.txt ---
+[2026-06-01 21:55:13] --- end tail ---
+[2026-06-01 21:55:13] Cache files present: 0
+[2026-06-01 21:55:13] Scheduling restart 1/8 in 5 s...
+[2026-06-01 21:55:18] Started sweep run 2 (PID 2652475) log -> run_log_supervisor_run2.txt
+[2026-06-01 21:55:18] Sweep PID [2026-06-01 21:55:18] Started sweep run 2 (PID 2652475) log -> run_log_supervisor_run2.txt
+2652475 exited.
+[2026-06-01 21:55:18] --- tail of run_log_supervisor_run2.txt ---
+[2026-06-01 21:55:18] --- end tail ---
+[2026-06-01 21:55:18] Cache files present: 0
+[2026-06-01 21:55:18] Scheduling restart 2/8 in 5 s...
+[2026-06-01 21:55:23] Started sweep run 3 (PID 2652861) log -> run_log_supervisor_run3.txt
+[2026-06-01 21:55:23] Sweep PID [2026-06-01 21:55:23] Started sweep run 3 (PID 2652861) log -> run_log_supervisor_run3.txt
+2652861 exited.
+[2026-06-01 21:55:23] --- tail of run_log_supervisor_run3.txt ---
+[2026-06-01 21:55:23] --- end tail ---
+[2026-06-01 21:55:23] Cache files present: 0
+[2026-06-01 21:55:23] Scheduling restart 3/8 in 5 s...
+[2026-06-01 21:55:28] Started sweep run 4 (PID 2653413) log -> run_log_supervisor_run4.txt
+[2026-06-01 21:55:28] Sweep PID [2026-06-01 21:55:28] Started sweep run 4 (PID 2653413) log -> run_log_supervisor_run4.txt
+2653413 exited.
+[2026-06-01 21:55:28] --- tail of run_log_supervisor_run4.txt ---
+[2026-06-01 21:55:28] --- end tail ---
+[2026-06-01 21:55:28] Cache files present: 0
+[2026-06-01 21:55:28] Scheduling restart 4/8 in 5 s...
+[2026-06-01 22:03:27] ==========================================
+[2026-06-01 22:03:27] Supervisor started. MAX_RESTARTS=8
+[2026-06-01 22:03:27] ==========================================
+[2026-06-01 22:03:27] Started sweep run 1 (PID 2666596) log -> run_log_supervisor_run1.txt
+[2026-06-02 03:39:15] Sweep PID 2666596 exited.
+[2026-06-02 03:39:15] sweep_summary.json found — sweep complete.
+[2026-06-02 03:39:15] Committing and pushing results...

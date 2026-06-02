@@ -1,0 +1,58 @@
+======================================================================
+PERCEPTION VARIABILITY SWEEP: TAXINET
+Trajectories: 200, Length: 20, Seed: 42
+Sampler budget (K): 500, varying K_samples: 100
+======================================================================
+States: 16, Actions: 3, Observations: 16
+
+Generating shared trajectories...
+  [1/200] varying_max=0.9842  fixed_max=0.9861  (22.6s)
+  [5/200] varying_max=0.9969  fixed_max=0.9965  (102.1s)
+  [10/200] varying_max=0.5706  fixed_max=0.5801  (201.2s)
+  [15/200] varying_max=0.9994  fixed_max=0.9999  (299.8s)
+  [20/200] varying_max=0.1090  fixed_max=0.1194  (398.3s)
+  [25/200] varying_max=0.3689  fixed_max=0.4365  (497.2s)
+  [30/200] varying_max=0.5783  fixed_max=0.5935  (580.1s)
+  [35/200] varying_max=0.3577  fixed_max=0.3585  (667.5s)
+  [40/200] varying_max=0.5754  fixed_max=0.6525  (766.8s)
+  [45/200] varying_max=0.3728  fixed_max=0.3729  (866.3s)
+  [50/200] varying_max=0.1204  fixed_max=0.1755  (963.8s)
+  [55/200] varying_max=0.7836  fixed_max=0.8074  (1062.9s)
+  [60/200] varying_max=0.4842  fixed_max=0.5966  (1162.0s)
+  [65/200] varying_max=0.2313  fixed_max=0.4886  (1261.4s)
+  [70/200] varying_max=1.0000  fixed_max=1.0000  (1362.6s)
+  [75/200] varying_max=0.3459  fixed_max=0.4294  (1473.7s)
+  [80/200] varying_max=0.2852  fixed_max=0.3199  (1572.3s)
+  [85/200] varying_max=0.2837  fixed_max=0.4143  (1667.5s)
+  [90/200] varying_max=0.1553  fixed_max=0.3316  (1777.2s)
+  [95/200] varying_max=0.9844  fixed_max=1.0000  (1876.1s)
+  [100/200] varying_max=0.0715  fixed_max=0.1640  (1975.0s)
+  [105/200] varying_max=0.8206  fixed_max=0.8422  (2061.6s)
+  [110/200] varying_max=0.1689  fixed_max=0.1923  (2160.4s)
+  [115/200] varying_max=0.7099  fixed_max=0.8361  (2259.1s)
+  [120/200] varying_max=0.8452  fixed_max=0.8536  (2343.0s)
+  [125/200] varying_max=0.1328  fixed_max=0.3484  (2441.8s)
+  [130/200] varying_max=0.3096  fixed_max=0.4277  (2541.0s)
+  [135/200] varying_max=0.0479  fixed_max=0.1106  (2639.9s)
+  [140/200] varying_max=0.8299  fixed_max=0.8815  (2738.7s)
+  [145/200] varying_max=0.4744  fixed_max=0.7864  (2837.1s)
+  [150/200] varying_max=0.9914  fixed_max=0.9923  (2935.9s)
+  [155/200] varying_max=0.4474  fixed_max=0.5945  (3034.3s)
+  [160/200] varying_max=0.3431  fixed_max=0.6978  (3133.2s)
+  [165/200] varying_max=0.2670  fixed_max=0.3722  (3231.5s)
+  [170/200] varying_max=0.9904  fixed_max=0.9904  (3330.1s)
+  [175/200] varying_max=0.9573  fixed_max=0.9576  (3428.2s)
+  [180/200] varying_max=0.5250  fixed_max=0.7382  (3526.7s)
+  [185/200] varying_max=0.1453  fixed_max=0.2561  (3625.5s)
+  [190/200] varying_max=0.2726  fixed_max=0.3001  (3718.5s)
+  [195/200] varying_max=0.3636  fixed_max=0.4838  (3817.0s)
+  [200/200] varying_max=0.1708  fixed_max=0.3479  (3915.9s)
+
+Total evaluation time: 3915.9s
+
+Results saved to results/final/perception_variability/perception_variability_taxinet_results.json
+Plot saved to results/final/perception_variability/figures/perception_variability_taxinet.png
+
+--- Overall max safe gap to LFP ---
+               varying: mean=0.4435  std=0.3090  median=0.3568
+     fixed_realization: mean=0.5407  std=0.2986  median=0.4639

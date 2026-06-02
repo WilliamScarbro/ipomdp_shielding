@@ -1,0 +1,98 @@
+======================================================================
+COARSENESS EXPERIMENT: CARTPOLE
+Trajectories: 200, Length: 15, Seed: 42
+Sampler budget: 500, K: 100
+Likelihood strategy: HYBRID
+Pruning strategy: FARTHEST_POINT
+======================================================================
+
+Building CARTPOLE IPOMDP...
+  States: 82, Actions: 2, Observations: 82
+
+Creating LFP propagator (canonical templates)...
+Creating ForwardSampledBelief propagator...
+
+Generating 200 trajectories (length 15)...
+  Trajectory lengths: min=15, max=15, mean=15.0
+
+Evaluating coarseness...
+  [1/200] max_gap=0.9991  mean_gap=0.4364  (85.7s)
+  [5/200] max_gap=0.9260  mean_gap=0.2902  (371.7s)
+  [10/200] max_gap=0.9068  mean_gap=0.0775  (723.5s)
+  [15/200] max_gap=0.9840  mean_gap=0.2298  (1074.8s)
+  [20/200] max_gap=0.7167  mean_gap=0.0648  (1448.1s)
+  [25/200] max_gap=0.9733  mean_gap=0.1983  (1811.1s)
+  [30/200] max_gap=0.9924  mean_gap=0.1381  (2168.3s)
+  [35/200] max_gap=0.9439  mean_gap=0.1721  (2521.9s)
+  [40/200] max_gap=0.7872  mean_gap=0.1929  (2878.9s)
+  [45/200] max_gap=0.9986  mean_gap=0.3692  (3232.7s)
+  [50/200] max_gap=0.9957  mean_gap=0.3989  (3582.8s)
+  [55/200] max_gap=0.9858  mean_gap=0.2846  (3933.9s)
+  [60/200] max_gap=0.9669  mean_gap=0.2430  (4284.0s)
+  [65/200] max_gap=0.9992  mean_gap=0.4052  (4637.8s)
+  [70/200] max_gap=0.9975  mean_gap=0.3994  (4987.1s)
+  [75/200] max_gap=1.0000  mean_gap=0.4407  (5341.3s)
+  [80/200] max_gap=0.9880  mean_gap=0.2930  (5692.3s)
+  [85/200] max_gap=1.0000  mean_gap=0.3640  (6042.5s)
+  [90/200] max_gap=1.0000  mean_gap=0.4724  (6393.6s)
+  [95/200] max_gap=0.9903  mean_gap=0.3228  (6741.7s)
+  [100/200] max_gap=0.9988  mean_gap=0.3566  (7090.4s)
+  [105/200] max_gap=0.8316  mean_gap=0.1217  (7441.5s)
+  [110/200] max_gap=0.9750  mean_gap=0.1812  (7792.5s)
+  [115/200] max_gap=1.0000  mean_gap=0.4166  (8140.7s)
+  [120/200] max_gap=1.0000  mean_gap=0.3506  (8489.9s)
+  [125/200] max_gap=0.9925  mean_gap=0.1170  (8837.1s)
+  [130/200] max_gap=0.9489  mean_gap=0.0697  (9190.9s)
+  [135/200] max_gap=0.3969  mean_gap=0.0407  (9538.3s)
+  [140/200] max_gap=0.9982  mean_gap=0.3230  (9886.6s)
+  [145/200] max_gap=0.9825  mean_gap=0.2427  (10237.5s)
+  [150/200] max_gap=0.9583  mean_gap=0.1659  (10591.4s)
+  [155/200] max_gap=1.0000  mean_gap=0.4161  (10940.5s)
+  [160/200] max_gap=1.0000  mean_gap=0.4743  (11289.5s)
+  [165/200] max_gap=0.9979  mean_gap=0.4203  (11632.2s)
+  [170/200] max_gap=1.0000  mean_gap=0.4739  (11978.3s)
+  [175/200] max_gap=0.8748  mean_gap=0.0884  (12325.0s)
+  [180/200] max_gap=0.9523  mean_gap=0.1303  (12673.0s)
+  [185/200] max_gap=0.9964  mean_gap=0.3657  (13019.8s)
+  [190/200] max_gap=0.9993  mean_gap=0.4530  (13364.7s)
+  [195/200] max_gap=0.9994  mean_gap=0.4359  (13711.0s)
+  [200/200] max_gap=0.9999  mean_gap=0.4080  (14060.9s)
+
+Total evaluation time: 14060.9s
+
+======================================================================
+COARSENESS EVALUATION RESULTS
+======================================================================
+Case study: cartpole
+Trajectories evaluated: 200
+
+--- Overall Max Gap (sampled_min_allowed - lfp_min_allowed) ---
+  Mean: 0.9691  Std: 0.0962  Min: 0.3251  Max: 1.0000
+
+--- Overall Mean Gap ---
+  Mean: 0.3220  Std: 0.1241
+
+--- Per-Timestep Average Max Gap ---
+  t= 0: 0.2741 #############
+  t= 1: 0.6531 ################################
+  t= 2: 0.7280 ####################################
+  t= 3: 0.7109 ###################################
+  t= 4: 0.7155 ###################################
+  t= 5: 0.7008 ###################################
+  t= 6: 0.6610 #################################
+  t= 7: 0.6665 #################################
+  t= 8: 0.6603 #################################
+  t= 9: 0.6642 #################################
+  t=10: 0.6610 #################################
+  t=11: 0.6397 ###############################
+  t=12: 0.6418 ################################
+  t=13: 0.6429 ################################
+  t=14: 0.6390 ###############################
+
+Results saved to results/final/coarse_cartpole_results.json
+
+Plot saved to results/final/coarse_cartpole_results.png
+
+======================================================================
+EXPERIMENT COMPLETE
+======================================================================

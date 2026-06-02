@@ -1,0 +1,352 @@
+/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/MonteCarlo/neural_action_selector.py:961: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(filepath, map_location=device)
+/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/MonteCarlo/neural_action_selector.py:961: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(filepath, map_location=device)
+======================================================================
+ALPHA SWEEP - TAXINET
+Alphas: [0.01, 0.025, 0.05, 0.075, 0.1, 0.15, 0.2, 0.3]
+Betas:  [0.7, 0.8, 0.9]
+Seeds:  [42, 123, 456, 789, 1024]
+Total MC cells: 720
+======================================================================
+
+======================================================================
+ALPHA = 0.01
+======================================================================
+  Loading cached RL agent for alpha=0.01
+
+  --- beta = 0.7 ---
+    Loading cached adversarial realization (envelope) for alpha=0.01, beta=0.7
+      uniform/single_belief/seed=42: fail=45.0% stuck=0.0% safe=55.0%
+      uniform/envelope/seed=42: fail=20.0% stuck=5.0% safe=75.0%
+      uniform/forward_sampling/seed=42: fail=27.5% stuck=5.0% safe=67.5%
+      adversarial_opt/single_belief/seed=42: fail=37.5% stuck=0.0% safe=62.5%
+      adversarial_opt/envelope/seed=42: fail=37.5% stuck=0.0% safe=62.5%
+      adversarial_opt/forward_sampling/seed=42: fail=40.0% stuck=0.0% safe=60.0%
+      uniform/single_belief/seed=123: fail=45.0% stuck=0.0% safe=55.0%
+      uniform/envelope/seed=123: fail=40.0% stuck=0.0% safe=60.0%
+      uniform/forward_sampling/seed=123: fail=52.5% stuck=0.0% safe=47.5%
+      adversarial_opt/single_belief/seed=123: fail=40.0% stuck=0.0% safe=60.0%
+      adversarial_opt/envelope/seed=123: fail=50.0% stuck=2.5% safe=47.5%
+      adversarial_opt/forward_sampling/seed=123: fail=42.5% stuck=2.5% safe=55.0%
+      uniform/single_belief/seed=456: fail=35.0% stuck=0.0% safe=65.0%
+      uniform/envelope/seed=456: fail=37.5% stuck=5.0% safe=57.5%
+      uniform/forward_sampling/seed=456: fail=30.0% stuck=2.5% safe=67.5%
+      adversarial_opt/single_belief/seed=456: fail=40.0% stuck=0.0% safe=60.0%
+      adversarial_opt/envelope/seed=456: fail=30.0% stuck=0.0% safe=70.0%
+      adversarial_opt/forward_sampling/seed=456: fail=35.0% stuck=2.5% safe=62.5%
+      uniform/single_belief/seed=789: fail=37.5% stuck=0.0% safe=62.5%
+      uniform/envelope/seed=789: fail=37.5% stuck=10.0% safe=52.5%
+      uniform/forward_sampling/seed=789: fail=35.0% stuck=2.5% safe=62.5%
+      adversarial_opt/single_belief/seed=789: fail=45.0% stuck=0.0% safe=55.0%
+      adversarial_opt/envelope/seed=789: fail=47.5% stuck=0.0% safe=52.5%
+      adversarial_opt/forward_sampling/seed=789: fail=42.5% stuck=0.0% safe=57.5%
+      uniform/single_belief/seed=1024: fail=50.0% stuck=0.0% safe=50.0%
+      uniform/envelope/seed=1024: fail=40.0% stuck=5.0% safe=55.0%
+      uniform/forward_sampling/seed=1024: fail=32.5% stuck=0.0% safe=67.5%
+      adversarial_opt/single_belief/seed=1024: fail=52.5% stuck=0.0% safe=47.5%
+      adversarial_opt/envelope/seed=1024: fail=37.5% stuck=5.0% safe=57.5%
+      adversarial_opt/forward_sampling/seed=1024: fail=47.5% stuck=0.0% safe=52.5%
+
+  --- beta = 0.8 ---
+    Loading cached adversarial realization (envelope) for alpha=0.01, beta=0.8
+      uniform/single_belief/seed=42: fail=37.5% stuck=0.0% safe=62.5%
+      uniform/envelope/seed=42: fail=30.0% stuck=10.0% safe=60.0%
+      uniform/forward_sampling/seed=42: fail=20.0% stuck=5.0% safe=75.0%
+      adversarial_opt/single_belief/seed=42: fail=35.0% stuck=0.0% safe=65.0%
+      adversarial_opt/envelope/seed=42: fail=37.5% stuck=10.0% safe=52.5%
+      adversarial_opt/forward_sampling/seed=42: fail=25.0% stuck=7.5% safe=67.5%
+      uniform/single_belief/seed=123: fail=45.0% stuck=0.0% safe=55.0%
+      uniform/envelope/seed=123: fail=50.0% stuck=2.5% safe=47.5%
+      uniform/forward_sampling/seed=123: fail=40.0% stuck=7.5% safe=52.5%
+      adversarial_opt/single_belief/seed=123: fail=42.5% stuck=0.0% safe=57.5%
+      adversarial_opt/envelope/seed=123: fail=42.5% stuck=2.5% safe=55.0%
+      adversarial_opt/forward_sampling/seed=123: fail=42.5% stuck=5.0% safe=52.5%
+      uniform/single_belief/seed=456: fail=35.0% stuck=0.0% safe=65.0%
+      uniform/envelope/seed=456: fail=37.5% stuck=5.0% safe=57.5%
+      uniform/forward_sampling/seed=456: fail=35.0% stuck=5.0% safe=60.0%
+      adversarial_opt/single_belief/seed=456: fail=40.0% stuck=2.5% safe=57.5%
+      adversarial_opt/envelope/seed=456: fail=32.5% stuck=10.0% safe=57.5%
+      adversarial_opt/forward_sampling/seed=456: fail=27.5% stuck=0.0% safe=72.5%
+      uniform/single_belief/seed=789: fail=40.0% stuck=0.0% safe=60.0%
+      uniform/envelope/seed=789: fail=47.5% stuck=0.0% safe=52.5%
+      uniform/forward_sampling/seed=789: fail=30.0% stuck=5.0% safe=65.0%
+      adversarial_opt/single_belief/seed=789: fail=42.5% stuck=0.0% safe=57.5%
+      adversarial_opt/envelope/seed=789: fail=42.5% stuck=7.5% safe=50.0%
+      adversarial_opt/forward_sampling/seed=789: fail=37.5% stuck=0.0% safe=62.5%
+      uniform/single_belief/seed=1024: fail=30.0% stuck=2.5% safe=67.5%
+      uniform/envelope/seed=1024: fail=37.5% stuck=7.5% safe=55.0%
+      uniform/forward_sampling/seed=1024: fail=42.5% stuck=2.5% safe=55.0%
+      adversarial_opt/single_belief/seed=1024: fail=50.0% stuck=0.0% safe=50.0%
+      adversarial_opt/envelope/seed=1024: fail=47.5% stuck=7.5% safe=45.0%
+      adversarial_opt/forward_sampling/seed=1024: fail=57.5% stuck=7.5% safe=35.0%
+
+  --- beta = 0.9 ---
+    Loading cached adversarial realization (envelope) for alpha=0.01, beta=0.9
+      uniform/single_belief/seed=42: fail=30.0% stuck=7.5% safe=62.5%
+      uniform/envelope/seed=42: fail=35.0% stuck=22.5% safe=42.5%
+      uniform/forward_sampling/seed=42: fail=22.5% stuck=20.0% safe=57.5%
+      adversarial_opt/single_belief/seed=42: fail=32.5% stuck=5.0% safe=62.5%
+      adversarial_opt/envelope/seed=42: fail=35.0% stuck=25.0% safe=40.0%
+      adversarial_opt/forward_sampling/seed=42: fail=27.5% stuck=20.0% safe=52.5%
+      uniform/single_belief/seed=123: fail=42.5% stuck=2.5% safe=55.0%
+      uniform/envelope/seed=123: fail=35.0% stuck=17.5% safe=47.5%
+      uniform/forward_sampling/seed=123: fail=45.0% stuck=5.0% safe=50.0%
+      adversarial_opt/single_belief/seed=123: fail=40.0% stuck=2.5% safe=57.5%
+      adversarial_opt/envelope/seed=123: fail=32.5% stuck=12.5% safe=55.0%
+      adversarial_opt/forward_sampling/seed=123: fail=37.5% stuck=12.5% safe=50.0%
+      uniform/single_belief/seed=456: fail=35.0% stuck=5.0% safe=60.0%
+      uniform/envelope/seed=456: fail=27.5% stuck=20.0% safe=52.5%
+      uniform/forward_sampling/seed=456: fail=37.5% stuck=10.0% safe=52.5%
+      adversarial_opt/single_belief/seed=456: fail=27.5% stuck=2.5% safe=70.0%
+      adversarial_opt/envelope/seed=456: fail=25.0% stuck=15.0% safe=60.0%
+      adversarial_opt/forward_sampling/seed=456: fail=25.0% stuck=22.5% safe=52.5%
+      uniform/single_belief/seed=789: fail=42.5% stuck=0.0% safe=57.5%
+      uniform/envelope/seed=789: fail=35.0% stuck=22.5% safe=42.5%
+      uniform/forward_sampling/seed=789: fail=37.5% stuck=20.0% safe=42.5%
+      adversarial_opt/single_belief/seed=789: fail=35.0% stuck=0.0% safe=65.0%
+      adversarial_opt/envelope/seed=789: fail=42.5% stuck=7.5% safe=50.0%
+      adversarial_opt/forward_sampling/seed=789: fail=45.0% stuck=17.5% safe=37.5%
+      uniform/single_belief/seed=1024: fail=22.5% stuck=2.5% safe=75.0%
+      uniform/envelope/seed=1024: fail=27.5% stuck=15.0% safe=57.5%
+      uniform/forward_sampling/seed=1024: fail=32.5% stuck=5.0% safe=62.5%
+      adversarial_opt/single_belief/seed=1024: fail=30.0% stuck=5.0% safe=65.0%
+      adversarial_opt/envelope/seed=1024: fail=45.0% stuck=17.5% safe=37.5%
+      adversarial_opt/forward_sampling/seed=1024: fail=40.0% stuck=15.0% safe=45.0%
+
+======================================================================
+ALPHA = 0.025
+======================================================================
+  Loading cached RL agent for alpha=0.025
+
+  --- beta = 0.7 ---
+    Loading cached adversarial realization (envelope) for alpha=0.025, beta=0.7
+      uniform/single_belief/seed=42: fail=42.5% stuck=0.0% safe=57.5%
+      uniform/envelope/seed=42: fail=42.5% stuck=2.5% safe=55.0%
+      uniform/forward_sampling/seed=42: fail=32.5% stuck=2.5% safe=65.0%
+      adversarial_opt/single_belief/seed=42: fail=30.0% stuck=0.0% safe=70.0%
+      adversarial_opt/envelope/seed=42: fail=37.5% stuck=5.0% safe=57.5%
+      adversarial_opt/forward_sampling/seed=42: fail=42.5% stuck=2.5% safe=55.0%
+      uniform/single_belief/seed=123: fail=35.0% stuck=0.0% safe=65.0%
+      uniform/envelope/seed=123: fail=37.5% stuck=12.5% safe=50.0%
+      uniform/forward_sampling/seed=123: fail=32.5% stuck=0.0% safe=67.5%
+      adversarial_opt/single_belief/seed=123: fail=47.5% stuck=2.5% safe=50.0%
+      adversarial_opt/envelope/seed=123: fail=37.5% stuck=2.5% safe=60.0%
+      adversarial_opt/forward_sampling/seed=123: fail=27.5% stuck=5.0% safe=67.5%
+      uniform/single_belief/seed=456: fail=42.5% stuck=0.0% safe=57.5%
+      uniform/envelope/seed=456: fail=45.0% stuck=5.0% safe=50.0%
+      uniform/forward_sampling/seed=456: fail=40.0% stuck=5.0% safe=55.0%
+      adversarial_opt/single_belief/seed=456: fail=52.5% stuck=0.0% safe=47.5%
+      adversarial_opt/envelope/seed=456: fail=37.5% stuck=2.5% safe=60.0%
+      adversarial_opt/forward_sampling/seed=456: fail=35.0% stuck=0.0% safe=65.0%
+      uniform/single_belief/seed=789: fail=50.0% stuck=0.0% safe=50.0%
+      uniform/envelope/seed=789: fail=47.5% stuck=0.0% safe=52.5%
+      uniform/forward_sampling/seed=789: fail=47.5% stuck=0.0% safe=52.5%
+      adversarial_opt/single_belief/seed=789: fail=45.0% stuck=0.0% safe=55.0%
+      adversarial_opt/envelope/seed=789: fail=52.5% stuck=10.0% safe=37.5%
+      adversarial_opt/forward_sampling/seed=789: fail=52.5% stuck=2.5% safe=45.0%
+      uniform/single_belief/seed=1024: fail=47.5% stuck=0.0% safe=52.5%
+      uniform/envelope/seed=1024: fail=45.0% stuck=5.0% safe=50.0%
+      uniform/forward_sampling/seed=1024: fail=40.0% stuck=2.5% safe=57.5%
+      adversarial_opt/single_belief/seed=1024: fail=65.0% stuck=0.0% safe=35.0%
+      adversarial_opt/envelope/seed=1024: fail=55.0% stuck=0.0% safe=45.0%
+      adversarial_opt/forward_sampling/seed=1024: fail=55.0% stuck=0.0% safe=45.0%
+
+  --- beta = 0.8 ---
+    Loading cached adversarial realization (envelope) for alpha=0.025, beta=0.8
+      uniform/single_belief/seed=42: fail=47.5% stuck=0.0% safe=52.5%
+      uniform/envelope/seed=42: fail=37.5% stuck=5.0% safe=57.5%
+      uniform/forward_sampling/seed=42: fail=35.0% stuck=5.0% safe=60.0%
+      adversarial_opt/single_belief/seed=42: fail=32.5% stuck=2.5% safe=65.0%
+      adversarial_opt/envelope/seed=42: fail=40.0% stuck=7.5% safe=52.5%
+      adversarial_opt/forward_sampling/seed=42: fail=30.0% stuck=5.0% safe=65.0%
+      uniform/single_belief/seed=123: fail=35.0% stuck=0.0% safe=65.0%
+      uniform/envelope/seed=123: fail=27.5% stuck=12.5% safe=60.0%
+      uniform/forward_sampling/seed=123: fail=42.5% stuck=2.5% safe=55.0%
+      adversarial_opt/single_belief/seed=123: fail=40.0% stuck=0.0% safe=60.0%
+      adversarial_opt/envelope/seed=123: fail=45.0% stuck=2.5% safe=52.5%
+      adversarial_opt/forward_sampling/seed=123: fail=37.5% stuck=2.5% safe=60.0%
+      uniform/single_belief/seed=456: fail=35.0% stuck=0.0% safe=65.0%
+      uniform/envelope/seed=456: fail=32.5% stuck=10.0% safe=57.5%
+      uniform/forward_sampling/seed=456: fail=35.0% stuck=2.5% safe=62.5%
+      adversarial_opt/single_belief/seed=456: fail=35.0% stuck=2.5% safe=62.5%
+      adversarial_opt/envelope/seed=456: fail=37.5% stuck=5.0% safe=57.5%
+      adversarial_opt/forward_sampling/seed=456: fail=42.5% stuck=0.0% safe=57.5%
+      uniform/single_belief/seed=789: fail=55.0% stuck=0.0% safe=45.0%
+      uniform/envelope/seed=789: fail=37.5% stuck=12.5% safe=50.0%
+      uniform/forward_sampling/seed=789: fail=45.0% stuck=0.0% safe=55.0%
+      adversarial_opt/single_belief/seed=789: fail=42.5% stuck=0.0% safe=57.5%
+      adversarial_opt/envelope/seed=789: fail=27.5% stuck=7.5% safe=65.0%
+      adversarial_opt/forward_sampling/seed=789: fail=42.5% stuck=2.5% safe=55.0%
+      uniform/single_belief/seed=1024: fail=50.0% stuck=0.0% safe=50.0%
+      uniform/envelope/seed=1024: fail=35.0% stuck=5.0% safe=60.0%
+      uniform/forward_sampling/seed=1024: fail=47.5% stuck=2.5% safe=50.0%
+      adversarial_opt/single_belief/seed=1024: fail=45.0% stuck=0.0% safe=55.0%
+      adversarial_opt/envelope/seed=1024: fail=30.0% stuck=10.0% safe=60.0%
+      adversarial_opt/forward_sampling/seed=1024: fail=52.5% stuck=2.5% safe=45.0%
+
+  --- beta = 0.9 ---
+    Loading cached adversarial realization (envelope) for alpha=0.025, beta=0.9
+      uniform/single_belief/seed=42: fail=37.5% stuck=2.5% safe=60.0%
+      uniform/envelope/seed=42: fail=22.5% stuck=17.5% safe=60.0%
+      uniform/forward_sampling/seed=42: fail=25.0% stuck=15.0% safe=60.0%
+      adversarial_opt/single_belief/seed=42: fail=35.0% stuck=0.0% safe=65.0%
+      adversarial_opt/envelope/seed=42: fail=20.0% stuck=25.0% safe=55.0%
+      adversarial_opt/forward_sampling/seed=42: fail=20.0% stuck=17.5% safe=62.5%
+      uniform/single_belief/seed=123: fail=42.5% stuck=7.5% safe=50.0%
+      uniform/envelope/seed=123: fail=40.0% stuck=22.5% safe=37.5%
+      uniform/forward_sampling/seed=123: fail=32.5% stuck=15.0% safe=52.5%
+      adversarial_opt/single_belief/seed=123: fail=40.0% stuck=0.0% safe=60.0%
+      adversarial_opt/envelope/seed=123: fail=40.0% stuck=5.0% safe=55.0%
+      adversarial_opt/forward_sampling/seed=123: fail=32.5% stuck=15.0% safe=52.5%
+      uniform/single_belief/seed=456: fail=50.0% stuck=2.5% safe=47.5%
+      uniform/envelope/seed=456: fail=25.0% stuck=22.5% safe=52.5%
+      uniform/forward_sampling/seed=456: fail=47.5% stuck=7.5% safe=45.0%
+      adversarial_opt/single_belief/seed=456: fail=42.5% stuck=2.5% safe=55.0%
+      adversarial_opt/envelope/seed=456: fail=35.0% stuck=15.0% safe=50.0%
+      adversarial_opt/forward_sampling/seed=456: fail=37.5% stuck=7.5% safe=55.0%
+      uniform/single_belief/seed=789: fail=45.0% stuck=2.5% safe=52.5%
+      uniform/envelope/seed=789: fail=40.0% stuck=7.5% safe=52.5%
+      uniform/forward_sampling/seed=789: fail=27.5% stuck=15.0% safe=57.5%
+      adversarial_opt/single_belief/seed=789: fail=42.5% stuck=5.0% safe=52.5%
+      adversarial_opt/envelope/seed=789: fail=30.0% stuck=15.0% safe=55.0%
+      adversarial_opt/forward_sampling/seed=789: fail=30.0% stuck=20.0% safe=50.0%
+      uniform/single_belief/seed=1024: fail=42.5% stuck=2.5% safe=55.0%
+      uniform/envelope/seed=1024: fail=47.5% stuck=20.0% safe=32.5%
+      uniform/forward_sampling/seed=1024: fail=37.5% stuck=17.5% safe=45.0%
+      adversarial_opt/single_belief/seed=1024: fail=40.0% stuck=2.5% safe=57.5%
+      adversarial_opt/envelope/seed=1024: fail=25.0% stuck=25.0% safe=50.0%
+      adversarial_opt/forward_sampling/seed=1024: fail=42.5% stuck=10.0% safe=47.5%
+
+======================================================================
+ALPHA = 0.05
+======================================================================
+  Loading cached RL agent for alpha=0.05
+
+  --- beta = 0.7 ---
+    Loading cached adversarial realization (envelope) for alpha=0.05, beta=0.7
+      uniform/single_belief/seed=42: fail=42.5% stuck=0.0% safe=57.5%
+      uniform/envelope/seed=42: fail=27.5% stuck=5.0% safe=67.5%
+      uniform/forward_sampling/seed=42: fail=45.0% stuck=0.0% safe=55.0%
+      adversarial_opt/single_belief/seed=42: fail=40.0% stuck=0.0% safe=60.0%
+      adversarial_opt/envelope/seed=42: fail=42.5% stuck=2.5% safe=55.0%
+      adversarial_opt/forward_sampling/seed=42: fail=37.5% stuck=0.0% safe=62.5%
+      uniform/single_belief/seed=123: fail=20.0% stuck=0.0% safe=80.0%
+      uniform/envelope/seed=123: fail=35.0% stuck=0.0% safe=65.0%
+      uniform/forward_sampling/seed=123: fail=25.0% stuck=2.5% safe=72.5%
+      adversarial_opt/single_belief/seed=123: fail=37.5% stuck=2.5% safe=60.0%
+      adversarial_opt/envelope/seed=123: fail=52.5% stuck=2.5% safe=45.0%
+      adversarial_opt/forward_sampling/seed=123: fail=42.5% stuck=5.0% safe=52.5%
+      uniform/single_belief/seed=456: fail=40.0% stuck=0.0% safe=60.0%
+      uniform/envelope/seed=456: fail=32.5% stuck=5.0% safe=62.5%
+      uniform/forward_sampling/seed=456: fail=47.5% stuck=5.0% safe=47.5%
+      adversarial_opt/single_belief/seed=456: fail=42.5% stuck=0.0% safe=57.5%
+      adversarial_opt/envelope/seed=456: fail=37.5% stuck=2.5% safe=60.0%
+      adversarial_opt/forward_sampling/seed=456: fail=42.5% stuck=2.5% safe=55.0%
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/experiments/sweeps/rl_alpha_sweep.py", line 531, in <module>
+    main()
+  File "/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/experiments/sweeps/rl_alpha_sweep.py", line 527, in main
+    run_alpha_sweep(config)
+  File "/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/experiments/sweeps/rl_alpha_sweep.py", line 231, in run_alpha_sweep
+    trial_results = run_monte_carlo_trials(
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/MonteCarlo/simulation.py", line 196, in run_monte_carlo_trials
+    result = run_single_trial(
+             ^^^^^^^^^^^^^^^^^
+  File "/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/MonteCarlo/simulation.py", line 98, in run_single_trial
+    allowed_actions = rt_shield.next_actions((obs, action))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/Evaluation/runtime_shield.py", line 96, in next_actions
+    action_shielded_prob = self.get_action_probs()
+                           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/Evaluation/runtime_shield.py", line 67, in get_action_probs
+    allowed_prob = self.ipomdp_belief.minimum_allowed_probability(allowed_states)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/Propagators/lfp_propagator.py", line 364, in minimum_allowed_probability
+    return self.belief.minimum_allowed_prob(allowed)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/Propagators/belief_polytope.py", line 132, in minimum_allowed_prob
+    return -self.maximize_linear(-c)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/ipomdp_shielding/ipomdp_shielding_/ipomdp_shielding/Propagators/belief_polytope.py", line 114, in maximize_linear
+    raise RuntimeError(f"LP failed: {res.message}")
+RuntimeError: LP failed: The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)
+      uniform/single_belief/seed=789: fail=37.5% stuck=0.0% safe=62.5%
+      uniform/envelope/seed=789: fail=50.0% stuck=7.5% safe=42.5%
+      uniform/forward_sampling/seed=789: fail=52.5% stuck=0.0% safe=47.5%
+      adversarial_opt/single_belief/seed=789: fail=40.0% stuck=0.0% safe=60.0%
+      adversarial_opt/envelope/seed=789: fail=37.5% stuck=0.0% safe=62.5%
+      adversarial_opt/forward_sampling/seed=789: fail=40.0% stuck=0.0% safe=60.0%
+      uniform/single_belief/seed=1024: fail=42.5% stuck=0.0% safe=57.5%
+      uniform/envelope/seed=1024: fail=42.5% stuck=2.5% safe=55.0%
+      uniform/forward_sampling/seed=1024: fail=47.5% stuck=0.0% safe=52.5%
+      adversarial_opt/single_belief/seed=1024: fail=30.0% stuck=0.0% safe=70.0%
+      adversarial_opt/envelope/seed=1024: fail=32.5% stuck=0.0% safe=67.5%
+      adversarial_opt/forward_sampling/seed=1024: fail=37.5% stuck=2.5% safe=60.0%
+
+  --- beta = 0.8 ---
+    Loading cached adversarial realization (envelope) for alpha=0.05, beta=0.8
+      uniform/single_belief/seed=42: fail=42.5% stuck=0.0% safe=57.5%
+      uniform/envelope/seed=42: fail=47.5% stuck=2.5% safe=50.0%
+      uniform/forward_sampling/seed=42: fail=50.0% stuck=0.0% safe=50.0%
+      adversarial_opt/single_belief/seed=42: fail=35.0% stuck=0.0% safe=65.0%
+      adversarial_opt/envelope/seed=42: fail=42.5% stuck=7.5% safe=50.0%
+      adversarial_opt/forward_sampling/seed=42: fail=40.0% stuck=5.0% safe=55.0%
+      uniform/single_belief/seed=123: fail=35.0% stuck=0.0% safe=65.0%
+      uniform/envelope/seed=123: fail=22.5% stuck=0.0% safe=77.5%
+      uniform/forward_sampling/seed=123: fail=37.5% stuck=0.0% safe=62.5%
+      adversarial_opt/single_belief/seed=123: fail=32.5% stuck=2.5% safe=65.0%
+      adversarial_opt/envelope/seed=123: fail=25.0% stuck=10.0% safe=65.0%
+      adversarial_opt/forward_sampling/seed=123: fail=40.0% stuck=2.5% safe=57.5%
+      uniform/single_belief/seed=456: fail=52.5% stuck=0.0% safe=47.5%
+      uniform/envelope/seed=456: fail=27.5% stuck=2.5% safe=70.0%
+      uniform/forward_sampling/seed=456: fail=37.5% stuck=2.5% safe=60.0%
+      adversarial_opt/single_belief/seed=456: fail=45.0% stuck=0.0% safe=55.0%
+      adversarial_opt/envelope/seed=456: fail=30.0% stuck=12.5% safe=57.5%
+      adversarial_opt/forward_sampling/seed=456: fail=37.5% stuck=7.5% safe=55.0%
+      uniform/single_belief/seed=789: fail=37.5% stuck=0.0% safe=62.5%
+      uniform/envelope/seed=789: fail=40.0% stuck=2.5% safe=57.5%
+      uniform/forward_sampling/seed=789: fail=40.0% stuck=2.5% safe=57.5%
+      adversarial_opt/single_belief/seed=789: fail=32.5% stuck=0.0% safe=67.5%
+      adversarial_opt/envelope/seed=789: fail=37.5% stuck=0.0% safe=62.5%
+      adversarial_opt/forward_sampling/seed=789: fail=32.5% stuck=0.0% safe=67.5%
+      uniform/single_belief/seed=1024: fail=45.0% stuck=0.0% safe=55.0%
+      uniform/envelope/seed=1024: fail=42.5% stuck=5.0% safe=52.5%
+      uniform/forward_sampling/seed=1024: fail=37.5% stuck=5.0% safe=57.5%
+      adversarial_opt/single_belief/seed=1024: fail=52.5% stuck=0.0% safe=47.5%
+      adversarial_opt/envelope/seed=1024: fail=37.5% stuck=2.5% safe=60.0%
+      adversarial_opt/forward_sampling/seed=1024: fail=32.5% stuck=0.0% safe=67.5%
+
+  --- beta = 0.9 ---
+    Loading cached adversarial realization (envelope) for alpha=0.05, beta=0.9
+      uniform/single_belief/seed=42: fail=42.5% stuck=0.0% safe=57.5%
+      uniform/envelope/seed=42: fail=12.5% stuck=17.5% safe=70.0%
+      uniform/forward_sampling/seed=42: fail=35.0% stuck=10.0% safe=55.0%
+      adversarial_opt/single_belief/seed=42: fail=27.5% stuck=2.5% safe=70.0%
+      adversarial_opt/envelope/seed=42: fail=45.0% stuck=25.0% safe=30.0%
+      adversarial_opt/forward_sampling/seed=42: fail=25.0% stuck=22.5% safe=52.5%
+      uniform/single_belief/seed=123: fail=27.5% stuck=5.0% safe=67.5%
+      uniform/envelope/seed=123: fail=20.0% stuck=12.5% safe=67.5%
+      uniform/forward_sampling/seed=123: fail=27.5% stuck=12.5% safe=60.0%
+      adversarial_opt/single_belief/seed=123: fail=40.0% stuck=2.5% safe=57.5%
+      adversarial_opt/envelope/seed=123: fail=40.0% stuck=10.0% safe=50.0%
+      adversarial_opt/forward_sampling/seed=123: fail=32.5% stuck=2.5% safe=65.0%
+      uniform/single_belief/seed=456: fail=50.0% stuck=0.0% safe=50.0%
+      uniform/envelope/seed=456: fail=37.5% stuck=15.0% safe=47.5%
+      uniform/forward_sampling/seed=456: fail=42.5% stuck=5.0% safe=52.5%
+      adversarial_opt/single_belief/seed=456: fail=40.0% stuck=0.0% safe=60.0%
+      adversarial_opt/envelope/seed=456: fail=32.5% stuck=5.0% safe=62.5%
+      adversarial_opt/forward_sampling/seed=456: fail=32.5% stuck=2.5% safe=65.0%
+      uniform/single_belief/seed=789: fail=52.5% stuck=0.0% safe=47.5%
+      uniform/envelope/seed=789: fail=27.5% stuck=17.5% safe=55.0%
+      uniform/forward_sampling/seed=789: fail=40.0% stuck=10.0% safe=50.0%
+      adversarial_opt/single_belief/seed=789: fail=35.0% stuck=2.5% safe=62.5%
+      adversarial_opt/envelope/seed=789: fail=30.0% stuck=15.0% safe=55.0%
+      adversarial_opt/forward_sampling/seed=789: fail=42.5% stuck=12.5% safe=45.0%
+      uniform/single_belief/seed=1024: fail=37.5% stuck=2.5% safe=60.0%
+      uniform/envelope/seed=1024: fail=47.5% stuck=20.0% safe=32.5%
+      uniform/forward_sampling/seed=1024: fail=40.0% stuck=12.5% safe=47.5%
+      adversarial_opt/single_belief/seed=1024: fail=30.0% stuck=0.0% safe=70.0%

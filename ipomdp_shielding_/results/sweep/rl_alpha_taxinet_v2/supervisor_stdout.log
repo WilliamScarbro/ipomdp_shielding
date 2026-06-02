@@ -1,0 +1,7 @@
+[2026-06-01 22:03:27] ==========================================
+[2026-06-01 22:03:27] Supervisor started. MAX_RESTARTS=8
+[2026-06-01 22:03:27] ==========================================
+[2026-06-01 22:03:27] Started sweep run 1 (PID 2666596) log -> run_log_supervisor_run1.txt
+[2026-06-02 03:39:15] Sweep PID 2666596 exited.
+[2026-06-02 03:39:15] sweep_summary.json found — sweep complete.
+[2026-06-02 03:39:15] Committing and pushing results...
